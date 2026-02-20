@@ -20,8 +20,8 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install Python dependencies
-        run: pip install pytest lxml
+      - name: Install uv
+        run: pip install uv
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -36,6 +36,6 @@ jobs:
         working-directory: xform-rs
 
       - name: Run tests
-        run: python -m pytest tests/ -v
+        run: uv sync --extra dev && uv run python -m pytest tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
