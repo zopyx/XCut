@@ -12,6 +12,7 @@ KEYWORDS = {
     "as",
     "ns",
     "def",
+    "var",
     "let",
     "in",
     "for",
@@ -31,7 +32,7 @@ KEYWORDS = {
     "rule",
 }
 
-OPERATORS = {"=", "!=", "<", "<=", ">", ">=", "+", "-", "*"}
+OPERATORS = {"=", "!=", "<", "<=", ">", ">=", "+", "-", "*", ":="}
 PUNCT = {"(", ")", "{", "}", "[", "]", ",", ";", ":"}
 
 
@@ -89,6 +90,11 @@ class Lexer:
         if ch in "(){}[],:;":
             self.pos += 1
             return Token("PUNCT", ch, self.pos - 1)
+
+        if ch == ":" and self.pos + 1 < len(self.text) and self.text[self.pos + 1] == "=":
+            start = self.pos
+            self.pos += 2
+            return Token("OP", ":=", start)
 
         if ch == ".":
             start = self.pos
@@ -191,42 +197,123 @@ class Parser:
 
     def parse_module(self) -> ast.Module:
         functions = {}
+        rules: dict[str, List[ast.RuleDef]] = {}
         vars_decl = {}
+        namespaces: dict[str, str] = {}
+        imports: List[Tuple[str, Optional[str]]] = []
 
         tok = self.lexer.peek()
         if tok.kind == "KW" and tok.value == "xform":
             self.lexer.next()
             self.lexer.expect("KW", "version")
-            self.lexer.expect("STRING")
+            version = self.lexer.expect("STRING").value
+            if version != "2.0":
+                raise SyntaxError("XFST0005: unsupported version")
             self.lexer.expect("PUNCT", ";")
 
         while True:
             tok = self.lexer.peek()
+            if tok.kind == "KW" and tok.value == "ns":
+                self._parse_ns(namespaces)
+                continue
+            if tok.kind == "KW" and tok.value == "import":
+                self._parse_import(imports)
+                continue
+            if tok.kind == "KW" and tok.value == "var":
+                name, value = self._parse_var()
+                vars_decl[name] = value
+                continue
             if tok.kind == "KW" and tok.value == "def":
                 self._parse_def(functions)
                 continue
+            if tok.kind == "KW" and tok.value == "rule":
+                self._parse_rule(rules)
+                continue
             break
 
-        expr = self.parse_expr()
+        expr = None
         if self.lexer.peek().kind != "EOF":
-            raise SyntaxError(f"Unexpected token at {self.lexer.peek().pos}")
-        return ast.Module(functions=functions, vars=vars_decl, expr=expr)
+            expr = self.parse_expr()
+            if self.lexer.peek().kind != "EOF":
+                raise SyntaxError(f"Unexpected token at {self.lexer.peek().pos}")
+        return ast.Module(
+            functions=functions,
+            rules=rules,
+            vars=vars_decl,
+            namespaces=namespaces,
+            imports=imports,
+            expr=expr,
+        )
+
+    def _parse_ns(self, namespaces: dict) -> None:
+        self.lexer.expect("KW", "ns")
+        prefix = self.lexer.expect("STRING").value
+        self.lexer.expect("OP", "=")
+        uri = self.lexer.expect("STRING").value
+        self.lexer.expect("PUNCT", ";")
+        namespaces[prefix] = uri
+
+    def _parse_import(self, imports: list) -> None:
+        self.lexer.expect("KW", "import")
+        iri = self.lexer.expect("STRING").value
+        alias = None
+        if self.lexer.peek().kind == "KW" and self.lexer.peek().value == "as":
+            self.lexer.next()
+            alias = self.lexer.expect("IDENT").value
+        self.lexer.expect("PUNCT", ";")
+        imports.append((iri, alias))
+
+    def _parse_var(self) -> Tuple[str, ast.Expr]:
+        self.lexer.expect("KW", "var")
+        name = self.lexer.expect("IDENT").value
+        self.lexer.expect("OP", ":=")
+        value = self.parse_expr()
+        self.lexer.expect("PUNCT", ";")
+        return name, value
 
     def _parse_def(self, functions: dict) -> None:
         self.lexer.expect("KW", "def")
         name = self._parse_qname()
         self.lexer.expect("PUNCT", "(")
-        params = []
+        params: List[ast.Param] = []
         if self.lexer.peek().kind != "PUNCT" or self.lexer.peek().value != ")":
-            params.append(self.lexer.expect("IDENT").value)
+            params.append(self._parse_param())
             while self.lexer.peek().kind == "PUNCT" and self.lexer.peek().value == ",":
                 self.lexer.next()
-                params.append(self.lexer.expect("IDENT").value)
+                params.append(self._parse_param())
         self.lexer.expect("PUNCT", ")")
-        self.lexer.expect("OP", "=")
+        self.lexer.expect("OP", ":=")
         body = self.parse_expr()
         self.lexer.expect("PUNCT", ";")
-        functions[name] = (params, body)
+        functions[name] = ast.FunctionDef(params, body)
+
+    def _parse_param(self) -> ast.Param:
+        name = self.lexer.expect("IDENT").value
+        type_ref = None
+        default = None
+        if self.lexer.peek().kind == "PUNCT" and self.lexer.peek().value == ":":
+            self.lexer.next()
+            type_ref = self._parse_type_ref()
+        if self.lexer.peek().kind == "OP" and self.lexer.peek().value == ":=":
+            self.lexer.next()
+            default = self.parse_expr()
+        return ast.Param(name, type_ref, default)
+
+    def _parse_type_ref(self) -> str:
+        tok = self.lexer.peek()
+        if tok.kind == "IDENT" and tok.value in ("string", "number", "boolean", "null", "map"):
+            return self.lexer.next().value
+        return self._parse_qname()
+
+    def _parse_rule(self, rules: dict) -> None:
+        self.lexer.expect("KW", "rule")
+        name = self._parse_qname()
+        self.lexer.expect("KW", "match")
+        pattern = self._parse_pattern()
+        self.lexer.expect("OP", ":=")
+        body = self.parse_expr()
+        self.lexer.expect("PUNCT", ";")
+        rules.setdefault(name, []).append(ast.RuleDef(pattern, body))
 
     def parse_expr(self) -> ast.Expr:
         tok = self.lexer.peek()
@@ -252,7 +339,7 @@ class Parser:
     def _parse_let(self) -> ast.Expr:
         self.lexer.expect("KW", "let")
         name = self.lexer.expect("IDENT").value
-        self.lexer.expect("OP", "=")
+        self.lexer.expect("OP", ":=")
         value = self.parse_expr()
         self.lexer.expect("KW", "in")
         body = self.parse_expr()
@@ -378,6 +465,14 @@ class Parser:
             expr = self.parse_expr()
             self.lexer.expect("PUNCT", ")")
             return expr
+        if tok.kind == "IDENT" and tok.value == "text":
+            self.lexer.next()
+            if self.lexer.peek().kind == "PUNCT" and self.lexer.peek().value == "{":
+                self.lexer.next()
+                expr = self.parse_expr()
+                self.lexer.expect("PUNCT", "}")
+                return ast.TextConstructor(expr)
+            self.lexer._buffer = tok
         if tok.kind == "OP" and tok.value == "<":
             return self._parse_constructor()
         if tok.kind in ("DOT", "SLASH"):
@@ -428,7 +523,7 @@ class Parser:
             if tok.kind in ("IDENT", "OP") or (tok.kind == "IDENT" and tok.value in ("text", "node", "comment", "pi")):
                 test = self._parse_step_test()
                 predicates = self._parse_predicates()
-                steps.append(ast.PathStep("desc", test, predicates))
+                steps.append(ast.PathStep("desc_or_self", test, predicates))
         while True:
             tok = self.lexer.peek()
             if tok.kind == "SLASH":
@@ -447,7 +542,12 @@ class Parser:
             if tok.kind == "DOT":
                 if tok.value == ".":
                     self.lexer.next()
-                    steps.append(ast.PathStep("self", ast.StepTest("node"), []))
+                    if self.lexer.peek().kind == "AT":
+                        self.lexer.next()
+                        test = ast.StepTest("name", self._parse_qname())
+                        steps.append(ast.PathStep("attr", test, []))
+                    else:
+                        steps.append(ast.PathStep("self", ast.StepTest("node"), []))
                     continue
                 if tok.value == "..":
                     self.lexer.next()
@@ -489,6 +589,10 @@ class Parser:
 
     def _parse_pattern(self) -> ast.Pattern:
         tok = self.lexer.peek()
+        if tok.kind == "AT":
+            self.lexer.next()
+            name = self._parse_qname()
+            return ast.AttributePattern(name)
         if tok.kind == "IDENT" and tok.value in ("node", "text", "comment"):
             self.lexer.next()
             self.lexer.expect("PUNCT", "(")
@@ -501,16 +605,23 @@ class Parser:
             self.lexer.next()
             name = self._parse_qname()
             self.lexer.expect("OP", ">")
-            self.lexer.expect("PUNCT", "{")
-            var = self.lexer.expect("IDENT").value
-            self.lexer.expect("PUNCT", "}")
+            var: Optional[str] = None
+            child: Optional[ast.Pattern] = None
+            if self.lexer.peek().kind == "PUNCT" and self.lexer.peek().value == "{":
+                self.lexer.next()
+                var = self.lexer.expect("IDENT").value
+                self.lexer.expect("PUNCT", "}")
+            elif self.lexer.peek().kind == "OP" and self.lexer.peek().value == "<":
+                child = self._parse_pattern()
+            else:
+                raise SyntaxError("Invalid element pattern content")
             self.lexer.expect("OP", "<")
             self.lexer.expect("SLASH", "/")
             end = self._parse_qname()
             if end != name:
                 raise SyntaxError("Mismatched pattern end tag")
             self.lexer.expect("OP", ">")
-            return ast.ElementPattern(name, var)
+            return ast.ElementPattern(name, var=var, child=child)
         raise SyntaxError(f"Invalid pattern at {tok.pos}")
 
     def _parse_constructor(self) -> ast.Constructor:
@@ -526,7 +637,7 @@ class Parser:
                 self.lexer.next()
                 self.lexer.expect("OP", ">")
                 return ast.Constructor(name, attrs, [])
-            attr_name = self.lexer.expect("IDENT").value
+            attr_name = self._parse_qname()
             self.lexer.expect("OP", "=")
             self.lexer.expect("PUNCT", "{")
             expr = self.parse_expr()
@@ -544,6 +655,14 @@ class Parser:
                 self.lexer.pos = new_pos
                 self.lexer._buffer = None
                 break
+            if self.text.startswith("text{", self.lexer.pos):
+                self.lexer.pos += 4
+                self.lexer._buffer = None
+                self.lexer.expect("PUNCT", "{")
+                expr = self.parse_expr()
+                self.lexer.expect("PUNCT", "}")
+                contents.append(ast.TextConstructor(expr))
+                continue
             ch = self.text[self.lexer.pos]
             if ch == "<":
                 self.lexer._buffer = None

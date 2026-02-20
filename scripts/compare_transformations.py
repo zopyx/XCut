@@ -30,9 +30,24 @@ def run_xform(xform: Path, xml: Path) -> str:
 
 
 def normalize_xml(text: str) -> str:
-    wrapped = f"<_root>{text}</_root>"
+    stripped = text.lstrip()
+    if stripped.startswith("<?xml"):
+        stripped = stripped.split("?>", 1)[1]
+    wrapped = f"<_root>{stripped}</_root>"
     root = ET.fromstring(wrapped)
+    _strip_ws(root)
+    if root.text is not None:
+        root.text = root.text.lstrip()
     return ET.tostring(root, encoding="unicode")
+
+
+def _strip_ws(elem: ET.Element) -> None:
+    if elem.text is not None and elem.text.strip() == "":
+        elem.text = ""
+    if elem.tail is not None and elem.tail.strip() == "":
+        elem.tail = ""
+    for child in list(elem):
+        _strip_ws(child)
 
 
 def main() -> int:

@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+import subprocess
+from pathlib import Path
+import shutil
+import sys
+import xml.etree.ElementTree as ET
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+FIXTURES = ROOT / "tests" / "fixtures"
+
+
+def _run_xslt(xslt: Path, xml: Path) -> str:
+    if shutil.which("xsltproc") is None:
+        pytest.skip("xsltproc not available")
+    result = subprocess.run(
+        ["xsltproc", str(xslt), str(xml)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _run_xform(xform: Path, xml: Path) -> str:
+    result = subprocess.run(
+        [sys.executable, "-m", "xform.cli", str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _normalize_xml(text: str) -> str:
+    stripped = text.lstrip()
+    if stripped.startswith("<?xml"):
+        stripped = stripped.split("?>", 1)[1]
+    wrapped = f"<_root>{stripped}</_root>"
+    root = ET.fromstring(wrapped)
+    _strip_ws(root)
+    if root.text is not None:
+        root.text = root.text.lstrip()
+    return ET.tostring(root, encoding="unicode")
+
+
+def _strip_ws(elem: ET.Element) -> None:
+    if elem.text is not None and elem.text.strip() == "":
+        elem.text = ""
+    if elem.tail is not None and elem.tail.strip() == "":
+        elem.tail = ""
+    for child in list(elem):
+        _strip_ws(child)
+
+
+def _cases():
+    return sorted(p for p in FIXTURES.iterdir() if p.is_dir())
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+    expected = case / "expected.xml"
+
+    xslt_out = _run_xslt(xslt, xml)
+    xform_out = _run_xform(xform, xml)
+
+    if expected.exists():
+        expected_out = expected.read_text(encoding="utf-8").strip()
+    else:
+        expected_out = xslt_out
+
+    assert _normalize_xml(xslt_out) == _normalize_xml(expected_out)
+    assert _normalize_xml(xform_out) == _normalize_xml(xslt_out)

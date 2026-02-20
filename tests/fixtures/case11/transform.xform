@@ -1,0 +1,17 @@
+xform version "1.0";
+
+def primaryKey(t) = string(t/primary/text());
+
+def secondaryKey(t) = string(t/secondary/text());
+
+def groupKey(g) = string(lookup(g, "key"));
+
+<indexdoc>{
+  for g in sort(groupBy(.//indexterm, primaryKey), groupKey) return
+    for t in sort(lookup(g, "items"), secondaryKey) return
+      seq(
+        <primaryterm>{ t/primary/text() }</primaryterm>,
+        <secondaryterm>{ t/secondary/text() }</secondaryterm>,
+        <tertiaryterm>{ t/tertiary/text() }</tertiaryterm>
+      )
+}</indexdoc>

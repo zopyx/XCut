@@ -7,8 +7,11 @@ from typing import List, Optional, Tuple
 @dataclass
 class Module:
     functions: dict
+    rules: dict
     vars: dict
-    expr: "Expr"
+    namespaces: dict
+    imports: list
+    expr: "Expr | None"
 
 
 class Expr:
@@ -87,6 +90,11 @@ class Constructor(Expr):
 
 
 @dataclass
+class TextConstructor(Expr):
+    expr: Expr
+
+
+@dataclass
 class Text(Expr):
     value: str
 
@@ -130,9 +138,34 @@ class WildcardPattern(Pattern):
 @dataclass
 class ElementPattern(Pattern):
     name: str
-    var: str
+    var: str | None = None
+    child: "Pattern | None" = None
 
 
 @dataclass
 class TypedPattern(Pattern):
     kind: str  # 'node', 'text', 'comment'
+
+
+@dataclass
+class AttributePattern(Pattern):
+    name: str
+
+
+@dataclass
+class Param:
+    name: str
+    type_ref: str | None = None
+    default: Expr | None = None
+
+
+@dataclass
+class FunctionDef:
+    params: List[Param]
+    body: Expr
+
+
+@dataclass
+class RuleDef:
+    pattern: Pattern
+    body: Expr

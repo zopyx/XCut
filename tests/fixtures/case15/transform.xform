@@ -1,0 +1,32 @@
+xform version "1.0";
+
+<html>{
+  <table border={1}>
+    {
+      for g in .//game return
+        seq(
+          <tr>{
+            seq(
+              <td>Inning</td>,
+              for i in g/innings/inning return <td>{ i/num/text() }</td>,
+              <td>final</td>
+            )
+          }</tr>,
+          <tr>{
+            seq(
+              <td><b>{ g/home/text() }</b></td>,
+              for i in g/innings/inning return <td>{ i/home/runs/text() }</td>,
+              <td>{ sum(g/innings/inning/home/runs/text()) }</td>
+            )
+          }</tr>,
+          <tr>{
+            seq(
+              <td><b>{ g/visitors/text() }</b></td>,
+              for i in g/innings/inning return <td>{ i/visitors/runs/text() }</td>,
+              <td>{ sum(g/innings/inning/visitors/runs/text()) }</td>
+            )
+          }</tr>
+        )
+    }
+  </table>
+}</html>

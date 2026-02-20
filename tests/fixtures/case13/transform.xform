@@ -1,0 +1,7 @@
+xform version "1.0";
+
+for a in .//article return
+  seq(
+    <h3>{ text(a/title) }</h3>,
+    for p in a/para return <p>{ text(p) }</p>
+  )

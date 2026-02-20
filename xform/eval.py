@@ -11,15 +11,21 @@ from .xmlmodel import Node, deep_copy, iter_descendants, serialize
 class Context:
     context_item: Optional[Any]
     variables: Dict[str, List[Any]]
-    functions: Dict[str, Any]
+    functions: Dict[str, ast.FunctionDef]
+    rules: Dict[str, List[ast.RuleDef]]
+    position: Optional[int] = None
+    last: Optional[int] = None
 
 
 def eval_module(module: ast.Module, doc: Node) -> List[Any]:
     functions = dict(module.functions)
+    rules = dict(module.rules)
     variables: Dict[str, List[Any]] = {}
-    ctx = Context(context_item=doc, variables=variables, functions=functions)
+    ctx = Context(context_item=doc, variables=variables, functions=functions, rules=rules)
     for name, expr in module.vars.items():
         variables[name] = eval_expr(expr, ctx)
+    if module.expr is None:
+        return []
     return eval_expr(module.expr, ctx)
 
 
@@ -31,7 +37,13 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
             return ctx.variables[expr.name]
         if expr.name in ctx.functions:
             return [FunctionRef(expr.name)]
-        raise RuntimeError(f"Unbound variable {expr.name}")
+        if isinstance(ctx.context_item, Node):
+            return [
+                child
+                for child in ctx.context_item.children
+                if child.kind == "element" and child.name == expr.name
+            ]
+        return []
     if isinstance(expr, ast.IfExpr):
         cond = to_boolean(eval_expr(expr.cond, ctx))
         return eval_expr(expr.then_expr, ctx) if cond else eval_expr(expr.else_expr, ctx)
@@ -39,14 +51,25 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         value = eval_expr(expr.value, ctx)
         new_vars = dict(ctx.variables)
         new_vars[expr.name] = value
-        return eval_expr(expr.body, Context(ctx.context_item, new_vars, ctx.functions))
+        return eval_expr(
+            expr.body,
+            Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
+        )
     if isinstance(expr, ast.ForExpr):
         seq = eval_expr(expr.seq, ctx)
         out: List[Any] = []
-        for item in seq:
+        total = len(seq)
+        for idx, item in enumerate(seq, start=1):
             new_vars = dict(ctx.variables)
             new_vars[expr.name] = [item]
-            new_ctx = Context(context_item=item, variables=new_vars, functions=ctx.functions)
+            new_ctx = Context(
+                context_item=item,
+                variables=new_vars,
+                functions=ctx.functions,
+                rules=ctx.rules,
+                position=idx,
+                last=total,
+            )
             if expr.where is not None:
                 if not to_boolean(eval_expr(expr.where, new_ctx)):
                     continue
@@ -54,16 +77,46 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         return out
     if isinstance(expr, ast.MatchExpr):
         target_seq = eval_expr(expr.target, ctx)
-        target = target_seq[0] if target_seq else None
-        for pattern, body in expr.cases:
-            matched, bindings = match_pattern(pattern, target)
-            if matched:
-                new_vars = dict(ctx.variables)
-                new_vars.update(bindings)
-                return eval_expr(body, Context(target, new_vars, ctx.functions))
-        if expr.default is None:
-            raise RuntimeError("XFDY0001: no matching case")
-        return eval_expr(expr.default, ctx)
+        out: List[Any] = []
+        for target in target_seq:
+            matched_any = False
+            for pattern, body in expr.cases:
+                matched, bindings = match_pattern(pattern, target)
+                if matched:
+                    matched_any = True
+                    new_vars = dict(ctx.variables)
+                    new_vars.update(bindings)
+                    out.extend(
+                        eval_expr(
+                            body,
+                            Context(
+                                target,
+                                new_vars,
+                                ctx.functions,
+                                ctx.rules,
+                                ctx.position,
+                                ctx.last,
+                            ),
+                        )
+                    )
+                    break
+            if not matched_any:
+                if expr.default is None:
+                    raise RuntimeError("XFDY0001: no matching case")
+                out.extend(
+                    eval_expr(
+                        expr.default,
+                        Context(
+                            target,
+                            dict(ctx.variables),
+                            ctx.functions,
+                            ctx.rules,
+                            ctx.position,
+                            ctx.last,
+                        ),
+                    )
+                )
+        return out
     if isinstance(expr, ast.FuncCall):
         args = [eval_expr(a, ctx) for a in expr.args]
         return call_function(expr.name, args, ctx)
@@ -74,6 +127,18 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         if expr.op == "not":
             return [not to_boolean(val)]
     if isinstance(expr, ast.BinaryOp):
+        if expr.op == "and":
+            left = eval_expr(expr.left, ctx)
+            if not to_boolean(left):
+                return [False]
+            right = eval_expr(expr.right, ctx)
+            return [to_boolean(right)]
+        if expr.op == "or":
+            left = eval_expr(expr.left, ctx)
+            if to_boolean(left):
+                return [True]
+            right = eval_expr(expr.right, ctx)
+            return [to_boolean(right)]
         left = eval_expr(expr.left, ctx)
         right = eval_expr(expr.right, ctx)
         return [eval_binary(expr.op, left, right)]
@@ -81,6 +146,8 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         return eval_path(expr, ctx)
     if isinstance(expr, ast.Constructor):
         return [eval_constructor(expr, ctx)]
+    if isinstance(expr, ast.TextConstructor):
+        return [Node(kind="text", value=to_string(eval_expr(expr.expr, ctx)))]
     if isinstance(expr, ast.Text):
         return [expr.value]
     if isinstance(expr, ast.Interp):
@@ -172,6 +239,9 @@ def apply_step(items: List[Any], step: ast.PathStep, ctx: Context) -> List[Any]:
             candidates = [item]
         elif step.axis == "parent":
             candidates = [item.parent] if item.parent is not None else []
+        elif step.axis == "desc_or_self":
+            candidates = [item]
+            candidates.extend(list(iter_descendants(item)))
         elif step.axis == "desc":
             candidates = list(iter_descendants(item))
         elif step.axis == "attr":
@@ -256,13 +326,20 @@ class FunctionRef:
 
 def call_function(name: str, args: List[List[Any]], ctx: Context) -> List[Any]:
     if name in ctx.functions:
-        params, body = ctx.functions[name]
-        if len(params) != len(args):
+        func = ctx.functions[name]
+        params = func.params
+        body = func.body
+        if len(args) > len(params):
             raise RuntimeError("XFDY0002: wrong arity")
         new_vars = dict(ctx.variables)
         for param, value in zip(params, args):
-            new_vars[param] = value
-        new_ctx = Context(ctx.context_item, new_vars, ctx.functions)
+            new_vars[param.name] = value
+        if len(args) < len(params):
+            for param in params[len(args) :]:
+                if param.default is None:
+                    raise RuntimeError("XFDY0002: wrong arity")
+                new_vars[param.name] = eval_expr(param.default, ctx)
+        new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last)
         return eval_expr(body, new_ctx)
 
     fn = BUILTINS.get(name)
@@ -455,6 +532,13 @@ def _fn_sort(args: List[List[Any]], ctx: Context) -> List[Any]:
     if not args:
         return []
     seq = args[0]
+    key_fn = None
+    if len(args) > 1 and args[1]:
+        candidate = args[1][0]
+        if isinstance(candidate, FunctionRef):
+            key_fn = candidate.name
+    if key_fn:
+        return sorted(seq, key=lambda i: to_string(call_function(key_fn, [[i]], ctx)))
     return sorted(seq, key=lambda i: to_string([i]))
 
 
@@ -508,6 +592,22 @@ def _fn_group_by(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [{"key": k, "items": v} for k, v in groups.items()]
 
 
+def _fn_seq(args: List[List[Any]], ctx: Context) -> List[Any]:
+    out: List[Any] = []
+    for seq in args:
+        out.extend(seq)
+    return out
+
+
+def _fn_sum(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if not args:
+        return [0.0]
+    total = 0.0
+    for item in args[0]:
+        total += to_number([item])
+    return [total]
+
+
 BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
     "string": _fn_string,
     "number": _fn_number,
@@ -526,4 +626,6 @@ BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
     "index": _fn_index,
     "lookup": _fn_lookup,
     "groupBy": _fn_group_by,
+    "seq": _fn_seq,
+    "sum": _fn_sum,
 }
