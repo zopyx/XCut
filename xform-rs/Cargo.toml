@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 xmltree = "0.10"
+xml-rs = "0.8"
 
 [lib]
 name = "xform"

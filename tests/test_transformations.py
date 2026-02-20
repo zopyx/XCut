@@ -55,6 +55,21 @@ def _strip_ws(elem: ET.Element) -> None:
         _strip_ws(child)
 
 
+RUST_XFORM_BIN = ROOT / "xform-rs" / "target" / "release" / "xform"
+
+
+def _run_rust_xform(xform: Path, xml: Path) -> str:
+    if not RUST_XFORM_BIN.exists():
+        pytest.skip("Rust xform binary not built")
+    result = subprocess.run(
+        [str(RUST_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
 def _cases():
     return sorted(p for p in FIXTURES.iterdir() if p.is_dir())
 
@@ -76,3 +91,15 @@ def test_xform_matches_xslt(case: Path) -> None:
 
     assert _normalize_xml(xslt_out) == _normalize_xml(expected_out)
     assert _normalize_xml(xform_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_rust_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    rust_out = _run_rust_xform(xform, xml)
+
+    assert _normalize_xml(rust_out) == _normalize_xml(xslt_out)

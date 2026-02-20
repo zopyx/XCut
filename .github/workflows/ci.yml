@@ -6,8 +6,8 @@ on:
   pull_request:
 
 jobs:
-  python:
-    name: Python & XSLT tests
+  python-and-rust:
+    name: Python, XSLT & Rust tests
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,19 @@ jobs:
       - name: Install Python dependencies
         run: pip install pytest lxml
 
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: xform-rs
+
+      - name: Build Rust xform binary
+        run: cargo build --release
+        working-directory: xform-rs
+
       - name: Run tests
         run: python -m pytest tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
-
