@@ -64,7 +64,7 @@ Run it:
 
 ```bash
 # Python
-python -m xform input.xml transform.xform
+python -m zopyx.xform input.xml transform.xform
 
 # Rust
 xform input.xml transform.xform
@@ -91,7 +91,7 @@ Clone the repository and run directly:
 ```bash
 git clone https://github.com/your-org/xcut.git
 cd xcut
-python -m xform input.xml transform.xform
+python -m zopyx.xform input.xml transform.xform
 ```
 
 To run the test suite you also need `pytest`, `lxml`, and `xsltproc`:
@@ -116,11 +116,11 @@ source .venv/bin/activate
 uv pip install pytest lxml
 ```
 
-For development, set `PYTHONPATH` to the repository root so the `xform` package resolves:
+For development, set `PYTHONPATH` to the repository root so the `zopyx.xform` package resolves:
 
 ```bash
 export PYTHONPATH=/path/to/xcut
-python -m xform input.xml transform.xform
+python -m zopyx.xform input.xml transform.xform
 ```
 
 ### Rust
@@ -174,8 +174,8 @@ The result is written to standard output. Errors are written to standard error.
 **Python:**
 
 ```bash
-python -m xform input.xml transform.xform
-python -m xform input.xml transform.xform > output.xml
+python -m zopyx.xform input.xml transform.xform
+python -m zopyx.xform input.xml transform.xform > output.xml
 ```
 
 **Rust:**

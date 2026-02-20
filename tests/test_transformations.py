@@ -26,7 +26,7 @@ def _run_xslt(xslt: Path, xml: Path) -> str:
 
 def _run_xform(xform: Path, xml: Path) -> str:
     result = subprocess.run(
-        [sys.executable, "-m", "xform.cli", str(xml), str(xform)],
+        [sys.executable, "-m", "zopyx.xform.cli", str(xml), str(xform)],
         check=True,
         capture_output=True,
         text=True,

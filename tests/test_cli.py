@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from xform import cli
+from zopyx.xform import cli
 
 
 def test_cli_main_outputs_transformation(tmp_path: Path, capsys) -> None:

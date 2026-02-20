@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "zopyx.xform"
+version = "0.1.0"
+description = "XForm 2.0 reference implementation in Python"
+readme = "README.md"
+requires-python = ">=3.10"
+
+[project.scripts]
+xform = "zopyx.xform.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["zopyx*", "xform"]

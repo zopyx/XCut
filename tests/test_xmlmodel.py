@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from xform.xmlmodel import (
+from zopyx.xform.xmlmodel import (
     Node,
     deep_copy,
     iter_descendants,

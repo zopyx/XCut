@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from xform import ast
-from xform.eval import (
+from zopyx.xform import ast
+from zopyx.xform.eval import (
     Context,
     FunctionRef,
     apply_step,
@@ -19,7 +19,7 @@ from xform.eval import (
     to_string,
     value_equal,
 )
-from xform.xmlmodel import Node
+from zopyx.xform.xmlmodel import Node
 
 
 def _doc_with_children() -> Node:

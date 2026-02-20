@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from xform.parser import Lexer, Parser
-from xform import ast
+from zopyx.xform.parser import Lexer, Parser
+from zopyx.xform import ast
 
 
 def test_lexer_basic_tokens_and_comments() -> None:
