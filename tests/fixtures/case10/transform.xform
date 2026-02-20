@@ -1,0 +1,5 @@
+xform version "1.0";
+
+<flags>{
+  if (.//flag and .//missing) then "both" else "not-both"
+}</flags>

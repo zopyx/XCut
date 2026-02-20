@@ -1,0 +1,5 @@
+<products>
+  <product id="p1"><price>5</price></product>
+  <product id="p2"><price>25</price></product>
+  <product id="p3"><price>20</price></product>
+</products>

@@ -1,0 +1,10 @@
+<catalog>
+  <item id="1">
+    <name>Alpha</name>
+    <price>9.5</price>
+  </item>
+  <item id="2">
+    <name>Beta</name>
+    <price>12</price>
+  </item>
+</catalog>

@@ -1,0 +1,5 @@
+xform version "1.0";
+
+<tags>{
+  for t in sort(distinct(.//tag/text())) return <tag>{ t }</tag>
+}</tags>

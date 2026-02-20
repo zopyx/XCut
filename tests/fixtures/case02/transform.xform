@@ -1,0 +1,8 @@
+xform version "1.0";
+
+<labels>{
+  for p in .//product return
+    <label id={string(p/@id)}>
+      { if number(p/price/text()) > 20 then "expensive" else "cheap" }
+    </label>
+}</labels>

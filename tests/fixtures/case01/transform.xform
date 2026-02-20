@@ -1,0 +1,11 @@
+xform version "1.0";
+
+def itemToEntry(i) =
+  <entry id={string(i/@id)}>
+    <title>{ i/name/text() }</title>
+    <price currency={"EUR"}>{ number(i/price/text()) }</price>
+  </entry>;
+
+<feed>{
+  for i in .//item return itemToEntry(i)
+}</feed>

@@ -1,0 +1,5 @@
+xform version "1.0";
+
+<names>{
+  for e in elements(./*) return <n>{ name(e) }</n>
+}</names>

@@ -1,0 +1,9 @@
+xform version "1.0";
+
+<out>{
+  for n in ./*/* return
+    match n:
+      case <a>{x}</a> => <A>{ x }</A>;
+      case <b>{x}</b> => <B>{ x }</B>;
+      default => <Other>{ string(n) }</Other>;
+}</out>
