@@ -520,6 +520,20 @@ class Parser:
                 raise SyntaxError(f"Invalid path start at {tok.pos}")
 
         steps: List[ast.PathStep] = []
+        if start.kind in ("root", "context", "var"):
+            tok = self.lexer.peek()
+            if tok.kind == "AT":
+                self.lexer.next()
+                test = ast.StepTest("name", self._parse_qname())
+                steps.append(ast.PathStep("attr", test, []))
+            elif tok.kind == "OP" and tok.value == "*":
+                test = self._parse_step_test()
+                predicates = self._parse_predicates()
+                steps.append(ast.PathStep("child", test, predicates))
+            elif tok.kind == "IDENT":
+                test = self._parse_step_test()
+                predicates = self._parse_predicates()
+                steps.append(ast.PathStep("child", test, predicates))
         if start.kind in ("desc", "desc_root"):
             tok = self.lexer.peek()
             if tok.kind in ("IDENT", "OP") or (tok.kind == "IDENT" and tok.value in ("text", "node", "comment", "pi")):

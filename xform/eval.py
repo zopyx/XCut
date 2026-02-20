@@ -160,6 +160,10 @@ def eval_binary(op: str, left: List[Any], right: List[Any]) -> Any:
         return to_boolean(left) and to_boolean(right)
     if op == "or":
         return to_boolean(left) or to_boolean(right)
+    if op == "=":
+        return value_equal(left, right)
+    if op == "!=":
+        return not value_equal(left, right)
     lnum = to_number(left)
     rnum = to_number(right)
     if op == "+":
@@ -172,10 +176,6 @@ def eval_binary(op: str, left: List[Any], right: List[Any]) -> Any:
         return lnum / rnum
     if op == "mod":
         return lnum % rnum
-    if op == "=":
-        return value_equal(left, right)
-    if op == "!=":
-        return not value_equal(left, right)
     if op == "<":
         return lnum < rnum
     if op == "<=":
@@ -290,7 +290,7 @@ def _matches_test(node: Node, test: ast.StepTest) -> bool:
     if test.kind == "node":
         return True
     if test.kind == "wildcard":
-        return node.kind == "element"
+        return node.kind in ("element", "attribute")
     if test.kind == "text":
         return node.kind == "text"
     if test.kind == "comment":
