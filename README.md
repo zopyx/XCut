@@ -30,7 +30,8 @@ This repository contains:
 7. [Error Reference](#error-reference)
 8. [Running Tests](#running-tests)
 9. [Repository Layout](#repository-layout)
-10. [Language Design Notes](#language-design-notes)
+10. [Comparison to XSLT](#comparison-to-xslt)
+11. [Language Design Notes](#language-design-notes)
 
 ---
 
