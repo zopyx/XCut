@@ -252,6 +252,11 @@ def apply_step(items: List[Any], step: ast.PathStep, ctx: Context) -> List[Any]:
                         candidates = [Node(kind="attribute", name=name, value=item.attrs[name])]
                     else:
                         candidates = []
+                elif step.test.kind == "wildcard":
+                    candidates = [
+                        Node(kind="attribute", name=k, value=v)
+                        for k, v in item.attrs.items()
+                    ]
                 else:
                     candidates = []
             else:
@@ -272,7 +277,7 @@ def apply_step(items: List[Any], step: ast.PathStep, ctx: Context) -> List[Any]:
                 to_boolean(
                     eval_expr(
                         pred,
-                        Context(cand, dict(ctx.variables), ctx.functions),
+                        Context(cand, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last),
                     )
                 )
                 for pred in step.predicates
@@ -397,6 +402,10 @@ def value_equal(left: List[Any], right: List[Any]) -> bool:
 def match_pattern(pattern: ast.Pattern, item: Any) -> tuple[bool, Dict[str, List[Any]]]:
     if isinstance(pattern, ast.WildcardPattern):
         return True, {}
+    if isinstance(pattern, ast.AttributePattern):
+        if isinstance(item, Node) and item.kind == "attribute" and item.name == pattern.name:
+            return True, {}
+        return False, {}
     if isinstance(pattern, ast.TypedPattern):
         if item is None:
             return False, {}
@@ -409,7 +418,18 @@ def match_pattern(pattern: ast.Pattern, item: Any) -> tuple[bool, Dict[str, List
         return False, {}
     if isinstance(pattern, ast.ElementPattern):
         if isinstance(item, Node) and item.kind == "element" and item.name == pattern.name:
-            return True, {pattern.var: item.children}
+            bindings: Dict[str, List[Any]] = {}
+            if pattern.var is not None:
+                bindings[pattern.var] = list(item.children)
+                return True, bindings
+            if pattern.child is not None:
+                for child in item.children:
+                    matched, child_bindings = match_pattern(pattern.child, child)
+                    if matched:
+                        bindings.update(child_bindings)
+                        return True, bindings
+                return False, {}
+            return True, {}
         return False, {}
     return False, {}
 
@@ -434,6 +454,8 @@ def _fn_typeof(args: List[List[Any]], ctx: Context) -> List[Any]:
     item = args[0][0]
     if isinstance(item, Node):
         return ["node"]
+    if isinstance(item, dict):
+        return ["map"]
     if isinstance(item, bool):
         return ["boolean"]
     if isinstance(item, (int, float)):
@@ -454,16 +476,14 @@ def _fn_name(args: List[List[Any]], ctx: Context) -> List[Any]:
 
 def _fn_attr(args: List[List[Any]], ctx: Context) -> List[Any]:
     if not args or not args[0]:
-        return []
+        return [""]
     node = args[0][0]
     if not isinstance(node, Node) or node.kind != "element":
-        return []
+        return [""]
     if len(args) < 2:
-        return []
+        return [""]
     key = to_string(args[1])
-    if key in node.attrs:
-        return [Node(kind="attribute", name=key, value=node.attrs[key])]
-    return []
+    return [node.attrs.get(key, "")]
 
 
 def _fn_text(args: List[List[Any]], ctx: Context) -> List[Any]:
@@ -471,6 +491,18 @@ def _fn_text(args: List[List[Any]], ctx: Context) -> List[Any]:
         return [""]
     node = args[0][0]
     if isinstance(node, Node):
+        deep = True
+        if len(args) > 1:
+            deep = to_boolean(args[1])
+        if deep:
+            return [node.string_value()]
+        if node.kind in ("element", "document"):
+            direct = "".join(
+                child.value or ""
+                for child in node.children
+                if isinstance(child, Node) and child.kind == "text"
+            )
+            return [direct]
         return [node.string_value()]
     return [to_string(args[0])]
 
@@ -503,7 +535,10 @@ def _fn_copy(args: List[List[Any]], ctx: Context) -> List[Any]:
     node = args[0][0]
     if not isinstance(node, Node):
         return []
-    return [deep_copy(node)]
+    recurse = True
+    if len(args) > 1:
+        recurse = to_boolean(args[1])
+    return [deep_copy(node, recurse=recurse)]
 
 
 def _fn_count(args: List[List[Any]], ctx: Context) -> List[Any]:
@@ -540,6 +575,36 @@ def _fn_sort(args: List[List[Any]], ctx: Context) -> List[Any]:
     if key_fn:
         return sorted(seq, key=lambda i: to_string(call_function(key_fn, [[i]], ctx)))
     return sorted(seq, key=lambda i: to_string([i]))
+
+
+def _fn_concat(args: List[List[Any]], ctx: Context) -> List[Any]:
+    out: List[Any] = []
+    for seq in args:
+        out.extend(seq)
+    return out
+
+
+def _fn_head(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if not args or not args[0]:
+        return []
+    return [args[0][0]]
+
+
+def _fn_tail(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if not args or not args[0]:
+        return []
+    return list(args[0][1:])
+
+
+def _fn_last(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if not args or not args[0]:
+        if ctx.last is None:
+            return []
+        return [float(ctx.last)]
+    seq = args[0]
+    if not seq:
+        return []
+    return [seq[-1]]
 
 
 def _fn_index(args: List[List[Any]], ctx: Context) -> List[Any]:
@@ -599,6 +664,41 @@ def _fn_seq(args: List[List[Any]], ctx: Context) -> List[Any]:
     return out
 
 
+def _fn_position(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if ctx.position is None:
+        return []
+    return [float(ctx.position)]
+
+
+def _fn_apply(args: List[List[Any]], ctx: Context) -> List[Any]:
+    if not args:
+        return []
+    seq = args[0]
+    ruleset = "main"
+    if len(args) > 1 and args[1]:
+        ruleset = to_string(args[1])
+    rules = ctx.rules.get(ruleset, [])
+    out: List[Any] = []
+    for item in seq:
+        matched = False
+        for rule in rules:
+            ok, bindings = match_pattern(rule.pattern, item)
+            if ok:
+                matched = True
+                new_vars = dict(ctx.variables)
+                new_vars.update(bindings)
+                out.extend(
+                    eval_expr(
+                        rule.body,
+                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
+                    )
+                )
+                break
+        if not matched:
+            raise RuntimeError("XFDY0001: no matching rule")
+    return out
+
+
 def _fn_sum(args: List[List[Any]], ctx: Context) -> List[Any]:
     if not args:
         return [0.0]
@@ -623,9 +723,15 @@ BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
     "empty": _fn_empty,
     "distinct": _fn_distinct,
     "sort": _fn_sort,
+    "concat": _fn_concat,
     "index": _fn_index,
     "lookup": _fn_lookup,
     "groupBy": _fn_group_by,
     "seq": _fn_seq,
     "sum": _fn_sum,
+    "head": _fn_head,
+    "tail": _fn_tail,
+    "last": _fn_last,
+    "position": _fn_position,
+    "apply": _fn_apply,
 }

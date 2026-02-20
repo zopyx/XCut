@@ -1,6 +1,6 @@
-xform version "1.0";
+xform version "2.0";
 
-def itemToEntry(i) =
+def itemToEntry(i) :=
   <entry id={string(i/@id)}>
     <title>{ i/name/text() }</title>
     <price currency={"EUR"}>{ number(i/price/text()) }</price>

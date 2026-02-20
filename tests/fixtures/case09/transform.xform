@@ -1,4 +1,4 @@
-xform version "1.0";
+xform version "2.0";
 
 <expensive>{
   for i in .//item[number(price/text()) > 10] return

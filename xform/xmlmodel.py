@@ -51,11 +51,12 @@ def _build_element(el: ET.Element) -> Node:
     return node
 
 
-def deep_copy(node: Node) -> Node:
+def deep_copy(node: Node, recurse: bool = True) -> Node:
     copied = Node(kind=node.kind, name=node.name, value=node.value, attrs=dict(node.attrs))
-    copied.children = [deep_copy(c) for c in node.children]
-    for c in copied.children:
-        c.parent = copied
+    if recurse:
+        copied.children = [deep_copy(c, recurse=recurse) for c in node.children]
+        for c in copied.children:
+            c.parent = copied
     return copied
 
 

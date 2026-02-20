@@ -1,4 +1,4 @@
-xform version "1.0";
+xform version "2.0";
 
-let u = .//user in
+let u := .//user in
   <summary total={count(u)} empty={empty(u)} />

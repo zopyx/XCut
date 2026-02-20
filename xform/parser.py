@@ -87,14 +87,13 @@ class Lexer:
 
         ch = self.text[self.pos]
 
-        if ch in "(){}[],:;":
-            self.pos += 1
-            return Token("PUNCT", ch, self.pos - 1)
-
         if ch == ":" and self.pos + 1 < len(self.text) and self.text[self.pos + 1] == "=":
             start = self.pos
             self.pos += 2
             return Token("OP", ":=", start)
+        if ch in "(){}[],:;":
+            self.pos += 1
+            return Token("PUNCT", ch, self.pos - 1)
 
         if ch == ".":
             start = self.pos
@@ -466,13 +465,16 @@ class Parser:
             self.lexer.expect("PUNCT", ")")
             return expr
         if tok.kind == "IDENT" and tok.value == "text":
+            saved_pos = self.lexer.pos
+            saved_buf = self.lexer._buffer
             self.lexer.next()
             if self.lexer.peek().kind == "PUNCT" and self.lexer.peek().value == "{":
                 self.lexer.next()
                 expr = self.parse_expr()
                 self.lexer.expect("PUNCT", "}")
                 return ast.TextConstructor(expr)
-            self.lexer._buffer = tok
+            self.lexer.pos = saved_pos
+            self.lexer._buffer = saved_buf
         if tok.kind == "OP" and tok.value == "<":
             return self._parse_constructor()
         if tok.kind in ("DOT", "SLASH"):
