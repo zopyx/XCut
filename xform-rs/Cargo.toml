@@ -1,0 +1,16 @@
+[package]
+name = "xform"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+xmltree = "0.10"
+
+[lib]
+name = "xform"
+path = "src/lib.rs"
+
+[[bin]]
+name = "xform"
+path = "src/bin/xform.rs"
+
