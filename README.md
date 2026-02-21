@@ -217,7 +217,7 @@ xform-swift/.build/release/xform-swift input.xml transform.xform
 
 ### Command-Line Interface
 
-Both implementations use the same interface:
+All implementations use the same interface:
 
 ```
 xform <input.xml> <transform.xform>
@@ -928,6 +928,9 @@ xcut/
 │   └── xmlmodel.py                XML parsing, serialization, tree model
 │
 ├── xform-rs/                      Rust implementation
+├── xform-ts/                      TypeScript implementation
+├── xform-go/                      Go implementation
+├── xform-swift/                   Swift implementation
 │   ├── Cargo.toml
 │   └── src/
 │       ├── lib.rs                 Library crate root
@@ -940,7 +943,7 @@ xcut/
 │           └── xform.rs           CLI binary
 │
 ├── tests/
-│   ├── test_transformations.py    Main test suite (Python + Rust)
+│   ├── test_transformations.py    Main test suite (Python + language CLIs)
 │   ├── test_parser.py             Parser unit tests
 │   ├── test_xmlmodel.py           XML model unit tests
 │   └── fixtures/
