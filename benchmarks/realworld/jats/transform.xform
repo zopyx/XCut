@@ -1,0 +1,29 @@
+xform version "2.0";
+
+def textOf(n) := string(n);
+
+def authorName(a) :=
+  let given := textOf(a/name/given-names/text()) in
+  let surname := textOf(a/name/surname/text()) in
+  if given and surname then concat(given, " ", surname) else concat(given, surname);
+
+let title := textOf(.//article-title[1]/text()) in
+let journal := textOf(.//journal-title[1]/text()) in
+let year := textOf(.//pub-date[1]/year/text()) in
+let authors := .//contrib[./@contrib-type="author"] in
+
+<summary>
+  <title>{title}</title>
+  <journal>{journal}</journal>
+  <year>{year}</year>
+  <authors count={count(authors)}>
+    {for a in authors return <author>{authorName(a)}</author>}
+  </authors>
+  <metrics
+    sections={count(.//sec)}
+    paragraphs={count(.//p)}
+    figures={count(.//fig)}
+    tables={count(.//table-wrap)}
+    refs={count(.//ref-list//ref)}
+    floats={count(.//floats-group)} />
+</summary>
