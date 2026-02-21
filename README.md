@@ -919,6 +919,33 @@ swift   median 0.1831s (runs: 0.1811, 0.1831, 0.1867)
 
 Full benchmark details and environment are tracked in `BENCHMARKS.md`.
 
+#### Real-World JATS Benchmark
+
+A real-world benchmark uses a full-text JATS article (downloaded from Europe PMC) and the NCBI JATS Preview Stylesheets. It runs:
+
+- XForm summary transformation across all languages
+- An equivalent XSLT 1.0 summary transformation (`xsltproc`)
+- The full JATS HTML stylesheet (`jats-html.xsl`, `xsltproc`)
+
+Run it with:
+
+```bash
+uv run scripts/bench_realworld_jats.py
+```
+
+Tuning options:
+
+```bash
+XF_BENCH_LANGS=python,rust,ts,go,swift  # select languages
+XF_BENCH_RUNS=3                        # timed runs
+XF_BENCH_WARMUP=1                      # warmup runs
+XF_BENCH_JATS_SOURCE=pmc               # pmc (default) or vendor
+XF_BENCH_JATS_PMCID=PMC2231364         # Europe PMC fullTextXML ID (pmc source)
+XF_BENCH_JATS_INPUT=userguide.xml      # vendor input (vendor source)
+```
+
+Results are recorded in `BENCHMARKS.md`, including the exact input source and environment.
+
 ### Test Output
 
 ```

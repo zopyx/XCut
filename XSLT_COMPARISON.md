@@ -69,5 +69,27 @@ XForm defines specific static and dynamic error codes (e.g., syntax, import cycl
 ## When Each Is a Better Fit
 XForm 2.0 is likely a better fit for compact, readable XML reshaping where the transformation is most easily expressed as constructors plus simple path expressions. XSLT is likely a better fit for large, rule‑driven transformations, complex matching logic with modes, and environments that depend on mature tooling, standards compliance, and high‑performance processors.
 
+## Example: JATS Summary (XSLT vs XForm)
+This example corresponds to the real‑world benchmark in `benchmarks/realworld/jats/` and compares the summary transforms `transform.xsl` and `transform.xform`.
+
+### What Both Transforms Do
+Both versions:
+1. Extract the first `article-title`, `journal-title`, and `pub-date/year`.
+2. Collect author names from `contrib[@contrib-type="author"]`.
+3. Emit a `<summary>` element with `<authors>` and `<metrics>` counts.
+
+### Key Differences
+1. **Selection / filtering**
+   XSLT uses `//contrib[@contrib-type='author']`. XForm uses `.//contrib[./@contrib-type="author"]` because `@` is only supported as a path step (not a stand‑alone predicate expression).
+2. **String handling**
+   XSLT uses `string()` and `xsl:choose` for the author name space handling. XForm uses `string()` via `textOf()` and an inline `if … then … else`.
+3. **Control flow**
+   XSLT uses `xsl:for-each` and `xsl:choose`. XForm uses `for … return` and expression‑level `if`.
+4. **Attribute construction**
+   XSLT uses `xsl:attribute`. XForm uses `{expr}` directly in attribute values.
+
+### Readability and Maintenance
+XForm is terser and makes the output shape very explicit by using XML constructors directly. XSLT is more verbose but explicit about transformation steps and uses well‑known conventions and tooling.
+
 ## Notes on Alignment
 The XForm 2.0 draft explicitly positions `rule` + `apply()` as an analogue to XSLT `apply-templates`, which is the closest conceptual anchor between the two languages. Beyond that, XForm prioritizes terseness and a unified expression model, while XSLT prioritizes a robust, well‑specified template processing system with decades of tooling and implementation experience.
