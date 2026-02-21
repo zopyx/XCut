@@ -56,6 +56,9 @@ def _strip_ws(elem: ET.Element) -> None:
 
 
 RUST_XFORM_BIN = ROOT / "xform-rs" / "target" / "release" / "xform"
+TS_XFORM_BIN = ROOT / "xform-ts" / "dist" / "cli.js"
+GO_XFORM_BIN = ROOT / "xform-go" / "bin" / "xform"
+SWIFT_XFORM_BIN = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 
 
 def _run_rust_xform(xform: Path, xml: Path) -> str:
@@ -63,6 +66,42 @@ def _run_rust_xform(xform: Path, xml: Path) -> str:
         pytest.skip("Rust xform binary not built")
     result = subprocess.run(
         [str(RUST_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _run_ts_xform(xform: Path, xml: Path) -> str:
+    if not TS_XFORM_BIN.exists():
+        pytest.skip("TypeScript xform binary not built")
+    result = subprocess.run(
+        ["node", str(TS_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _run_go_xform(xform: Path, xml: Path) -> str:
+    if not GO_XFORM_BIN.exists():
+        pytest.skip("Go xform binary not built")
+    result = subprocess.run(
+        [str(GO_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _run_swift_xform(xform: Path, xml: Path) -> str:
+    if not SWIFT_XFORM_BIN.exists():
+        pytest.skip("Swift xform binary not built")
+    result = subprocess.run(
+        [str(SWIFT_XFORM_BIN), str(xml), str(xform)],
         check=True,
         capture_output=True,
         text=True,
@@ -103,3 +142,39 @@ def test_rust_xform_matches_xslt(case: Path) -> None:
     rust_out = _run_rust_xform(xform, xml)
 
     assert _normalize_xml(rust_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_ts_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    ts_out = _run_ts_xform(xform, xml)
+
+    assert _normalize_xml(ts_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_go_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    go_out = _run_go_xform(xform, xml)
+
+    assert _normalize_xml(go_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_swift_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    swift_out = _run_swift_xform(xform, xml)
+
+    assert _normalize_xml(swift_out) == _normalize_xml(xslt_out)

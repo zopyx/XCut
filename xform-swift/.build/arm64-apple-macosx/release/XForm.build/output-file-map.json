@@ -1,0 +1,13 @@
+{
+  "": {
+    "dependencies": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.d",
+    "object": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.o",
+    "swift-dependencies": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/master.swiftdeps"
+  },
+  "/Users/ajung/src/XCut/xform-swift/Sources/XForm/XForm.swift": {
+    "object": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swift.o",
+    "swiftmodule": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm~partial.swiftmodule",
+    "swift-dependencies": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swiftdeps",
+    "diagnostics": "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.dia"
+  }
+}

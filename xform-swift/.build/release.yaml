@@ -1,0 +1,88 @@
+client:
+  name: basic
+  file-system: device-agnostic
+tools: {}
+targets:
+  "PackageStructure": ["<PackageStructure>"]
+  "XForm-arm64-apple-macosx26.0-release.module": ["<XForm-arm64-apple-macosx26.0-release.module>"]
+  "main": ["<XForm-arm64-apple-macosx26.0-release.module>","<xform-cli-arm64-apple-macosx26.0-release.module>","<xform-swift-arm64-apple-macosx26.0-release.exe>"]
+  "test": ["<XForm-arm64-apple-macosx26.0-release.module>","<xform-cli-arm64-apple-macosx26.0-release.module>","<xform-swift-arm64-apple-macosx26.0-release.exe>"]
+  "xform-cli-arm64-apple-macosx26.0-release.module": ["<xform-cli-arm64-apple-macosx26.0-release.module>"]
+  "xform-swift-arm64-apple-macosx26.0-release.exe": ["<xform-swift-arm64-apple-macosx26.0-release.exe>"]
+default: "main"
+nodes:
+  "/Users/ajung/src/XCut/xform-swift/Sources/XForm/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+  "/Users/ajung/src/XCut/xform-swift/Sources/xform-cli/":
+    is-directory-structure: true
+    content-exclusion-patterns: [".git",".build"]
+commands:
+  "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/ajung/src/XCut/xform-swift/Sources/XForm/XForm.swift"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/sources"]
+    description: "Write auxiliary file /Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/sources"
+
+  "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt":
+    tool: write-auxiliary-file
+    inputs: ["<swift-get-version>","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"]
+    always-out-of-date: "true"
+    description: "Write auxiliary file /Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+
+  "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift.product/Objects.LinkFileList":
+    tool: write-auxiliary-file
+    inputs: ["<link-file-list>","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/main.swift.o"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift.product/Objects.LinkFileList"]
+    description: "Write auxiliary file /Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift.product/Objects.LinkFileList"
+
+  "/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/sources":
+    tool: write-auxiliary-file
+    inputs: ["<sources-file-list>","/Users/ajung/src/XCut/xform-swift/Sources/xform-cli/main.swift"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/sources"]
+    description: "Write auxiliary file /Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/sources"
+
+  "<XForm-arm64-apple-macosx26.0-release.module>":
+    tool: phony
+    inputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/XForm.swiftmodule"]
+    outputs: ["<XForm-arm64-apple-macosx26.0-release.module>"]
+
+  "<xform-cli-arm64-apple-macosx26.0-release.module>":
+    tool: phony
+    inputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/main.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/xform_cli.swiftmodule"]
+    outputs: ["<xform-cli-arm64-apple-macosx26.0-release.module>"]
+
+  "<xform-swift-arm64-apple-macosx26.0-release.exe>":
+    tool: phony
+    inputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift"]
+    outputs: ["<xform-swift-arm64-apple-macosx26.0-release.exe>"]
+
+  "C.XForm-arm64-apple-macosx26.0-release.module":
+    tool: shell
+    inputs: ["/Users/ajung/src/XCut/xform-swift/Sources/XForm/XForm.swift","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/sources"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/XForm.swiftmodule"]
+    description: "Compiling Swift Module 'XForm' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","XForm","-emit-dependencies","-emit-module","-emit-module-path","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/XForm.swiftmodule","-output-file-map","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/output-file-map.json","-parse-as-library","-whole-module-optimization","-num-threads","11","-c","@/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/sources","-I","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules","-target","arm64-apple-macosx12.0","-whole-module-optimization","-num-threads","11","-serialize-diagnostics","-O","-j11","-DSWIFT_PACKAGE","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/ModuleCache","-parseable-output","-parse-as-library","-emit-objc-header","-emit-objc-header-path","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/include/XForm-Swift.h","-color-diagnostics","-swift-version","5","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-Xcc","-fmodules-cache-path=/tmp/xform-swift-clang-cache"]
+
+  "C.xform-cli-arm64-apple-macosx26.0-release.module":
+    tool: shell
+    inputs: ["/Users/ajung/src/XCut/xform-swift/Sources/xform-cli/main.swift","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/XForm.swiftmodule","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/sources"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/main.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/xform_cli.swiftmodule"]
+    description: "Compiling Swift Module 'xform_cli' (1 sources)"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-module-name","xform_cli","-emit-dependencies","-emit-module","-emit-module-path","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules/xform_cli.swiftmodule","-output-file-map","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/output-file-map.json","-whole-module-optimization","-num-threads","11","-c","@/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/sources","-I","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/Modules","-target","arm64-apple-macosx12.0","-whole-module-optimization","-num-threads","11","-serialize-diagnostics","-O","-j11","-DSWIFT_PACKAGE","-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE","-module-cache-path","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/ModuleCache","-parseable-output","-Xfrontend","-entry-point-function-name","-Xfrontend","xform_cli_main","-color-diagnostics","-swift-version","5","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g","-Xcc","-isysroot","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-Xcc","-F","-Xcc","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-Xcc","-fPIC","-Xcc","-g","-Xcc","-fmodules-cache-path=/tmp/xform-swift-clang-cache"]
+
+  "C.xform-swift-arm64-apple-macosx26.0-release.exe":
+    tool: shell
+    inputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/XForm.build/XForm.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform_cli.build/main.swift.o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift.product/Objects.LinkFileList"]
+    outputs: ["/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift"]
+    description: "Linking ./.build/arm64-apple-macosx/release/xform-swift"
+    args: ["/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc","-L","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release","-o","/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift","-module-name","xform_swift","-Xlinker","-no_warn_duplicate_libraries","-emit-executable","-Xlinker","-dead_strip","-Xlinker","-alias","-Xlinker","_xform_cli_main","-Xlinker","_main","-Xlinker","-rpath","-Xlinker","@loader_path","@/Users/ajung/src/XCut/xform-swift/.build/arm64-apple-macosx/release/xform-swift.product/Objects.LinkFileList","-Xlinker","-rpath","-Xlinker","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift-6.2/macosx","-target","arm64-apple-macosx12.0","-plugin-path","/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing","-sdk","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks","-F","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks","-I","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-L","/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib","-g"]
+
+  "PackageStructure":
+    tool: package-structure-tool
+    inputs: ["/Users/ajung/src/XCut/xform-swift/Sources/XForm/","/Users/ajung/src/XCut/xform-swift/Sources/xform-cli/","/Users/ajung/src/XCut/xform-swift/Package.swift","/Users/ajung/src/XCut/xform-swift/Package.resolved"]
+    outputs: ["<PackageStructure>"]
+    description: "Planning build"
+    allow-missing-inputs: true
+
