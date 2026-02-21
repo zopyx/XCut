@@ -8,6 +8,7 @@ use crate::xmlmodel::{
 };
 
 pub type Seq = Vec<Item>;
+pub type SeqRef = Rc<Seq>;
 pub type XMap = HashMap<String, Seq>;
 
 #[derive(Clone, Debug)]
@@ -25,7 +26,7 @@ pub enum Item {
 pub struct Context {
     pub context_item: Option<Item>,
     pub root: Rc<XmlNode>,
-    pub variables: HashMap<String, Seq>,
+    pub variables: HashMap<String, SeqRef>,
     pub functions: HashMap<String, FunctionDef>,
     pub rules: HashMap<String, Vec<RuleDef>>,
     pub position: Option<f64>,
@@ -36,13 +37,13 @@ impl Context {
     fn with_item(&self, item: Item) -> Context {
         Context { context_item: Some(item), ..self.clone() }
     }
-    fn with_vars(&self, vars: HashMap<String, Seq>) -> Context {
+    fn with_vars(&self, vars: HashMap<String, SeqRef>) -> Context {
         Context { variables: vars, ..self.clone() }
     }
 }
 
 pub fn eval_module(module: &Module, doc: Rc<XmlNode>) -> Result<Seq, String> {
-    let mut variables: HashMap<String, Seq> = HashMap::new();
+    let mut variables: HashMap<String, SeqRef> = HashMap::new();
     let root = doc.clone();
     let mut ctx = Context {
         context_item: Some(Item::Node(doc)),
@@ -55,8 +56,9 @@ pub fn eval_module(module: &Module, doc: Rc<XmlNode>) -> Result<Seq, String> {
     };
     for (name, expr) in &module.vars {
         let val = eval_expr(expr, &ctx)?;
-        ctx.variables.insert(name.clone(), val.clone());
-        variables.insert(name.clone(), val);
+        let rc = Rc::new(val.clone());
+        ctx.variables.insert(name.clone(), rc.clone());
+        variables.insert(name.clone(), rc);
     }
     match &module.expr {
         None => Ok(vec![]),
@@ -70,7 +72,7 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
 
         Expr::VarRef(name) => {
             if let Some(val) = ctx.variables.get(name) {
-                return Ok(val.clone());
+                return Ok((**val).clone());
             }
             if ctx.functions.contains_key(name.as_str()) {
                 return Ok(vec![Item::FuncRef(name.clone())]);
@@ -104,7 +106,7 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
         Expr::LetExpr(le) => {
             let val = eval_expr(&le.value, ctx)?;
             let mut vars = ctx.variables.clone();
-            vars.insert(le.name.clone(), val);
+            vars.insert(le.name.clone(), Rc::new(val));
             eval_expr(&le.body, &ctx.with_vars(vars))
         }
 
@@ -114,7 +116,7 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
             let mut out = Vec::new();
             for (idx, item) in seq.into_iter().enumerate() {
                 let mut vars = ctx.variables.clone();
-                vars.insert(fe.name.clone(), vec![item.clone()]);
+                vars.insert(fe.name.clone(), Rc::new(vec![item.clone()]));
                 let new_ctx = Context {
                     context_item: Some(item),
                     variables: vars,
@@ -267,7 +269,7 @@ fn eval_path(pe: &PathExpr, ctx: &Context) -> Result<Seq, String> {
         PathStartKind::Var => {
             let name = pe.start.name.as_deref().unwrap_or("");
             if let Some(val) = ctx.variables.get(name) {
-                val.clone()
+                (**val).clone()
             } else {
                 // Treat as child axis from context
                 let child_step = PathStep {
@@ -409,7 +411,7 @@ fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, Strin
     Ok(make_element(&c.name, attrs, children))
 }
 
-fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, Seq>> {
+fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> {
     match pat {
         Pattern::Wildcard => Some(HashMap::new()),
         Pattern::Attribute(name) => {
@@ -439,10 +441,8 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, Seq>> {
                 if n.kind == NodeKind::Element && n.name.as_deref() == Some(&ep.name) {
                     let mut bindings = HashMap::new();
                     if let Some(var) = &ep.var {
-                        bindings.insert(
-                            var.clone(),
-                            n.children.iter().map(|c| Item::Node(c.clone())).collect(),
-                        );
+                        let seq: Seq = n.children.iter().map(|c| Item::Node(c.clone())).collect();
+                        bindings.insert(var.clone(), Rc::new(seq));
                         return Some(bindings);
                     }
                     if let Some(child_pat) = &ep.child {
@@ -473,14 +473,14 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
         let mut vars = ctx.variables.clone();
         for (i, param) in fd.params.iter().enumerate() {
             if i < args.len() {
-                vars.insert(param.name.clone(), args[i].clone());
+                vars.insert(param.name.clone(), Rc::new(args[i].clone()));
             } else if let Some(def) = &param.default {
-                vars.insert(param.name.clone(), eval_expr(def, ctx)?);
+                vars.insert(param.name.clone(), Rc::new(eval_expr(def, ctx)?));
             } else {
                 return Err(format!("XFDY0002: wrong arity for {}", name));
             }
         }
-        return eval_expr(&fd.body, &ctx.with_vars(vars));
+        return eval_expr(&fd.body, &Context { variables: vars, ..ctx.clone() });
     }
 
     match name {
