@@ -1,0 +1,29 @@
+name: CI - Python
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  python:
+    name: Python, XSLT tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xsltproc
+        run: sudo apt-get install -y xsltproc
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Run tests
+        run: uv sync --extra dev && uv run python -m pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}

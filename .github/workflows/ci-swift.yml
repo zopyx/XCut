@@ -1,0 +1,33 @@
+name: CI - Swift
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  swift:
+    name: Swift xform tests
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xsltproc
+        run: brew install libxslt
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build Swift xform binary
+        run: swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
+        working-directory: xform-swift
+
+      - name: Run tests
+        run: uv sync --extra dev && uv run python -m pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}

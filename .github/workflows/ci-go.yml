@@ -1,0 +1,37 @@
+name: CI - Go
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  go:
+    name: Go xform tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xsltproc
+        run: sudo apt-get install -y xsltproc
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build Go xform binary
+        run: mkdir -p bin && go build -o bin/xform ./cmd/xform
+        working-directory: xform-go
+
+      - name: Run tests
+        run: uv sync --extra dev && uv run python -m pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}

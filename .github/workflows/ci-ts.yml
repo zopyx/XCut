@@ -1,0 +1,37 @@
+name: CI - TypeScript
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  typescript:
+    name: TypeScript xform tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xsltproc
+        run: sudo apt-get install -y xsltproc
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build TypeScript xform binary
+        run: npm install && npm run build
+        working-directory: xform-ts
+
+      - name: Run tests
+        run: uv sync --extra dev && uv run python -m pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}
