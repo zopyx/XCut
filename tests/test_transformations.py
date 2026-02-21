@@ -10,6 +10,11 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
+ENABLED_LANGS = {
+    s.strip().lower()
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift").split(",")
+    if s.strip()
+}
 
 
 def _run_xslt(xslt: Path, xml: Path) -> str:
@@ -62,6 +67,8 @@ SWIFT_XFORM_BIN = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 
 
 def _run_rust_xform(xform: Path, xml: Path) -> str:
+    if "rust" not in ENABLED_LANGS:
+        pytest.skip("Rust tests disabled")
     if not RUST_XFORM_BIN.exists():
         pytest.skip("Rust xform binary not built")
     result = subprocess.run(
@@ -74,6 +81,8 @@ def _run_rust_xform(xform: Path, xml: Path) -> str:
 
 
 def _run_ts_xform(xform: Path, xml: Path) -> str:
+    if "ts" not in ENABLED_LANGS:
+        pytest.skip("TypeScript tests disabled")
     if not TS_XFORM_BIN.exists():
         pytest.skip("TypeScript xform binary not built")
     result = subprocess.run(
@@ -86,6 +95,8 @@ def _run_ts_xform(xform: Path, xml: Path) -> str:
 
 
 def _run_go_xform(xform: Path, xml: Path) -> str:
+    if "go" not in ENABLED_LANGS:
+        pytest.skip("Go tests disabled")
     if not GO_XFORM_BIN.exists():
         pytest.skip("Go xform binary not built")
     result = subprocess.run(
@@ -98,6 +109,8 @@ def _run_go_xform(xform: Path, xml: Path) -> str:
 
 
 def _run_swift_xform(xform: Path, xml: Path) -> str:
+    if "swift" not in ENABLED_LANGS:
+        pytest.skip("Swift tests disabled")
     if not SWIFT_XFORM_BIN.exists():
         pytest.skip("Swift xform binary not built")
     result = subprocess.run(

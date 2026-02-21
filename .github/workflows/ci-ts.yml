@@ -35,3 +35,4 @@ jobs:
         run: uv sync --extra dev && uv run python -m pytest tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
+          XF_TEST_LANGS: python,ts
