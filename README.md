@@ -917,6 +917,8 @@ go      median 0.0638s (runs: 0.0638, 0.0638, 0.0644)
 swift   median 0.1831s (runs: 0.1811, 0.1831, 0.1867)
 ```
 
+Full benchmark details and environment are tracked in `BENCHMARKS.md`.
+
 ### Test Output
 
 ```
