@@ -441,6 +441,24 @@ impl Parser {
             }
         }
 
+        // For / starts, the immediate name is a child step
+        if start.kind == PathStartKind::Root {
+            let pk = self.lexer.peek().kind.clone();
+            if pk == TK::At {
+                self.lexer.next();
+                let name = self.parse_qname()?;
+                steps.push(PathStep {
+                    axis: PathAxis::Attr,
+                    test: StepTest::named(&name),
+                    predicates: vec![],
+                });
+            } else if pk == TK::Ident || (pk == TK::Op && self.lexer.peek().value == "*") {
+                let test = self.parse_step_test()?;
+                let preds = self.parse_predicates()?;
+                steps.push(PathStep { axis: PathAxis::Child, test, predicates: preds });
+            }
+        }
+
         loop {
             let pk = self.lexer.peek().kind.clone();
             let pv = self.lexer.peek().value.clone();
