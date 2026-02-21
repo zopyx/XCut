@@ -876,6 +876,17 @@ XF_TEST_LANGS=python,swift python -m pytest tests/ -v
 
 Language tests are automatically skipped if the corresponding binary is not built.
 
+### Makefile Targets
+
+```bash
+make build        # Build all language binaries (Rust/TS/Go/Swift)
+make build-rust   # Build Rust binary
+make build-ts     # Build TypeScript CLI
+make build-go     # Build Go CLI
+make build-swift  # Build Swift CLI
+make test         # Run Python tests (builds required binaries first)
+```
+
 ### Test Output
 
 ```
