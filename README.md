@@ -6,6 +6,9 @@ This repository contains:
 - **The XForm 2.0 language specification** (`xform-transformations-2.0.md`)
 - **A complete Python reference implementation** (`xform/`)
 - **A Rust implementation** for performance-sensitive use cases (`xform-rs/`)
+- **A TypeScript implementation** (`xform-ts/`)
+- **A Go implementation** (`xform-go/`)
+- **A Swift implementation** (`xform-swift/`)
 - **15 test fixtures** covering real-world transformation patterns, validated against `xsltproc`
 
 ---
@@ -16,6 +19,9 @@ This repository contains:
 2. [Installation](#installation)
    - [Python](#python)
    - [Rust](#rust)
+   - [TypeScript](#typescript)
+   - [Go](#go)
+   - [Swift](#swift)
 3. [Usage](#usage)
 4. [Language Reference](#language-reference)
    - [Module Structure](#module-structure)
@@ -152,6 +158,59 @@ Or run it in place:
 ./xform-rs/target/release/xform input.xml transform.xform
 ```
 
+### TypeScript
+
+**Requirements:** Node.js 20+ and npm
+
+Build the TypeScript CLI:
+
+```bash
+cd xform-ts
+npm install
+npm run build
+```
+
+Run it:
+
+```bash
+node xform-ts/dist/cli.js input.xml transform.xform
+```
+
+### Go
+
+**Requirements:** Go 1.21+
+
+Build the Go CLI:
+
+```bash
+cd xform-go
+mkdir -p bin
+go build -o bin/xform ./cmd/xform
+```
+
+Run it:
+
+```bash
+xform-go/bin/xform input.xml transform.xform
+```
+
+### Swift
+
+**Requirements:** Swift 5.7+ (macOS)
+
+Build the Swift CLI:
+
+```bash
+cd xform-swift
+swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
+```
+
+Run it:
+
+```bash
+xform-swift/.build/release/xform-swift input.xml transform.xform
+```
+
 ---
 
 ## Usage
@@ -183,6 +242,27 @@ python -m zopyx.xform input.xml transform.xform > output.xml
 ```bash
 xform input.xml transform.xform
 xform input.xml transform.xform > output.xml
+```
+
+**TypeScript:**
+
+```bash
+node xform-ts/dist/cli.js input.xml transform.xform
+node xform-ts/dist/cli.js input.xml transform.xform > output.xml
+```
+
+**Go:**
+
+```bash
+xform-go/bin/xform input.xml transform.xform
+xform-go/bin/xform input.xml transform.xform > output.xml
+```
+
+**Swift:**
+
+```bash
+xform-swift/.build/release/xform-swift input.xml transform.xform
+xform-swift/.build/release/xform-swift input.xml transform.xform > output.xml
 ```
 
 ### Exit Codes
@@ -762,7 +842,7 @@ xform version "2.0";
 
 ## Running Tests
 
-The test suite validates both the Python and Rust implementations against `xsltproc`. All 15 fixture cases are tested with both.
+The test suite validates the Python implementation and, optionally, each language implementation (Rust/TypeScript/Go/Swift) against `xsltproc`. All 15 fixture cases are tested for each enabled language.
 
 ### Prerequisites
 
@@ -774,8 +854,11 @@ brew install libxslt                   # macOS
 # Python test dependencies
 pip install pytest lxml
 
-# Rust binary (required for Rust tests)
+# Build language binaries you want to test
 cd xform-rs && cargo build --release
+cd xform-ts && npm install && npm run build
+cd xform-go && mkdir -p bin && go build -o bin/xform ./cmd/xform
+cd xform-swift && swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
 ```
 
 ### Run Tests
