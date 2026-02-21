@@ -20,6 +20,14 @@ jobs:
         with:
           python-version: "3.13"
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
       - name: Install uv
         run: pip install uv
 
@@ -34,6 +42,14 @@ jobs:
       - name: Build Rust xform binary
         run: cargo build --release
         working-directory: xform-rs
+
+      - name: Build TypeScript xform binary
+        run: npm install && npm run build
+        working-directory: xform-ts
+
+      - name: Build Go xform binary
+        run: mkdir -p bin && go build -o bin/xform ./cmd/xform
+        working-directory: xform-go
 
       - name: Run tests
         run: uv sync --extra dev && uv run python -m pytest tests/ -v
