@@ -867,14 +867,14 @@ cd xform-swift && swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-sw
 # From the repository root
 python -m pytest tests/ -v
 
-# Python-only transformation tests
-python -m pytest tests/test_transformations.py -v -k "not rust"
-
-# Rust-only transformation tests
-python -m pytest tests/test_transformations.py -v -k "rust"
+# Limit transformation tests by language (comma-separated)
+XF_TEST_LANGS=python,rust python -m pytest tests/ -v
+XF_TEST_LANGS=python,ts python -m pytest tests/ -v
+XF_TEST_LANGS=python,go python -m pytest tests/ -v
+XF_TEST_LANGS=python,swift python -m pytest tests/ -v
 ```
 
-The Rust tests are automatically skipped if `xform-rs/target/release/xform` does not exist.
+Language tests are automatically skipped if the corresponding binary is not built.
 
 ### Test Output
 
