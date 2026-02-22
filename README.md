@@ -7,6 +7,7 @@ This repository contains:
 - **A complete Python reference implementation** (`xform/`)
 - **A Rust implementation** for performance-sensitive use cases (`xform-rs/`)
 - **A TypeScript implementation** (`xform-ts/`)
+- **A JavaScript implementation** targeting Node.js runtimes (`xform-js/`)
 - **A Go implementation** (`xform-go/`)
 - **A Swift implementation** (`xform-swift/`)
 - **15 test fixtures** covering real-world transformation patterns, validated against `xsltproc`
@@ -20,6 +21,7 @@ This repository contains:
    - [Python](#python)
    - [Rust](#rust)
    - [TypeScript](#typescript)
+   - [JavaScript](#javascript)
    - [Go](#go)
    - [Swift](#swift)
 3. [Usage](#usage)
@@ -174,6 +176,25 @@ Run it:
 
 ```bash
 node xform-ts/dist/cli.js input.xml transform.xform
+node xform-ts/dist/cli.js input.xml transform.xform > output.xml
+```
+
+### JavaScript
+
+**Requirements:** Node.js 20+ and npm
+
+Install runtime dependencies:
+
+```
+cd xform-js
+npm install
+```
+
+Run it:
+
+```
+node xform-js/src/cli.js input.xml transform.xform
+node xform-js/src/cli.js input.xml transform.xform > output.xml
 ```
 
 ### Go
@@ -842,7 +863,7 @@ xform version "2.0";
 
 ## Running Tests
 
-The test suite validates the Python implementation and, optionally, each language implementation (Rust/TypeScript/Go/Swift) against `xsltproc`. All 15 fixture cases are tested for each enabled language.
+The test suite validates the Python implementation and, optionally, each language implementation (Rust/TypeScript/JavaScript/Go/Swift) against `xsltproc`. All 15 fixture cases are tested for each enabled language.
 
 ### Prerequisites
 
@@ -857,6 +878,7 @@ pip install pytest lxml
 # Build language binaries you want to test
 cd xform-rs && cargo build --release
 cd xform-ts && npm install && npm run build
+cd xform-js && npm install
 cd xform-go && mkdir -p bin && go build -o bin/xform ./cmd/xform
 cd xform-swift && swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
 ```
@@ -868,10 +890,10 @@ cd xform-swift && swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-sw
 python -m pytest tests/ -v
 
 # Limit transformation tests by language (comma-separated)
-XF_TEST_LANGS=python,rust python -m pytest tests/ -v
-XF_TEST_LANGS=python,ts python -m pytest tests/ -v
-XF_TEST_LANGS=python,go python -m pytest tests/ -v
-XF_TEST_LANGS=python,swift python -m pytest tests/ -v
+XF_TEST_LANGS=python,rust,ts,go,swift,js python -m pytest tests/ -v
+XF_TEST_LANGS=python,ts,js python -m pytest tests/ -v
+XF_TEST_LANGS=python,go,js python -m pytest tests/ -v
+XF_TEST_LANGS=python,swift,js python -m pytest tests/ -v
 ```
 
 Language tests are automatically skipped if the corresponding binary is not built.
@@ -988,6 +1010,7 @@ xcut/
 │
 ├── xform-rs/                      Rust implementation
 ├── xform-ts/                      TypeScript implementation
+├── xform-js/                      Plain JavaScript implementation (Node.js)
 ├── xform-go/                      Go implementation
 ├── xform-swift/                   Swift implementation
 │   ├── Cargo.toml
