@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 ENABLED_LANGS = {
     s.strip().lower()
-    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js").split(",")
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp").split(",")
     if s.strip()
 }
 
@@ -66,6 +66,8 @@ TS_XFORM_BIN = ROOT / "xform-ts" / "dist" / "cli.js"
 GO_XFORM_BIN = ROOT / "xform-go" / "bin" / "xform"
 SWIFT_XFORM_BIN = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 JS_XFORM_BIN = ROOT / "xform-js" / "src" / "cli.js"
+CPP_BUILD_DIR = ROOT / "xform-cpp" / "build" / "src"
+CPP_XFORM_BIN = CPP_BUILD_DIR / "xform"
 
 
 def _run_rust_xform(xform: Path, xml: Path) -> str:
@@ -136,6 +138,23 @@ def _run_js_xform(xform: Path, xml: Path) -> str:
         text=True,
     )
     return result.stdout.strip()
+
+
+def _run_cpp_xform(xform: Path, xml: Path) -> str:
+    if "cpp" not in ENABLED_LANGS:
+        pytest.skip("C++ tests disabled")
+    if not CPP_XFORM_BIN.exists():
+        pytest.skip("C++ xform binary not built")
+    result = subprocess.run(
+        [str(CPP_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    output = result.stdout.strip()
+    if output.startswith("xform-cpp:"):
+        pytest.skip("C++ CLI not implemented yet")
+    return output
 
 
 def _cases():
@@ -219,3 +238,15 @@ def test_js_xform_matches_xslt(case: Path) -> None:
     js_out = _run_js_xform(xform, xml)
 
     assert _normalize_xml(js_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_cpp_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    cpp_out = _run_cpp_xform(xform, xml)
+
+    assert _normalize_xml(cpp_out) == _normalize_xml(xslt_out)

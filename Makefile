@@ -1,6 +1,6 @@
-.PHONY: test test-python test-rust build build-rust build-ts build-go build-swift
+.PHONY: test test-python test-rust build build-rust build-ts build-go build-swift build-cpp
 
-build: build-rust build-ts build-go build-swift
+build: build-rust build-ts build-go build-swift build-cpp
 
 build-rust:
 	cd xform-rs && cargo build --release
@@ -18,6 +18,10 @@ build-swift:
 			exit 0; \
 		fi && \
 		swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
+
+build-cpp:
+	cmake -S xform-cpp -B xform-cpp/build
+	cmake --build xform-cpp/build
 
 test: test-python test-rust
 

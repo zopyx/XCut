@@ -1,0 +1,5 @@
+/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/edit_cache.dir
+/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/rebuild_cache.dir
+/Users/ajung/src/XCut/xform-cpp/build/src/CMakeFiles/xform.dir
+/Users/ajung/src/XCut/xform-cpp/build/src/CMakeFiles/edit_cache.dir
+/Users/ajung/src/XCut/xform-cpp/build/src/CMakeFiles/rebuild_cache.dir

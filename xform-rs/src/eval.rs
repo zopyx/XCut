@@ -620,7 +620,7 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
         }
         "sort" => {
             let mut it = args.into_iter();
-            let mut seq = it.next().unwrap_or_default();
+            let seq = it.next().unwrap_or_default();
             let key_seq = it.next();
             let key_fn = key_seq.as_ref().and_then(|s| match s.first() {
                 Some(Item::FuncRef(n)) => Some(n.clone()),

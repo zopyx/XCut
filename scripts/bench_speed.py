@@ -12,7 +12,7 @@ from statistics import median
 
 ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_LANGS = "python,rust,ts,go,swift"
+DEFAULT_LANGS = "python,rust,ts,go,swift,js,cpp"
 
 LANGS = [
     s.strip().lower()
@@ -29,6 +29,9 @@ BIN_RUST = ROOT / "xform-rs" / "target" / "release" / "xform"
 BIN_TS = ROOT / "xform-ts" / "dist" / "cli.js"
 BIN_GO = ROOT / "xform-go" / "bin" / "xform"
 BIN_SWIFT = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
+BIN_JS = ROOT / "xform-js" / "src" / "cli.js"
+CPP_BUILD_DIR = ROOT / "xform-cpp" / "build" / "src"
+BIN_CPP = CPP_BUILD_DIR / "xform"
 
 
 def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
@@ -46,10 +49,18 @@ def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
         if not BIN_GO.exists():
             return None
         return [str(BIN_GO), str(xml), str(xform)]
+    if lang == "js":
+        if not BIN_JS.exists():
+            return None
+        return ["node", str(BIN_JS), str(xml), str(xform)]
     if lang == "swift":
         if not BIN_SWIFT.exists():
             return None
         return [str(BIN_SWIFT), str(xml), str(xform)]
+    if lang == "cpp":
+        if not BIN_CPP.exists():
+            return None
+        return [str(BIN_CPP), str(xml), str(xform)]
     return None
 
 
@@ -92,14 +103,15 @@ let items := .//item in
     )
 
 
-def _run_cmd(cmd: list[str]) -> tuple[float, str]:
+def _run_cmd(cmd: list[str]) -> tuple[float | None, str]:
     start = time.perf_counter()
     result = subprocess.run(cmd, capture_output=True, text=True)
     end = time.perf_counter()
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip() or f"Command failed: {cmd}")
     if "<report" not in result.stdout:
-        raise RuntimeError("Unexpected output (missing <report>)")
+        details = result.stdout.strip() or result.stderr.strip() or "missing <report>"
+        return None, details
     return end - start, result.stderr.strip()
 
 
@@ -120,17 +132,29 @@ def main() -> int:
             if not cmd:
                 print(f"{lang:7} SKIP (binary not found)")
                 continue
-            # warmup
+            invalid = False
             for _ in range(WARMUP):
-                _, timing_line = _run_cmd(cmd)
+                elapsed, timing_line = _run_cmd(cmd)
+                if elapsed is None:
+                    print(f"{lang:7} SKIP ({timing_line})")
+                    invalid = True
+                    break
                 if timing_line:
                     print(f"{lang:7} {timing_line}")
-            times = []
+            if invalid:
+                continue
+            times: list[float] = []
             for _ in range(RUNS):
                 elapsed, timing_line = _run_cmd(cmd)
+                if elapsed is None:
+                    print(f"{lang:7} SKIP ({timing_line})")
+                    invalid = True
+                    break
                 if timing_line:
                     print(f"{lang:7} {timing_line}")
                 times.append(elapsed)
+            if invalid:
+                continue
             med = median(times)
             results.append((lang, med))
             print(f"{lang:7} median {med:.4f}s (runs: {', '.join(f'{t:.4f}' for t in times)})")

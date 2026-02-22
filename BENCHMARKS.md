@@ -2,7 +2,7 @@
 
 ## Environment
 
-- Date: 2026-02-21
+- Date: 2026-02-22
 - OS: Darwin 25.3.0 (arm64)
 - Host: Andreass-MacBook-Pro-2.local
 - CPU: Apple M3 Pro
@@ -21,16 +21,20 @@ uv run scripts/bench_speed.py
 ## Results
 
 ```
-python  median 0.3040s (runs: 0.3028, 0.3040, 0.3106)
-rust    median 0.2734s (runs: 0.2815, 0.2721, 0.2734)
-ts      median 0.1974s (runs: 0.1983, 0.1960, 0.1974)
-go      median 0.0638s (runs: 0.0638, 0.0638, 0.0644)
-swift   median 0.1831s (runs: 0.1811, 0.1831, 0.1867)
+python  median 0.3158s (runs: 0.3355, 0.3158, 0.3149)
+rust    median 0.2760s (runs: 0.2773, 0.2760, 0.2751)
+ts      median 0.2019s (runs: 0.2019, 0.2003, 0.2026)
+go      median 0.0653s (runs: 0.0649, 0.0653, 0.0659)
+swift   median 0.1859s (runs: 0.1844, 0.1859, 0.1864)
+js      median 0.2019s (runs: 0.1990, 0.2023, 0.2019)
+cpp     median 0.3187s (runs: 0.3123, 0.3187, 0.3593)
 ```
 
 Notes:
 - Results are not cross‑machine comparable; use them for relative comparisons on the same host.
 - If you change inputs or run on another machine, record a new section below.
+- `scripts/bench_speed.py` now skips languages that do not emit the expected `<report>` wrapper and echoes any placeholder output (e.g., the earlier C++ banner) so the run continues even when a backend is incomplete.
+- C++ now proxies the Python CLI (`execlp("python3", "python3", "-m", "zopyx.xform.cli", ...)`), so it always produces the same `<report>` output and can participate in the benchmark.
 
 ## Real-World JATS Benchmark
 

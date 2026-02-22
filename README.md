@@ -922,7 +922,7 @@ The benchmark generates a synthetic XML document (by default 20k items) and perf
 Tuning options (environment variables):
 
 ```bash
-XF_BENCH_LANGS=python,rust,ts,go,swift   # select languages
+XF_BENCH_LANGS=python,rust,ts,go,swift,js   # select languages
 XF_BENCH_ITEMS=20000                    # number of <item> elements
 XF_BENCH_GROUPS=50                      # number of categories
 XF_BENCH_RUNS=3                         # timed runs
@@ -937,6 +937,7 @@ rust    median 0.2734s (runs: 0.2815, 0.2721, 0.2734)
 ts      median 0.1974s (runs: 0.1983, 0.1960, 0.1974)
 go      median 0.0638s (runs: 0.0638, 0.0638, 0.0644)
 swift   median 0.1831s (runs: 0.1811, 0.1831, 0.1867)
+js      median 0.2026s (runs: 0.2168, 0.1993, 0.2026)
 ```
 
 Full benchmark details and environment are tracked in `BENCHMARKS.md`.
