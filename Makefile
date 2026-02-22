@@ -1,6 +1,6 @@
-.PHONY: test test-python test-rust build build-rust build-ts build-go build-swift build-cpp
+.PHONY: test test-python test-rust build build-rust build-ts build-go build-swift build-js build-cpp
 
-build: build-rust build-ts build-go build-swift build-cpp
+build: build-rust build-ts build-go build-swift build-js build-cpp
 
 build-rust:
 	cd xform-rs && cargo build --release
@@ -25,7 +25,7 @@ build-cpp:
 
 test: test-python test-rust
 
-test-python: build-rust build-ts build-go build-swift
+test-python: build-rust build-ts build-go build-swift build-js build-cpp
 	uv sync --extra dev
 	uv run python -m pytest tests/ -v
 

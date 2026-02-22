@@ -1,0 +1,40 @@
+name: CI - C++
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  cpp:
+    name: C++ xform tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc cmake build-essential
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Configure C++ build
+        run: cmake -S xform-cpp -B xform-cpp/build
+
+      - name: Build C++ CLI
+        run: cmake --build xform-cpp/build
+
+      - name: Run tests
+        run: |
+          uv sync --extra dev
+          uv run python -m pytest tests/ -v
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          XF_TEST_LANGS: python,cpp
