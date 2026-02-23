@@ -1,4 +1,5 @@
 import Foundation
+import FoundationXML
 
 public final class Node {
     public let kind: String // document, element, attribute, text, comment, pi

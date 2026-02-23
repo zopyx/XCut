@@ -130,6 +130,102 @@ xform/fast:
 	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/build
 .PHONY : xform/fast
 
+ast.o: ast.cpp.o
+.PHONY : ast.o
+
+# target to build an object file
+ast.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.o
+.PHONY : ast.cpp.o
+
+ast.i: ast.cpp.i
+.PHONY : ast.i
+
+# target to preprocess a source file
+ast.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.i
+.PHONY : ast.cpp.i
+
+ast.s: ast.cpp.s
+.PHONY : ast.s
+
+# target to generate assembly for a file
+ast.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.s
+.PHONY : ast.cpp.s
+
+eval.o: eval.cpp.o
+.PHONY : eval.o
+
+# target to build an object file
+eval.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.o
+.PHONY : eval.cpp.o
+
+eval.i: eval.cpp.i
+.PHONY : eval.i
+
+# target to preprocess a source file
+eval.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.i
+.PHONY : eval.cpp.i
+
+eval.s: eval.cpp.s
+.PHONY : eval.s
+
+# target to generate assembly for a file
+eval.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.s
+.PHONY : eval.cpp.s
+
+hashmap.o: hashmap.cpp.o
+.PHONY : hashmap.o
+
+# target to build an object file
+hashmap.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.o
+.PHONY : hashmap.cpp.o
+
+hashmap.i: hashmap.cpp.i
+.PHONY : hashmap.i
+
+# target to preprocess a source file
+hashmap.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.i
+.PHONY : hashmap.cpp.i
+
+hashmap.s: hashmap.cpp.s
+.PHONY : hashmap.s
+
+# target to generate assembly for a file
+hashmap.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.s
+.PHONY : hashmap.cpp.s
+
+lexer.o: lexer.cpp.o
+.PHONY : lexer.o
+
+# target to build an object file
+lexer.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.o
+.PHONY : lexer.cpp.o
+
+lexer.i: lexer.cpp.i
+.PHONY : lexer.i
+
+# target to preprocess a source file
+lexer.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.i
+.PHONY : lexer.cpp.i
+
+lexer.s: lexer.cpp.s
+.PHONY : lexer.s
+
+# target to generate assembly for a file
+lexer.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.s
+.PHONY : lexer.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -154,6 +250,78 @@ main.cpp.s:
 	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+parser.o: parser.cpp.o
+.PHONY : parser.o
+
+# target to build an object file
+parser.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.o
+.PHONY : parser.cpp.o
+
+parser.i: parser.cpp.i
+.PHONY : parser.i
+
+# target to preprocess a source file
+parser.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.i
+.PHONY : parser.cpp.i
+
+parser.s: parser.cpp.s
+.PHONY : parser.s
+
+# target to generate assembly for a file
+parser.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.s
+.PHONY : parser.cpp.s
+
+string_builder.o: string_builder.cpp.o
+.PHONY : string_builder.o
+
+# target to build an object file
+string_builder.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.o
+.PHONY : string_builder.cpp.o
+
+string_builder.i: string_builder.cpp.i
+.PHONY : string_builder.i
+
+# target to preprocess a source file
+string_builder.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.i
+.PHONY : string_builder.cpp.i
+
+string_builder.s: string_builder.cpp.s
+.PHONY : string_builder.s
+
+# target to generate assembly for a file
+string_builder.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.s
+.PHONY : string_builder.cpp.s
+
+xmlmodel.o: xmlmodel.cpp.o
+.PHONY : xmlmodel.o
+
+# target to build an object file
+xmlmodel.cpp.o:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.o
+.PHONY : xmlmodel.cpp.o
+
+xmlmodel.i: xmlmodel.cpp.i
+.PHONY : xmlmodel.i
+
+# target to preprocess a source file
+xmlmodel.cpp.i:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.i
+.PHONY : xmlmodel.cpp.i
+
+xmlmodel.s: xmlmodel.cpp.s
+.PHONY : xmlmodel.s
+
+# target to generate assembly for a file
+xmlmodel.cpp.s:
+	cd /home/ajung/src/xcut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.s
+.PHONY : xmlmodel.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -163,9 +331,30 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... xform"
+	@echo "... ast.o"
+	@echo "... ast.i"
+	@echo "... ast.s"
+	@echo "... eval.o"
+	@echo "... eval.i"
+	@echo "... eval.s"
+	@echo "... hashmap.o"
+	@echo "... hashmap.i"
+	@echo "... hashmap.s"
+	@echo "... lexer.o"
+	@echo "... lexer.i"
+	@echo "... lexer.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... parser.o"
+	@echo "... parser.i"
+	@echo "... parser.s"
+	@echo "... string_builder.o"
+	@echo "... string_builder.i"
+	@echo "... string_builder.s"
+	@echo "... xmlmodel.o"
+	@echo "... xmlmodel.i"
+	@echo "... xmlmodel.s"
 .PHONY : help
 
 

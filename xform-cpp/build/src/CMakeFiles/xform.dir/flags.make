@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = 
+CXX_INCLUDES = -I/home/linuxbrew/.linuxbrew/opt/libxml2/include/libxml2 -I/home/linuxbrew/.linuxbrew/opt/zlib-ng-compat/include
 
-CXX_FLAGS = -std=gnu++17
+CXX_FLAGS = -std=gnu++17 -DWITH_GZFILEOP -fpermissive
 

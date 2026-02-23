@@ -1,4 +1,4 @@
-.PHONY: test test-python test-rust test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c
+.PHONY: test test-python test-rust test-cpp test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c
 
 build: build-rust build-ts build-go build-swift build-js build-cpp build-c
 
@@ -13,8 +13,10 @@ build-go:
 
 build-swift:
 	cd xform-swift && \
-		if [ ! -w "$$HOME/.cache" ] || [ ! -w "$$HOME/Library/Caches" ]; then \
-			echo "Skipping swift build (cache directories not writable)"; \
+		cache_dir="$$HOME/.cache"; \
+		if [ "$$(uname -s)" = "Darwin" ]; then cache_dir="$$HOME/Library/Caches"; fi; \
+		if [ ! -d "$$cache_dir" ] || [ ! -w "$$cache_dir" ]; then \
+			echo "Skipping swift build (cache directory not writable: $$cache_dir)"; \
 			exit 0; \
 		fi && \
 		swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-swift-clang-cache
@@ -31,7 +33,12 @@ test: test-python test-rust
 
 test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
-	uv run python -m pytest tests/ -v
+	if [ -x xform-swift/.build/release/xform-swift ]; then \
+		UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=python,rust,ts,go,swift,js,cpp,c uv run python -m pytest tests/ -v; \
+	else \
+		echo "Swift binary not built; excluding Swift tests"; \
+		UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=python,rust,ts,go,js,cpp,c uv run python -m pytest tests/ -v; \
+	fi
 
 test-rust:
 	cd xform-rs && cargo test
@@ -39,3 +46,7 @@ test-rust:
 test-c: build-c
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
 	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=c uv run python -m pytest tests/test_transformations.py -v -k c_xform
+
+test-cpp: build-cpp
+	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=cpp uv run python -m pytest tests/test_transformations.py -v -k cpp_xform

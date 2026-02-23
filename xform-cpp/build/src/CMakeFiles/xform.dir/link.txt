@@ -1,1 +1,1 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/xform.dir/link.d CMakeFiles/xform.dir/main.cpp.o -o xform
+/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/xform.dir/link.d CMakeFiles/xform.dir/main.cpp.o CMakeFiles/xform.dir/lexer.cpp.o CMakeFiles/xform.dir/parser.cpp.o CMakeFiles/xform.dir/ast.cpp.o CMakeFiles/xform.dir/eval.cpp.o CMakeFiles/xform.dir/xmlmodel.cpp.o CMakeFiles/xform.dir/string_builder.cpp.o CMakeFiles/xform.dir/hashmap.cpp.o -o xform   -L/home/linuxbrew/.linuxbrew/opt/libxml2/lib  -Wl,-rpath,/home/linuxbrew/.linuxbrew/opt/libxml2/lib -lxml2 -lm
