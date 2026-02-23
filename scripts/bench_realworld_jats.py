@@ -24,7 +24,7 @@ EXTRACT_DIR = VENDOR_DIR / "JATSPreviewStylesheets-master"
 DEFAULT_INPUT = os.getenv("XF_BENCH_JATS_INPUT", "userguide.xml")
 DEFAULT_PMCID = os.getenv("XF_BENCH_JATS_PMCID", "PMC2231364")
 DEFAULT_SOURCE = os.getenv("XF_BENCH_JATS_SOURCE", "pmc").strip().lower()
-DEFAULT_LANGS = "python,rust,ts,go,swift"
+DEFAULT_LANGS = "python,rust,ts,go,swift,c,java"
 
 LANGS = [
     s.strip().lower()
@@ -39,6 +39,8 @@ BIN_RUST = ROOT / "xform-rs" / "target" / "release" / "xform"
 BIN_TS = ROOT / "xform-ts" / "dist" / "cli.js"
 BIN_GO = ROOT / "xform-go" / "bin" / "xform"
 BIN_SWIFT = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
+BIN_C = ROOT / "xform-c" / "build" / "src" / "xform"
+BIN_JAVA = ROOT / "xform-java" / "bin" / "xform"
 
 
 def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
@@ -60,6 +62,14 @@ def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
         if not BIN_SWIFT.exists():
             return None
         return [str(BIN_SWIFT), str(xml), str(xform)]
+    if lang == "c":
+        if not BIN_C.exists():
+            return None
+        return [str(BIN_C), str(xml), str(xform)]
+    if lang == "java":
+        if not BIN_JAVA.exists():
+            return None
+        return [str(BIN_JAVA), str(xml), str(xform)]
     return None
 
 

@@ -12,7 +12,7 @@ from statistics import median
 
 ROOT = Path(__file__).resolve().parents[1]
 
-DEFAULT_LANGS = "python,rust,ts,go,swift,js,cpp"
+DEFAULT_LANGS = "python,rust,ts,go,swift,js,cpp,c,java"
 
 LANGS = [
     s.strip().lower()
@@ -32,6 +32,8 @@ BIN_SWIFT = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 BIN_JS = ROOT / "xform-js" / "src" / "cli.js"
 CPP_BUILD_DIR = ROOT / "xform-cpp" / "build" / "src"
 BIN_CPP = CPP_BUILD_DIR / "xform"
+BIN_C = ROOT / "xform-c" / "build" / "src" / "xform"
+BIN_JAVA = ROOT / "xform-java" / "bin" / "xform"
 
 
 def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
@@ -61,6 +63,14 @@ def _cmd_for(lang: str, xml: Path, xform: Path) -> list[str] | None:
         if not BIN_CPP.exists():
             return None
         return [str(BIN_CPP), str(xml), str(xform)]
+    if lang == "c":
+        if not BIN_C.exists():
+            return None
+        return [str(BIN_C), str(xml), str(xform)]
+    if lang == "java":
+        if not BIN_JAVA.exists():
+            return None
+        return [str(BIN_JAVA), str(xml), str(xform)]
     return None
 
 
