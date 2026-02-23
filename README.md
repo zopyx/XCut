@@ -4,6 +4,7 @@ XForm is a declarative XML transformation language designed as a modern, readabl
 
 This repository contains:
 - **The XForm 2.0 language specification** (`xform-transformations-2.0.md`)
+- **A one-page XForm 2.0 tutorial with examples** (`TUTORIAL.md`)
 - **A complete Python reference implementation** (`xform/`)
 - **A Rust implementation** for performance-sensitive use cases (`xform-rs/`)
 - **A TypeScript implementation** (`xform-ts/`)
@@ -20,7 +21,8 @@ This repository contains:
 ## Table of Contents
 
 1. [Quick Start](#quick-start)
-2. [Installation](#installation)
+2. [Tutorial (One Page)](TUTORIAL.md)
+3. [Installation](#installation)
    - [Python](#python)
    - [Rust](#rust)
    - [TypeScript](#typescript)
@@ -30,8 +32,8 @@ This repository contains:
    - [C](#c)
    - [C++](#c-1)
    - [Java](#java)
-3. [Usage](#usage)
-4. [Language Reference](#language-reference)
+4. [Usage](#usage)
+5. [Language Reference](#language-reference)
    - [Module Structure](#module-structure)
    - [Path Expressions](#path-expressions)
    - [Constructors](#constructors)
@@ -39,13 +41,13 @@ This repository contains:
    - [Pattern Matching & Rules](#pattern-matching--rules)
    - [Operators](#operators)
    - [Data Types](#data-types)
-5. [Standard Library](#standard-library)
-6. [Examples](#examples)
-7. [Error Reference](#error-reference)
-8. [Running Tests](#running-tests)
-9. [Repository Layout](#repository-layout)
-10. [Comparison to XSLT](#comparison-to-xslt)
-11. [Language Design Notes](#language-design-notes)
+6. [Standard Library](#standard-library)
+7. [Examples](#examples)
+8. [Error Reference](#error-reference)
+9. [Running Tests](#running-tests)
+10. [Repository Layout](#repository-layout)
+11. [Comparison to XSLT](#comparison-to-xslt)
+12. [Language Design Notes](#language-design-notes)
 
 ---
 
