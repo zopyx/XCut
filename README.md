@@ -15,6 +15,7 @@ This repository contains:
 - **A C implementation** (`xform-c/`)
 - **A C++ implementation** (`xform-cpp/`)
 - **A Java implementation** (`xform-java/`)
+- **A Kotlin implementation** (`xform-kotlin/`)
 - **16 test fixtures** covering real-world transformation patterns, validated against `xsltproc`
 
 ---
@@ -34,6 +35,7 @@ This repository contains:
    - [C](#c)
    - [C++](#c-1)
    - [Java](#java)
+   - [Kotlin](#kotlin)
 5. [Usage](#usage)
 6. [Language Reference](#language-reference)
    - [Module Structure](#module-structure)
@@ -292,6 +294,29 @@ Run it:
 xform-java/bin/xform input.xml transform.xform
 ```
 
+### Kotlin
+
+**Requirements:** JDK 11+ and Gradle 8.x
+
+Build the Kotlin CLI:
+
+```bash
+cd xform-kotlin
+./gradlew build
+```
+
+Or use the Makefile:
+
+```bash
+make build-kotlin
+```
+
+Run it:
+
+```bash
+java -jar xform-kotlin/build/libs/xform-kotlin-1.0.jar input.xml transform.xform
+```
+
 ---
 
 ## Usage
@@ -365,6 +390,13 @@ xform-cpp/build/src/xform input.xml transform.xform > output.xml
 ```bash
 xform-java/bin/xform input.xml transform.xform
 xform-java/bin/xform input.xml transform.xform > output.xml
+```
+
+**Kotlin:**
+
+```bash
+java -jar xform-kotlin/build/libs/xform-kotlin-1.0.jar input.xml transform.xform
+java -jar xform-kotlin/build/libs/xform-kotlin-1.0.jar input.xml transform.xform > output.xml
 ```
 
 ### Exit Codes
@@ -944,7 +976,7 @@ xform version "2.0";
 
 ## Running Tests
 
-The test suite validates the Python implementation and, optionally, each language implementation (Rust/TypeScript/JavaScript/Go/Swift) against `xsltproc`. All 15 fixture cases are tested for each enabled language.
+The test suite validates the Python implementation and, optionally, each language implementation (Rust/TypeScript/JavaScript/Go/Swift/Kotlin) against `xsltproc`. All 15 fixture cases are tested for each enabled language.
 
 ### Prerequisites
 
@@ -971,10 +1003,11 @@ cd xform-swift && swift build -c release -Xcc -fmodules-cache-path=/tmp/xform-sw
 python -m pytest tests/ -v
 
 # Limit transformation tests by language (comma-separated)
-XF_TEST_LANGS=python,rust,ts,go,swift,js python -m pytest tests/ -v
+XF_TEST_LANGS=python,rust,ts,go,swift,js,kotlin python -m pytest tests/ -v
 XF_TEST_LANGS=python,ts,js python -m pytest tests/ -v
 XF_TEST_LANGS=python,go,js python -m pytest tests/ -v
 XF_TEST_LANGS=python,swift,js python -m pytest tests/ -v
+XF_TEST_LANGS=python,kotlin python -m pytest tests/ -v
 ```
 
 Language tests are automatically skipped if the corresponding binary is not built.
@@ -982,7 +1015,7 @@ Language tests are automatically skipped if the corresponding binary is not buil
 ### Makefile Targets
 
 ```bash
-make build        # Build all language binaries (Rust/TS/Go/Swift/JS/C/C++/Java)
+make build        # Build all language binaries (Rust/TS/Go/Swift/JS/C/C++/Java/Kotlin)
 make build-rust   # Build Rust binary
 make build-ts     # Build TypeScript CLI
 make build-go     # Build Go CLI
@@ -990,6 +1023,7 @@ make build-swift  # Build Swift CLI
 make build-c      # Build C CLI
 make build-cpp    # Build C++ CLI
 make build-java   # Build Java CLI
+make build-kotlin # Build Kotlin CLI
 make test         # Run Python tests (builds required binaries first)
 ```
 
@@ -1006,7 +1040,7 @@ The benchmark generates a synthetic XML document (by default 20k items) and perf
 Tuning options (environment variables):
 
 ```bash
-XF_BENCH_LANGS=python,rust,ts,go,swift,js,cpp,c,java   # select languages
+XF_BENCH_LANGS=python,rust,ts,go,swift,js,cpp,c,java,kotlin   # select languages
 XF_BENCH_ITEMS=20000                    # number of <item> elements
 XF_BENCH_GROUPS=50                      # number of categories
 XF_BENCH_RUNS=3                         # timed runs
@@ -1043,7 +1077,7 @@ uv run scripts/bench_realworld_jats.py
 Tuning options:
 
 ```bash
-XF_BENCH_LANGS=python,rust,ts,go,swift,c,java  # select languages
+XF_BENCH_LANGS=python,rust,ts,go,swift,c,java,kotlin  # select languages
 XF_BENCH_RUNS=3                        # timed runs
 XF_BENCH_WARMUP=1                      # warmup runs
 XF_BENCH_JATS_SOURCE=pmc               # pmc (default) or vendor
@@ -1061,7 +1095,7 @@ tests/test_transformations.py::test_xform_matches_xslt[case02] PASSED
 ...
 tests/test_transformations.py::test_rust_xform_matches_xslt[case01] PASSED
 ...
-... plus language-specific test suites (Rust/TS/JS/Go/Swift/C/C++/Java)
+... plus language-specific test suites (Rust/TS/JS/Go/Swift/C/C++/Java/Kotlin)
 ```
 
 ### How Tests Work
@@ -1101,6 +1135,7 @@ xcut/
 ├── xform-c/                       C implementation
 ├── xform-cpp/                     C++ implementation
 ├── xform-java/                    Java implementation
+├── xform-kotlin/                  Kotlin implementation
 │
 ├── tests/
 │   ├── test_transformations.py    Main test suite (Python + language CLIs)
