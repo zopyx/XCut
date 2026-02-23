@@ -10,7 +10,10 @@ This repository contains:
 - **A JavaScript implementation** targeting Node.js runtimes (`xform-js/`)
 - **A Go implementation** (`xform-go/`)
 - **A Swift implementation** (`xform-swift/`)
-- **15 test fixtures** covering real-world transformation patterns, validated against `xsltproc`
+- **A C implementation** (`xform-c/`)
+- **A C++ implementation** (`xform-cpp/`)
+- **A Java implementation** (`xform-java/`)
+- **16 test fixtures** covering real-world transformation patterns, validated against `xsltproc`
 
 ---
 
@@ -24,6 +27,9 @@ This repository contains:
    - [JavaScript](#javascript)
    - [Go](#go)
    - [Swift](#swift)
+   - [C](#c)
+   - [C++](#c-1)
+   - [Java](#java)
 3. [Usage](#usage)
 4. [Language Reference](#language-reference)
    - [Module Structure](#module-structure)
@@ -232,6 +238,56 @@ Run it:
 xform-swift/.build/release/xform-swift input.xml transform.xform
 ```
 
+### C
+
+**Requirements:** C compiler, CMake, `libxml2` development headers
+
+Build the C CLI:
+
+```bash
+cmake -S xform-c -B xform-c/build
+cmake --build xform-c/build
+```
+
+Run it:
+
+```bash
+xform-c/build/src/xform input.xml transform.xform
+```
+
+### C++
+
+**Requirements:** C++17 compiler, CMake, `libxml2` development headers
+
+Build the C++ CLI:
+
+```bash
+cmake -S xform-cpp -B xform-cpp/build
+cmake --build xform-cpp/build
+```
+
+Run it:
+
+```bash
+xform-cpp/build/src/xform input.xml transform.xform
+```
+
+### Java
+
+**Requirements:** JDK 17+ (tested with Temurin 21)
+
+Build the Java CLI:
+
+```bash
+make build-java
+```
+
+Run it:
+
+```bash
+xform-java/bin/xform input.xml transform.xform
+```
+
 ---
 
 ## Usage
@@ -284,6 +340,27 @@ xform-go/bin/xform input.xml transform.xform > output.xml
 ```bash
 xform-swift/.build/release/xform-swift input.xml transform.xform
 xform-swift/.build/release/xform-swift input.xml transform.xform > output.xml
+```
+
+**C:**
+
+```bash
+xform-c/build/src/xform input.xml transform.xform
+xform-c/build/src/xform input.xml transform.xform > output.xml
+```
+
+**C++:**
+
+```bash
+xform-cpp/build/src/xform input.xml transform.xform
+xform-cpp/build/src/xform input.xml transform.xform > output.xml
+```
+
+**Java:**
+
+```bash
+xform-java/bin/xform input.xml transform.xform
+xform-java/bin/xform input.xml transform.xform > output.xml
 ```
 
 ### Exit Codes
@@ -901,11 +978,14 @@ Language tests are automatically skipped if the corresponding binary is not buil
 ### Makefile Targets
 
 ```bash
-make build        # Build all language binaries (Rust/TS/Go/Swift)
+make build        # Build all language binaries (Rust/TS/Go/Swift/JS/C/C++/Java)
 make build-rust   # Build Rust binary
 make build-ts     # Build TypeScript CLI
 make build-go     # Build Go CLI
 make build-swift  # Build Swift CLI
+make build-c      # Build C CLI
+make build-cpp    # Build C++ CLI
+make build-java   # Build Java CLI
 make test         # Run Python tests (builds required binaries first)
 ```
 
@@ -922,7 +1002,7 @@ The benchmark generates a synthetic XML document (by default 20k items) and perf
 Tuning options (environment variables):
 
 ```bash
-XF_BENCH_LANGS=python,rust,ts,go,swift,js   # select languages
+XF_BENCH_LANGS=python,rust,ts,go,swift,js,cpp,c,java   # select languages
 XF_BENCH_ITEMS=20000                    # number of <item> elements
 XF_BENCH_GROUPS=50                      # number of categories
 XF_BENCH_RUNS=3                         # timed runs
@@ -959,7 +1039,7 @@ uv run scripts/bench_realworld_jats.py
 Tuning options:
 
 ```bash
-XF_BENCH_LANGS=python,rust,ts,go,swift  # select languages
+XF_BENCH_LANGS=python,rust,ts,go,swift,c,java  # select languages
 XF_BENCH_RUNS=3                        # timed runs
 XF_BENCH_WARMUP=1                      # warmup runs
 XF_BENCH_JATS_SOURCE=pmc               # pmc (default) or vendor
@@ -977,7 +1057,7 @@ tests/test_transformations.py::test_xform_matches_xslt[case02] PASSED
 ...
 tests/test_transformations.py::test_rust_xform_matches_xslt[case01] PASSED
 ...
-73 passed in 1.05s
+... plus language-specific test suites (Rust/TS/JS/Go/Swift/C/C++/Java)
 ```
 
 ### How Tests Work
@@ -1014,16 +1094,9 @@ xcut/
 ├── xform-js/                      Plain JavaScript implementation (Node.js)
 ├── xform-go/                      Go implementation
 ├── xform-swift/                   Swift implementation
-│   ├── Cargo.toml
-│   └── src/
-│       ├── lib.rs                 Library crate root
-│       ├── ast.rs                 AST enums and structs
-│       ├── lexer.rs               Tokenizer
-│       ├── parser.rs              Recursive-descent parser
-│       ├── eval.rs                Evaluator and built-in functions
-│       ├── xmlmodel.rs            XML tree model and serialization
-│       └── bin/
-│           └── xform.rs           CLI binary
+├── xform-c/                       C implementation
+├── xform-cpp/                     C++ implementation
+├── xform-java/                    Java implementation
 │
 ├── tests/
 │   ├── test_transformations.py    Main test suite (Python + language CLIs)
