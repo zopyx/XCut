@@ -68,6 +68,8 @@ SWIFT_XFORM_BIN = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 JS_XFORM_BIN = ROOT / "xform-js" / "src" / "cli.js"
 CPP_BUILD_DIR = ROOT / "xform-cpp" / "build" / "src"
 CPP_XFORM_BIN = CPP_BUILD_DIR / "xform"
+C_BUILD_DIR = ROOT / "xform-c" / "build" / "src"
+C_XFORM_BIN = C_BUILD_DIR / "xform"
 
 
 def _run_rust_xform(xform: Path, xml: Path) -> str:
@@ -250,3 +252,29 @@ def test_cpp_xform_matches_xslt(case: Path) -> None:
     cpp_out = _run_cpp_xform(xform, xml)
 
     assert _normalize_xml(cpp_out) == _normalize_xml(xslt_out)
+
+
+def _run_c_xform(xform: Path, xml: Path) -> str:
+    if "c" not in ENABLED_LANGS:
+        pytest.skip("C tests disabled")
+    if not C_XFORM_BIN.exists():
+        pytest.skip("C xform binary not built")
+    result = subprocess.run(
+        [str(C_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_c_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    c_out = _run_c_xform(xform, xml)
+
+    assert _normalize_xml(c_out) == _normalize_xml(xslt_out)

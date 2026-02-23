@@ -1,6 +1,6 @@
-.PHONY: test test-python test-rust build build-rust build-ts build-go build-swift build-js build-cpp
+.PHONY: test test-python test-rust test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c
 
-build: build-rust build-ts build-go build-swift build-js build-cpp
+build: build-rust build-ts build-go build-swift build-js build-cpp build-c
 
 build-rust:
 	cd xform-rs && cargo build --release
@@ -23,9 +23,13 @@ build-cpp:
 	cmake -S xform-cpp -B xform-cpp/build
 	cmake --build xform-cpp/build
 
+build-c:
+	cmake -S xform-c -B xform-c/build
+	cmake --build xform-c/build
+
 test: test-python test-rust
 
-test-python: build-rust build-ts build-go build-swift build-js build-cpp
+test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c
 	uv sync --extra dev
 	uv run python -m pytest tests/ -v
 

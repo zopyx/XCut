@@ -8,7 +8,8 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/Users/ajung/src/XCut/xform-cpp/src/main.cpp" "src/CMakeFiles/xform.dir/main.cpp.o" "gcc" "src/CMakeFiles/xform.dir/main.cpp.o.d"
+  "/home/ajung/src/xcut/xform-cpp/src/main.cpp" "src/CMakeFiles/xform.dir/main.cpp.o" "gcc" "src/CMakeFiles/xform.dir/main.cpp.o.d"
+  "" "src/xform" "gcc" "src/CMakeFiles/xform.dir/link.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

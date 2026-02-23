@@ -1,4 +1,5 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/xform.dir/link.d"
   "CMakeFiles/xform.dir/main.cpp.o"
   "CMakeFiles/xform.dir/main.cpp.o.d"
   "xform"
