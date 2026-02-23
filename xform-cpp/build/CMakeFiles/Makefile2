@@ -45,19 +45,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /home/linuxbrew/.linuxbrew/bin/cmake
+CMAKE_COMMAND = /opt/homebrew/bin/cmake
 
 # The command to remove a file.
-RM = /home/linuxbrew/.linuxbrew/bin/cmake -E rm -f
+RM = /opt/homebrew/bin/cmake -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/ajung/src/xcut/xform-cpp
+CMAKE_SOURCE_DIR = /Users/ajung/src/XCut/xform-cpp
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/ajung/src/xcut/xform-cpp/build
+CMAKE_BINARY_DIR = /Users/ajung/src/XCut/xform-cpp/build
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -104,14 +104,14 @@ src/clean: src/CMakeFiles/xform.dir/clean
 src/CMakeFiles/xform.dir/all:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/depend
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ajung/src/xcut/xform-cpp/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target xform"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Built target xform"
 .PHONY : src/CMakeFiles/xform.dir/all
 
 # Build rule for subdir invocation for target.
 src/CMakeFiles/xform.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ajung/src/xcut/xform-cpp/build/CMakeFiles 9
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles 9
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/xform.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/ajung/src/xcut/xform-cpp/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles 0
 .PHONY : src/CMakeFiles/xform.dir/rule
 
 # Convenience name for target.
@@ -121,7 +121,7 @@ xform: src/CMakeFiles/xform.dir/rule
 # codegen rule for target.
 src/CMakeFiles/xform.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/ajung/src/xcut/xform-cpp/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Finished codegen for target xform"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=1,2,3,4,5,6,7,8,9 "Finished codegen for target xform"
 .PHONY : src/CMakeFiles/xform.dir/codegen
 
 # clean rule for target.

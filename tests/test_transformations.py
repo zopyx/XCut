@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 ENABLED_LANGS = {
     s.strip().lower()
-    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java").split(",")
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin").split(",")
     if s.strip()
 }
 
@@ -67,6 +67,7 @@ GO_XFORM_BIN = ROOT / "xform-go" / "bin" / "xform"
 SWIFT_XFORM_BIN = ROOT / "xform-swift" / ".build" / "release" / "xform-swift"
 JS_XFORM_BIN = ROOT / "xform-js" / "src" / "cli.js"
 JAVA_XFORM_BIN = ROOT / "xform-java" / "bin" / "xform"
+KOTLIN_XFORM_JAR = ROOT / "xform-kotlin" / "build" / "libs" / "xform-kotlin-1.0.jar"
 CPP_BUILD_DIR = ROOT / "xform-cpp" / "build" / "src"
 CPP_XFORM_BIN = CPP_BUILD_DIR / "xform"
 C_BUILD_DIR = ROOT / "xform-c" / "build" / "src"
@@ -150,6 +151,20 @@ def _run_java_xform(xform: Path, xml: Path) -> str:
         pytest.skip("Java xform binary not built")
     result = subprocess.run(
         [str(JAVA_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def _run_kotlin_xform(xform: Path, xml: Path) -> str:
+    if "kotlin" not in ENABLED_LANGS:
+        pytest.skip("Kotlin tests disabled")
+    if not KOTLIN_XFORM_JAR.exists():
+        pytest.skip("Kotlin xform binary not built")
+    result = subprocess.run(
+        ["java", "-jar", str(KOTLIN_XFORM_JAR), str(xml), str(xform)],
         check=True,
         capture_output=True,
         text=True,
@@ -267,6 +282,18 @@ def test_java_xform_matches_xslt(case: Path) -> None:
     java_out = _run_java_xform(xform, xml)
 
     assert _normalize_xml(java_out) == _normalize_xml(xslt_out)
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_kotlin_xform_matches_xslt(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    xslt = case / "transform.xsl"
+
+    xslt_out = _run_xslt(xslt, xml)
+    kotlin_out = _run_kotlin_xform(xform, xml)
+
+    assert _normalize_xml(kotlin_out) == _normalize_xml(xslt_out)
 
 
 @pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)

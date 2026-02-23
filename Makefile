@@ -1,6 +1,6 @@
-.PHONY: test test-python test-rust test-java test-cpp test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
+.PHONY: test test-python test-rust test-kotlin test-java test-cpp test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c build-java build-kotlin
 
-build: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
+build: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java build-kotlin
 
 build-rust:
 	cd xform-rs && cargo build --release
@@ -41,9 +41,12 @@ build-java:
 		> xform-java/bin/xform
 	chmod +x xform-java/bin/xform
 
-test: test-python test-rust
+build-kotlin:
+	cd xform-kotlin && ./gradlew build
 
-test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
+test: test-python test-rust test-kotlin
+
+test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java build-kotlin
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
 	langs=python,rust,ts,go,js,cpp,c; \
 	if [ -x xform-swift/.build/release/xform-swift ]; then \
@@ -55,6 +58,11 @@ test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c
 		langs=$$langs,java; \
 	else \
 		echo "Java binary not built; excluding Java tests"; \
+	fi; \
+	if [ -f xform-kotlin/build/libs/xform-kotlin-1.0.jar ]; then \
+		langs=$$langs,kotlin; \
+	else \
+		echo "Kotlin binary not built; excluding Kotlin tests"; \
 	fi; \
 	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=$$langs uv run python -m pytest tests/ -v
 
@@ -72,3 +80,7 @@ test-c: build-c
 test-cpp: build-cpp
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
 	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=cpp uv run python -m pytest tests/test_transformations.py -v -k cpp_xform
+
+test-kotlin: build-kotlin
+	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=kotlin uv run python -m pytest tests/test_transformations.py -v -k kotlin_xform

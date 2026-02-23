@@ -1,0 +1,43 @@
+name: CI - Kotlin
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  kotlin:
+    name: Kotlin xform tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xsltproc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xsltproc
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Build Kotlin xform
+        run: ./gradlew build
+        working-directory: xform-kotlin
+
+      - name: Run Kotlin transformation tests
+        run: |
+          uv sync --extra dev
+          uv run python -m pytest tests/test_transformations.py -v -k kotlin_xform
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+          XF_TEST_LANGS: kotlin
