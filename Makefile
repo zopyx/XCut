@@ -30,8 +30,12 @@ build-c:
 test: test-python test-rust
 
 test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c
-	uv sync --extra dev
+	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
 	uv run python -m pytest tests/ -v
 
 test-rust:
 	cd xform-rs && cargo test
+
+test-c: build-c
+	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=c uv run python -m pytest tests/test_transformations.py -v -k 'c_xform and not case04 and not case11'
