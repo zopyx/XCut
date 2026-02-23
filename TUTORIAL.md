@@ -144,7 +144,247 @@ Two more 2.0 helpers worth knowing:
 - `index(seq, key:=exprOrFn)` builds a map from key to matching items
 - `position()` / `last()` work inside `for` iterations
 
-## 8. Example: Unique Sorted Tags
+## 8. Function Reference by Example (In Depth)
+
+XForm functions operate on the XForm data model (nodes + atomic values) and usually return a **sequence**. That matters: `lookup()` returns a sequence, `groupBy()` returns a sequence of maps, and many path expressions yield multiple nodes.
+
+### 8.1 Type and Conversion
+
+`string(x)`
+
+- Converts a node or atomic value to string.
+- Common for attributes, sort keys, grouping keys, and debug output.
+
+```xform
+string(./@id)
+string(.//title)
+string(number("12.5"))
+```
+
+Notes:
+
+- For nodes, this is the node string value (often descendant text for elements).
+- If cardinality is uncertain, use `head(...)` first for predictable results.
+
+`number(x)`
+
+- Converts to a number.
+- Raises `XFDY0002` on invalid conversion (for example `number("abc")`).
+
+```xform
+number(i/price/text())
+```
+
+`boolean(x)`
+
+- Uses XForm 2.0 boolean coercion:
+  - empty sequence -> `false`
+  - any sequence containing a node -> `true`
+  - atomic-only sequence -> `false` only if all values are falsy (`false`, `0`, `""`, `null`)
+
+```xform
+boolean(.//item)
+boolean("")
+boolean(0)
+```
+
+`typeOf(x)`
+
+- Returns a type label (useful for debugging generic transforms).
+
+```xform
+<debug>{ typeOf(.) }</debug>
+```
+
+### 8.2 Navigation and Selection
+
+`name(node) -> string`
+
+- Returns the name of an element/attribute node.
+
+```xform
+for n in ./* return <n>{ name(n) }</n>
+```
+
+`attr(node, qnameOrString) -> string`
+
+- Returns the attribute value as string (empty string if absent).
+- Unlike `@id`, this does **not** return an attribute node.
+
+```xform
+attr(., "id")
+attr(i, "class")
+```
+
+`text(node, deep:=true) -> string`
+
+- `deep:=true` (default): concatenates descendant text
+- `deep:=false`: direct text children only
+
+```xform
+text(./title)
+text(./p, deep:=false)
+```
+
+Example for mixed content `<p>Hello <b>world</b>!</p>`:
+
+- `text(p)` -> `"Hello world!"`
+- `text(p, deep:=false)` -> `"Hello !"`
+
+`children(node) -> Sequence(Node)`
+
+- Returns child nodes (elements, text, comments, PI, ...).
+
+```xform
+for c in children(.) return <child kind={typeOf(c)}/>
+```
+
+`elements(node, nameTest?) -> Sequence(ElementNode)`
+
+- Returns child elements only.
+- Optional `nameTest` filters by element name.
+
+```xform
+elements(.)
+elements(., "item")
+```
+
+`copy(node, recurse:=true) -> Node`
+
+- Deep copy by default (`recurse:=true`)
+- Shallow copy with `recurse:=false`
+- Use only with nodes (`copy("x")` is a type error / `XFDY0003`)
+
+```xform
+copy(/)
+copy(.//section)
+copy(., recurse:=false)
+```
+
+### 8.3 Sequence Functions
+
+`count(seq)`, `empty(seq)`
+
+```xform
+count(.//item)
+empty(.//warning)
+```
+
+`distinct(seq)`
+
+- Removes duplicates (commonly used on strings/numbers).
+
+```xform
+distinct(.//tag/text())
+```
+
+`sort(seq, keyFn?)`
+
+- Sorts directly (strings/numbers) or via key function.
+
+```xform
+sort(distinct(.//tag/text()))
+sort(.//item, string)
+sort(groupBy(.//indexterm, primaryKey), groupKey)
+```
+
+`concat(a, b)` / `seq(a, b, ...)`
+
+- `concat()` joins two sequences
+- `seq()` is variadic and very useful in `return` expressions
+
+```xform
+concat(.//a, .//b)
+seq(<a/>, <b/>, <c/>)
+```
+
+`head(seq)`, `tail(seq)`, `last(seq)`
+
+- `head` -> first item
+- `tail` -> all but first
+- `last(seq)` -> last item (sequence form)
+
+```xform
+head(.//item)
+tail(.//item)
+last(.//item)
+```
+
+### 8.4 Maps, Indexing, and Grouping
+
+`index(seq, key:=exprOrFn) -> map`
+
+- Builds a lookup map from key -> sequence of matching items.
+
+```xform
+let idx := index(.//item, key:=string(@id)) in
+lookup(idx, "42")
+```
+
+`lookup(map, key) -> Sequence`
+
+- Returns a sequence (empty if key is missing).
+
+```xform
+lookup(idx, "A123")
+lookup(g, "key")
+lookup(g, "items")
+```
+
+`groupBy(seq, keyFn) -> Sequence(map{key, items})`
+
+- Returns group objects (maps) with at least `"key"` and `"items"`.
+- Use when you want to iterate groups as records.
+
+```xform
+for g in groupBy(.//indexterm, primaryKey) return
+  <g k={string(lookup(g, "key"))} n={count(lookup(g, "items"))}/>
+```
+
+Rule of thumb:
+
+- `index()` for repeated direct lookups
+- `groupBy()` for grouped iteration and reporting
+
+### 8.5 Iteration Context (`for`)
+
+`position() -> number`
+
+- Current 1-based position in the active `for` iteration
+
+`last() -> number` (iteration-context form)
+
+- Size of the active `for` iteration sequence
+
+```xform
+for i in .//item return
+  <row pos={position()} total={last()}>{ i/name/text() }</row>
+```
+
+Important distinction:
+
+- `last()` = loop size (no arguments)
+- `last(seq)` = last item of a sequence (with argument)
+
+### 8.6 Common Function Mistakes
+
+- Passing a multi-item sequence where a single node is expected
+  - Fix with `head(...)` or explicit `for`
+- Assuming `lookup()` returns one item
+  - It returns a sequence
+- Confusing `attr()` (string) with `@id` (attribute node)
+- Calling `copy()` on atomic values
+- Using `number()` on unchecked strings
+
+Mini debug pattern:
+
+```xform
+<debug kind={typeOf(.)} count={count(.//item)}>
+  <first>{ string(head(.//item)) }</first>
+</debug>
+```
+
+## 9. Example: Unique Sorted Tags
 
 Input:
 
@@ -168,7 +408,7 @@ Output:
 <tags><tag>a</tag><tag>b</tag></tags>
 ```
 
-## 9. Example: Grouping (`groupBy` + `lookup`)
+## 10. Example: Grouping (`groupBy` + `lookup`)
 
 Transform pattern (based on fixture usage):
 
@@ -191,7 +431,7 @@ def groupKey(g) := string(lookup(g, "key"));
 
 `groupBy()` returns a sequence of maps (group objects). `lookup(g, "key")` gets the group key, and `lookup(g, "items")` gets the grouped items.
 
-## 10. Example: Copying Existing XML
+## 11. Example: Copying Existing XML
 
 Copy the whole document:
 
@@ -207,7 +447,7 @@ xform version "2.0";
 <root>{ copy(.//section) }</root>
 ```
 
-## 11. Example: `index()` and Positional Iteration
+## 12. Example: `index()` and Positional Iteration
 
 ```xform
 xform version "2.0";
@@ -227,7 +467,7 @@ Notes:
 - `position()` / `last()` are defined for the current `for` loop iteration.
 - `index()` returns a map; `lookup()` returns a sequence.
 
-## 12. Rule-Based Dispatch (`rule` + `apply`) (2.0)
+## 13. Rule-Based Dispatch (`rule` + `apply`) (2.0)
 
 This is the XSLT-like recursive style introduced/clarified in 2.0:
 
@@ -258,7 +498,7 @@ Mental model:
 - `apply(seq)` dispatches each item to the first matching rule (default ruleset: `main`).
 - If no rule matches an item, `XFDY0001` is raised.
 
-## 13. Namespaces and Modules (2.0)
+## 14. Namespaces and Modules (2.0)
 
 Namespace declaration (feeds the static context):
 
@@ -286,7 +526,7 @@ var currency := "EUR";
 <price currency={currency}>{ .//price/text() }</price>
 ```
 
-## 14. 2.0 Constructors and Patterns: Small but Important
+## 15. 2.0 Constructors and Patterns: Small but Important
 
 Text constructor (2.0):
 
@@ -304,7 +544,7 @@ match .//item:
   default => <miss/>;
 ```
 
-## 15. Errors You Will Actually See
+## 16. Errors You Will Actually See
 
 Common 2.0 error classes from the spec:
 
@@ -320,7 +560,7 @@ Common 2.0 error classes from the spec:
 
 Tip: start debugging by isolating one expression and wrapping it in a tiny constructor such as `<debug>{ ... }</debug>`.
 
-## 16. 2.0 Gotchas (Worth Remembering)
+## 17. 2.0 Gotchas (Worth Remembering)
 
 - Use `:=` (not `=`) for `def` and `let`.
 - `i/@id` is valid in 2.0 because identifiers can start a path.
@@ -331,8 +571,9 @@ Tip: start debugging by isolating one expression and wrapping it in a tiny const
 - Boolean coercion of sequences is not just XPath-like strings: any sequence containing a node is truthy.
 - If a `match` has no matching case and no `default`, it raises `XFDY0001`.
 
-## 17. Where Next
+## 18. Where Next
 
 - Full spec: `xform-transformations-2.0.md`
+- Function reference: `FUNCTIONS.md`
 - More examples: `tests/fixtures/case*/transform.xform`
 - Run cross-implementation fixture tests: `make test-python`
