@@ -1,5 +1,7 @@
 import Foundation
+#if canImport(FoundationXML)
 import FoundationXML
+#endif
 
 public final class Node {
     public let kind: String // document, element, attribute, text, comment, pi

@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec java -cp "$(dirname "$0")/../build/classes" zopyx.xform.Main "$@"
