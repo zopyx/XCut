@@ -233,8 +233,8 @@ static XmlNode* convert_node(xmlNode *node) {
 XmlNode* parse_xml(const char *text) {
     LIBXML_TEST_VERSION;
     
-    xmlDoc *doc = xmlReadMemory(text, strlen(text), NULL, NULL, 
-        XML_PARSE_NOBLANKS | XML_PARSE_NOENT | XML_PARSE_NONET);
+    xmlDoc *doc = xmlReadMemory(text, strlen(text), NULL, NULL,
+        XML_PARSE_NOENT | XML_PARSE_NONET);
     
     if (!doc) {
         return NULL;

@@ -83,11 +83,15 @@ Item* item_copy(Item *item) {
         case ITEM_FUNC_REF:
             return item_new_func_ref(item->data.func_ref);
         case ITEM_MAP:
-            /* Shallow copy of map */
             {
                 Item *copy = item_new(ITEM_MAP);
                 copy->data.map = xmap_new();
-                /* TODO: deep copy entries */
+                size_t count = 0;
+                HMEntry *entries = hm_entries(item->data.map->data, &count);
+                for (size_t i = 0; i < count; i++) {
+                    xmap_put(copy->data.map, entries[i].key, seq_copy((Seq*)entries[i].value));
+                }
+                free(entries);
                 return copy;
             }
     }
@@ -344,8 +348,25 @@ static Item* lit_to_item(LiteralValue *lit) {
 
 /* Forward declarations */
 static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context *ctx);
+static char* sort_item_key(Item *item, const char *key_func_name, Context *ctx);
 
 Seq* eval_expr(Expr *expr, Context *ctx);
+
+static char* sort_item_key(Item *item, const char *key_func_name, Context *ctx) {
+    Seq *temp = seq_new();
+    seq_append(temp, item_copy(item));
+    char *key = NULL;
+    if (key_func_name && *key_func_name) {
+        Seq *fn_args[1] = { temp };
+        Seq *key_seq = call_function(key_func_name, fn_args, 1, ctx);
+        key = to_string(key_seq);
+        seq_free(key_seq);
+    } else {
+        key = to_string(temp);
+    }
+    seq_free(temp);
+    return key;
+}
 
 static Seq* eval_binary_op(const char *op, Seq *left, Seq *right) {
     Seq *result = seq_new();
@@ -1210,6 +1231,49 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         for (size_t i = 0; i < arg_count; i++) {
             seq_extend(result, args[i]);
         }
+    } else if (strcmp(name, "lookup") == 0) {
+        if (arg_count >= 2 && args[0]->count > 0 && args[0]->items[0]->kind == ITEM_MAP) {
+            char *key = to_string(args[1]);
+            Seq *val = xmap_get(args[0]->items[0]->data.map, key);
+            if (val) {
+                seq_extend(result, val);
+            }
+            free(key);
+        }
+    } else if (strcmp(name, "groupBy") == 0) {
+        const char *key_func = NULL;
+        if (arg_count >= 2 && args[1]->count > 0 && args[1]->items[0]->kind == ITEM_FUNC_REF) {
+            key_func = args[1]->items[0]->data.func_ref;
+        }
+        if (arg_count > 0) {
+            HashMap *groups = hm_new(); /* key -> Item*(map) */
+            for (size_t i = 0; i < args[0]->count; i++) {
+                Item *input_item = args[0]->items[i];
+                char *key = sort_item_key(input_item, key_func, ctx);
+                Item *group_item = (Item*)hm_get(groups, key);
+                if (!group_item) {
+                    group_item = item_new(ITEM_MAP);
+                    group_item->data.map = xmap_new();
+
+                    Seq *key_seq = seq_new();
+                    seq_append(key_seq, item_new_str(key));
+                    xmap_put(group_item->data.map, "key", key_seq);
+
+                    Seq *items_seq = seq_new();
+                    xmap_put(group_item->data.map, "items", items_seq);
+
+                    hm_set(groups, key, group_item);
+                    seq_append(result, group_item);
+                }
+
+                Seq *items_seq = xmap_get(group_item->data.map, "items");
+                if (items_seq) {
+                    seq_append(items_seq, item_copy(input_item));
+                }
+                free(key);
+            }
+            hm_free(groups);
+        }
     } else if (strcmp(name, "distinct") == 0) {
         if (arg_count > 0) {
             /* Use a simple hash set approach */
@@ -1229,18 +1293,17 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         }
     } else if (strcmp(name, "sort") == 0) {
         if (arg_count > 0) {
+            const char *key_func = NULL;
+            if (arg_count > 1 && args[1]->count > 0 &&
+                args[1]->items[0]->kind == ITEM_FUNC_REF) {
+                key_func = args[1]->items[0]->data.func_ref;
+            }
             /* Simple insertion sort */
             Seq *input = seq_copy(args[0]);
             for (size_t i = 0; i < input->count; i++) {
                 for (size_t j = i + 1; j < input->count; j++) {
-                    Seq *temp_i = seq_new();
-                    Seq *temp_j = seq_new();
-                    seq_append(temp_i, item_copy(input->items[i]));
-                    seq_append(temp_j, item_copy(input->items[j]));
-                    char *si = to_string(temp_i);
-                    char *sj = to_string(temp_j);
-                    seq_free(temp_i);
-                    seq_free(temp_j);
+                    char *si = sort_item_key(input->items[i], key_func, ctx);
+                    char *sj = sort_item_key(input->items[j], key_func, ctx);
                     if (strcmp(si, sj) > 0) {
                         Item *tmp = input->items[i];
                         input->items[i] = input->items[j];

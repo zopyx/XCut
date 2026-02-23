@@ -38,4 +38,4 @@ test-rust:
 
 test-c: build-c
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
-	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=c uv run python -m pytest tests/test_transformations.py -v -k 'c_xform and not case04 and not case11'
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=c uv run python -m pytest tests/test_transformations.py -v -k c_xform
