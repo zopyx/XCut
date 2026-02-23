@@ -1,6 +1,6 @@
-.PHONY: test test-python test-rust test-cpp test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c
+.PHONY: test test-python test-rust test-java test-cpp test-c build build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
 
-build: build-rust build-ts build-go build-swift build-js build-cpp build-c
+build: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
 
 build-rust:
 	cd xform-rs && cargo build --release
@@ -29,19 +29,41 @@ build-c:
 	cmake -S xform-c -B xform-c/build
 	cmake --build xform-c/build
 
+build-java:
+	if ! command -v javac >/dev/null 2>&1; then \
+		echo "Skipping Java build (javac not available)"; \
+		exit 0; \
+	fi
+	mkdir -p xform-java/build/classes xform-java/bin
+	javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java')
+	printf '%s\n' '#!/usr/bin/env sh' \
+		'exec java -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' \
+		> xform-java/bin/xform
+	chmod +x xform-java/bin/xform
+
 test: test-python test-rust
 
-test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c
+test-python: build-rust build-ts build-go build-swift build-js build-cpp build-c build-java
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
+	langs=python,rust,ts,go,js,cpp,c; \
 	if [ -x xform-swift/.build/release/xform-swift ]; then \
-		UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=python,rust,ts,go,swift,js,cpp,c uv run python -m pytest tests/ -v; \
+		langs=$$langs,swift; \
 	else \
 		echo "Swift binary not built; excluding Swift tests"; \
-		UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=python,rust,ts,go,js,cpp,c uv run python -m pytest tests/ -v; \
-	fi
+	fi; \
+	if [ -x xform-java/bin/xform ]; then \
+		langs=$$langs,java; \
+	else \
+		echo "Java binary not built; excluding Java tests"; \
+	fi; \
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=$$langs uv run python -m pytest tests/ -v
 
 test-rust:
 	cd xform-rs && cargo test
+
+test-java: build-java
+	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
+	UV_CACHE_DIR=/tmp/uv-cache XF_TEST_LANGS=java uv run python -m pytest tests/test_transformations.py -v -k java_xform
 
 test-c: build-c
 	UV_CACHE_DIR=/tmp/uv-cache uv sync --extra dev
