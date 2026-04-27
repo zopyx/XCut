@@ -398,3 +398,105 @@ The only way to bring in external XML is via `import`, which is for modules (XFo
 4. Specify `head()`/`tail()` and `position()`/`last()` edge-case behavior
 5. Restore or replace guarded patterns to enable attribute-value matching
 6. Add map introspection (`keys`, `entries`) and a minimum string library
+
+---
+
+# Evaluation: XForm Transformations 2.1 (vs. 2.0)
+
+## Overall Impression
+
+2.1 is the first draft in this line that reads like a mostly self-contained core specification rather than a promising design with important normative gaps. The work is primarily specification-engineering rather than language redesign, which is the right move. The draft closes the most important remaining interoperability issues from 2.0: pattern grammar is formal, `apply()` is part of the language definition, named arguments are supported explicitly, the XML data model is stronger, built-in rules exist, and processor conformance is more testable.
+
+The result is materially better. The remaining issues are narrower and mostly concern scope, polish, and a few still-flexible areas.
+
+## What 2.0 Issues Are Fixed
+
+| 2.0 Issue | Status in 2.1 |
+|---|---|
+| `Pattern` not defined in grammar | Fixed |
+| `apply()` absent from grammar/library | Fixed |
+| `apply()` shadowable | Fixed |
+| Named arguments used but not grammatical | Fixed |
+| Default parameter evaluation undefined | Fixed |
+| Bare `@id` path start unsupported | Fixed |
+| Nested pattern exactness unspecified | Fixed |
+| Ruleset ordering across imports unspecified | Fixed |
+| No built-in default rules | Fixed |
+| `head`/`tail`/`last(seq)` edge cases unspecified | Fixed |
+| `position()` / `last()` outside `for` unspecified | Fixed |
+| Conformance not testable | Largely fixed |
+| Data model too shallow for XML fidelity | Substantially improved |
+| Namespace and expanded-name model weak | Substantially improved |
+| Constructor normalization too thin | Substantially improved |
+| String library too small | Improved |
+| Map introspection missing | Improved |
+
+## Major Strengths in 2.1
+
+### 1. The grammar is now close to genuinely normative
+
+The biggest 2.0 blocker was that several central constructs existed partly in prose and partly in EBNF. 2.1 repairs that by moving load-bearing syntax into the grammar itself: `Pattern`, `ApplyExpr`, named `Argument`, and core literal productions are now all present.
+
+### 2. `apply()` is finally specified like a real language feature
+
+In 2.0, `apply()` carried too much conceptual weight without enough formal status. In 2.1 it is clearly a built-in dispatch form, reserved, integrated into syntax, and tied to built-in rules.
+
+### 3. XML-facing semantics are much more credible
+
+Expanded QNames, parent relationships, namespace bindings, string-value rules, deep copy expectations, duplicate attribute errors, and namespace-fixup requirements make 2.1 much more serious as an XML specification.
+
+### 4. Conformance is much more concrete
+
+The 2.1 conformance section now states what a processor must implement and removes the undefined streaming profile from normative scope. That is a real improvement in testability.
+
+## Remaining Issues in 2.1
+
+### 1. The grammar is stronger, but not fully self-contained
+
+`Identifier := NCName` still relies on an external XML naming model rather than fully spelling it out locally. That is acceptable if the spec treats the XML naming rules as a normative dependency.
+
+### 2. Built-in rule prose is workable but still slightly awkward
+
+The built-in rule model is now sound, but it is still described operationally in prose rather than as a compact formal dispatch algorithm.
+
+### 3. Function/ruleset QName resolution still leaves some room for processor choice
+
+2.1 separates XML namespace prefixes from module aliases, which is better. But function and ruleset prefix resolution still leaves a little room for processor-defined interpretation. That should be narrowed further if strict cross-processor portability is a goal.
+
+### 4. The pattern language is precise but intentionally narrow
+
+2.1 defines exact child-sequence matching and literal attribute-value matching, which is enough for a core language. More expressive guarded or rest-capture patterns would still be useful in a future version.
+
+### 5. Regex behavior in `replace()` is underdefined
+
+`replace()` now exists, but its regex flavor is implementation-defined. That weakens portability for any transformation that depends on detailed regex behavior.
+
+### 6. Computed names are still absent
+
+The 2.1 draft avoids implying computed-name constructors, but it still does not provide them. That is an acceptable core-scope decision, but it should be treated as deliberate rather than accidental.
+
+## Comparison Table
+
+| Area | 1.0 | 2.0 | 2.1 |
+|---|---|---|---|
+| Grammar completeness | Incomplete | Better, still partial | Strong core coverage |
+| `apply()` formalization | Missing | Described, not integrated | Integrated and reserved |
+| Named arguments | Missing | Implied only | Formal |
+| Pattern exactness | Weak | Improved, still vague | Explicit |
+| Built-in rules | Missing | Missing | Present |
+| XML data model fidelity | Low | Moderate | Good core level |
+| Conformance testability | Low | Moderate | Stronger |
+| Namespace precision | Weak | Moderate | Stronger |
+| Library completeness | Partial | Better | Better still |
+| Publication readiness | No | Not yet | Close for a core draft |
+
+## Final Assessment
+
+2.1 is the first version that can reasonably be called an implementation-ready core specification draft. It is still an editor's draft, and there are still places where the design could be narrowed or polished, but the remaining problems are not of the same class as in 1.0 or 2.0.
+
+The next best step is not another redesign. It is:
+
+1. tighten the remaining processor-defined name-resolution edges
+2. decide whether regex behavior belongs in the core
+3. explicitly document intentional non-goals such as no computed-name constructors
+4. build a conformance test suite directly from 2.1

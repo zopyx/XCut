@@ -1,95 +1,180 @@
-# XForm 2.0 vs XSLT — Close Comparison
+# XForm 2.1 vs XSLT — Close Comparison
 
-This comparison is based on `xform-transformations-2.0.md` (Editor’s Draft, 2026-02-20) and contrasts XForm 2.0 with XSLT as commonly understood (templates, modes, XPath-based selection, and processor/tooling ecosystem). It focuses on language shape and practical tradeoffs.
+This comparison is based on [xform-transformations-2.1.md](/Users/ajung/src/xform/xform-transformations-2.1.md) and contrasts XForm 2.1 with XSLT as commonly understood: template rules, XPath-based selection, recursive dispatch, and XML-oriented tooling.
 
 ## Executive Summary
-XForm 2.0 is a compact, expression‑centric XML transformation language that blends XPath-like paths, functional expressions, and XML constructors with a minimal rule dispatch model similar to XSLT’s `apply-templates`. Compared to XSLT, XForm aims for terser syntax and direct XML construction, at the cost of ecosystem maturity, advanced optimization facilities, and the broad feature set available across XSLT versions.
+
+XForm 2.1 is a compact, expression-centric XML transformation language that blends path expressions, functional expressions, explicit XML constructors, and a formally specified recursive rule-dispatch model. Compared to XSLT, XForm still aims for terser syntax and more direct output construction, but 2.1 closes several specification gaps that made the 2.0 comparison less stable: `apply()` is now formal, built-in rules exist, named arguments are part of the language, and XML data/namespace handling is more precise.
+
+XSLT remains richer, more mature, and more optimized. XForm 2.1 is closer to a small, coherent core language than to a full XSLT replacement.
 
 ## Feature Mapping
 
-| Area | XForm 2.0 | XSLT |
+| Area | XForm 2.1 | XSLT |
 |---|---|---|
-| Core paradigm | Expression-centric, functional, constructor-heavy | Template/rule-centric with declarative matching |
-| Selection language | XPath-like path expressions | XPath (with version-dependent features) |
-| Rule dispatch | `rule` + `apply(seq, Name?)` | Template rules + `apply-templates` |
+| Core paradigm | Expression-centric with rule dispatch | Template/rule-centric |
+| Selection language | XPath-like path expressions | XPath |
+| Rule dispatch | `rule` + built-in `apply(...)` | Template rules + `apply-templates` |
+| Built-in default rules | Yes, specified in core spec | Yes |
 | Pattern matching | `match expr: case pattern => expr` | Template match patterns |
-| Construction | XML constructors `<a>{...}</a>` | Literal result elements + `xsl:element`/`xsl:attribute` |
-| Control flow | `if/then/else`, `for`, `let`, `match` | `xsl:if`, `xsl:choose`, `xsl:for-each`, variables |
-| Modules | `import "iri" as p;` + `ns` declaration | `xsl:import` / `xsl:include`, namespaces |
-| Errors | Defined static/dynamic error codes | Defined error model (processor-dependent details) |
-| Profiles | Core + Streaming (TBD) | Streaming defined in XSLT 3.0 |
+| Construction | XML constructors plus text/comment/PI constructors | Literal result elements + instruction elements |
+| Control flow | `if`, `for`, `let`, `match` | `xsl:if`, `xsl:choose`, `xsl:for-each`, variables |
+| Named arguments | Yes | Parameters, tunnel params, named templates/functions |
+| Maps | Yes, with minimal introspection | Yes in modern XSLT/XPath versions |
+| Modules | `import "iri" as m;` + `ns` declarations | `xsl:import`, `xsl:include`, packages |
+| Errors | Explicit static/dynamic error classes | Defined error model, processor-specific diagnostics |
+| Streaming | Not defined in 2.1 core | Defined in XSLT 3.0 |
+
+## Where 2.1 Improved the Comparison
+
+Relative to 2.0, XForm 2.1 is easier to compare seriously with XSLT because the spec now does more of the work explicitly:
+
+1. `apply(...)` is formalized instead of being half-library, half-prose.
+2. Built-in default rules exist, reducing brittle "must match everything manually" behavior.
+3. Pattern exactness and ruleset ordering are more explicit.
+4. Namespace and expanded-name semantics are stronger.
+5. Named arguments and default parameter behavior are defined.
+
+That does not make XForm feature-equivalent to XSLT. It makes the *comparison* less fuzzy.
 
 ## Language Shape and Readability
-XForm 2.0 favors direct XML constructors with inline expression interpolation and a minimal number of keywords. In practice, this reduces boilerplate for straight‑through reshaping and makes the output structure highly visible in the transformation. XSLT’s template/stylesheet wrapping is more verbose but makes the overall transformation model explicit and scales well for complex, rule‑driven transformations.
+
+XForm 2.1 still favors direct XML constructors with inline expression interpolation:
+
+```xform
+<entry id={string(@id)}>{ text(./title) }</entry>
+```
+
+This keeps the output shape visually central. XSLT is more verbose because the stylesheet structure, namespace declarations, and instruction elements are more explicit.
+
+Tradeoff:
+
+- XForm is terser for straightforward reshaping
+- XSLT is clearer for large rule-driven systems with multiple modes and established conventions
 
 ## Rule Dispatch and Matching
-XForm introduces `rule` plus `apply()` as a minimal recursive dispatch model comparable to XSLT’s `apply-templates`. Unlike classic XSLT, XForm’s `match` is also an expression construct that can dispatch over sequences, which makes it easy to do inline pattern matching within a larger expression pipeline. XSLT’s template matching model is more established and supports modes, built‑in template rules, and a rich set of optimization behaviors in mature processors.
+
+XForm 2.1 now has a more stable recursive-dispatch story:
+
+- `rule name match pattern := expr;`
+- `apply(seq, ruleset?)`
+- built-in low-priority fallback rules
+- first-match dispatch over a defined ruleset order
+
+This is conceptually similar to `apply-templates`, but still simpler than XSLT:
+
+- no modes in the core spec
+- no import precedence model as rich as XSLT's
+- no built-in pattern priority system beyond order
+- no large ecosystem of optimizer behavior
+
+XSLT still wins on sophistication; XForm wins on surface simplicity.
 
 ## Construction and Serialization
-XForm’s constructor syntax is concise and consistent: `<elem attr={expr}>{expr}</elem>` and `text{expr}`. This makes expression output intent explicit and reduces the need for instruction elements. XSLT uses literal result elements, which can be equally readable, but adds verbosity when attributes or computed names are needed (`xsl:attribute`, `xsl:element`).
+
+XForm 2.1 supports:
+
+- element constructors
+- `text{...}`
+- `comment{...}`
+- `pi{target, value}`
+- namespace fixup requirements
+- duplicate-attribute errors
+
+That puts construction semantics on a firmer XML footing than 2.0. XSLT still has broader construction facilities, especially for computed names and advanced namespace control.
 
 ## Data Model and Types
-XForm 2.0 defines a simple item model: nodes plus basic atomic types and `map`, with a clear static/dynamic context split. XSLT operates on the XPath data model and supports a broader, version‑dependent type system (particularly in XSLT 2.0/3.0).
+
+XForm 2.1 now defines a more XML-faithful data model than 2.0:
+
+- expanded QNames
+- parent relationships
+- namespace bindings
+- string value rules
+- deep-copy requirements
+
+Even so, XSLT/XPath still has the broader and more mature type ecosystem.
 
 ## Namespaces and Modules
-XForm separates module imports from namespace bindings (`import ... as p` vs `ns` declaration). XSLT relies on XML namespaces and explicit import/include relationships. XSLT has a long‑standing, interoperable module system with predictable precedence rules and wide tooling support.
 
-## Errors and Diagnostics
-XForm defines specific static and dynamic error codes (e.g., syntax, import cycles, missing rules). XSLT has a defined error model but processors differ in diagnostic quality and granularity. XForm’s explicit codes can make testing and conformance clearer if consistently implemented.
+XForm 2.1 separates:
+
+- XML namespace bindings via `ns`
+- module aliasing via `import ... as m`
+
+That is clearer than before, but still less developed than XSLT package/import systems. XSLT has stronger long-term interoperability here.
+
+## Errors and Conformance
+
+XForm 2.1 is much sharper than 2.0 about:
+
+- processor conformance
+- required core features
+- required error behavior
+- observable edge cases
+
+That is an important improvement because it makes the language more testable. XSLT still benefits from a far more mature conformance ecosystem and processor diversity.
 
 ## Pros and Cons
 
-### Pros of XForm 2.0 (relative to XSLT)
-1. Concise syntax that closely mirrors output XML.
-2. Expression‑centric flow reduces ceremony for simple transforms.
-3. Inline pattern matching (`match`) makes local decisions easy.
-4. Clear static/dynamic contexts and explicit error taxonomy.
-5. Minimal rule dispatch model that is easy to explain and implement.
+### Pros of XForm 2.1 relative to XSLT
 
-### Cons of XForm 2.0 (relative to XSLT)
-1. Immature ecosystem: fewer processors, libraries, editors, and tooling.
-2. Limited standard library and features compared to modern XSLT versions.
-3. Fewer established optimization and streaming capabilities (Streaming profile is TBD).
-4. Smaller body of best practices and interoperability guidance.
-5. Less compatibility with existing XSLT assets and enterprise pipelines.
+1. More compact syntax for many XML reshaping tasks.
+2. Output XML remains visually obvious in the transformation source.
+3. Expression-level `match` is convenient for local branching.
+4. Simpler core mental model than a full XSLT processor.
+5. The 2.1 spec is much more coherent and implementation-ready than 2.0.
 
-### Pros of XSLT (relative to XForm 2.0)
-1. Mature, widely deployed processors and tooling across platforms.
-2. Rich features in XSLT 2.0/3.0 (functions, packages, streaming).
-3. Strong integration with XPath and XML tooling ecosystems.
-4. Well‑understood template matching and mode systems.
-5. Extensive community knowledge, examples, and production usage.
+### Cons of XForm 2.1 relative to XSLT
 
-### Cons of XSLT (relative to XForm 2.0)
-1. More verbose syntax for common transformations.
-2. Boilerplate around stylesheet structure and namespaces.
-3. Indirection via templates can be harder to follow in small transforms.
-4. Mixed instruction/element syntax can reduce readability for newcomers.
+1. Smaller feature set.
+2. No core streaming profile.
+3. No core mode system.
+4. Less mature optimization and tooling ecosystem.
+5. Less interoperability with existing enterprise XML pipelines.
+
+### Pros of XSLT relative to XForm 2.1
+
+1. Mature processors and production tooling.
+2. Richer dispatch, packaging, and optimization model.
+3. Deep integration with XPath/XDM.
+4. More complete string, type, and transformation facilities.
+5. Established best practices and deployment history.
+
+### Cons of XSLT relative to XForm 2.1
+
+1. More verbose surface syntax.
+2. More ceremony for small transforms.
+3. Template indirection can be harder to follow for newcomers.
+4. Stylesheet structure can obscure simple output-focused reshaping.
+
+## Key Semantic Differences
+
+Important differences remain:
+
+1. XForm boolean coercion is not XPath effective boolean value.
+2. Unbound identifier path starts fall back to `./Identifier`.
+3. Rule dispatch is explicitly order-based, not priority-based.
+4. `apply(...)` is closer to a built-in special form than to general template machinery.
+5. The XForm core library is intentionally smaller.
+
+These are not bugs. They are part of XForm's language identity.
 
 ## When Each Is a Better Fit
-XForm 2.0 is likely a better fit for compact, readable XML reshaping where the transformation is most easily expressed as constructors plus simple path expressions. XSLT is likely a better fit for large, rule‑driven transformations, complex matching logic with modes, and environments that depend on mature tooling, standards compliance, and high‑performance processors.
 
-## Example: JATS Summary (XSLT vs XForm)
-This example corresponds to the real‑world benchmark in `benchmarks/realworld/jats/` and compares the summary transforms `transform.xsl` and `transform.xform`.
+XForm 2.1 is a better fit when:
 
-### What Both Transforms Do
-Both versions:
-1. Extract the first `article-title`, `journal-title`, and `pub-date/year`.
-2. Collect author names from `contrib[@contrib-type="author"]`.
-3. Emit a `<summary>` element with `<authors>` and `<metrics>` counts.
+- the goal is a compact XML reshaping language
+- output structure should remain immediately visible
+- the transformation problem fits a small, coherent core
 
-### Key Differences
-1. **Selection / filtering**
-   XSLT uses `//contrib[@contrib-type='author']`. XForm uses `.//contrib[./@contrib-type="author"]` because `@` is only supported as a path step (not a stand‑alone predicate expression).
-2. **String handling**
-   XSLT uses `string()` and `xsl:choose` for the author name space handling. XForm uses `string()` via `textOf()` and an inline `if … then … else`.
-3. **Control flow**
-   XSLT uses `xsl:for-each` and `xsl:choose`. XForm uses `for … return` and expression‑level `if`.
-4. **Attribute construction**
-   XSLT uses `xsl:attribute`. XForm uses `{expr}` directly in attribute values.
+XSLT is a better fit when:
 
-### Readability and Maintenance
-XForm is terser and makes the output shape very explicit by using XML constructors directly. XSLT is more verbose but explicit about transformation steps and uses well‑known conventions and tooling.
+- the transformation is large and rule-heavy
+- mature tooling and deployment matter
+- streaming, packaging, modes, and advanced optimizations matter
+- compatibility with existing XML standards ecosystems is important
 
-## Notes on Alignment
-The XForm 2.0 draft explicitly positions `rule` + `apply()` as an analogue to XSLT `apply-templates`, which is the closest conceptual anchor between the two languages. Beyond that, XForm prioritizes terseness and a unified expression model, while XSLT prioritizes a robust, well‑specified template processing system with decades of tooling and implementation experience.
+## Bottom Line
+
+XForm 2.1 is now much easier to take seriously as a spec than 2.0. It is still not "small-syntax XSLT 3.0"; it is a narrower language with a clearer core. If the goal is a concise XML transformation language with explicit constructors and a disciplined rule model, XForm 2.1 is defensible. If the goal is the broadest XML transformation platform, XSLT still dominates.
