@@ -30,12 +30,18 @@ build-c:
 	cmake --build xform-c/build
 
 build-java:
-	if ! command -v javac >/dev/null 2>&1; then \
+	JAVAC=javac; \
+	if [ -n "$${JAVA_HOME}" ]; then JAVAC="$${JAVA_HOME}/bin/javac"; fi; \
+	if ! command -v "$${JAVAC}" >/dev/null 2>&1; then \
 		echo "Skipping Java build (javac not available)"; \
 		exit 0; \
 	fi
 	mkdir -p xform-java/build/classes xform-java/bin
-	javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java')
+	if [ -n "$${JAVA_HOME}" ]; then \
+		"$${JAVA_HOME}/bin/javac" -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
+	else \
+		javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
+	fi
 	@echo '#!/usr/bin/env sh' > xform-java/bin/xform
 	@echo 'if [ -n "$${JAVA_HOME}" ]; then' >> xform-java/bin/xform
 	@echo '  exec "$${JAVA_HOME}/bin/java" -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
