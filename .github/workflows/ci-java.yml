@@ -36,13 +36,7 @@ jobs:
       - name: Run Java transformation tests
         run: |
           uv sync --extra dev
-          uv run python -m pytest tests/test_transformations.py -v -k java_xform
-        env:
-          PYTHONPATH: ${{ github.workspace }}
-          XF_TEST_LANGS: java
-
-      - name: Run Java XML model tests
-        run: uv run python -m pytest tests/test_java_xmlmodel.py -v
+          uv run python -m pytest tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
           XF_TEST_LANGS: java
