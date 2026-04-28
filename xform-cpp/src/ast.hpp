@@ -229,7 +229,7 @@ typedef struct {
     /* Namespaces: prefix -> uri */
     struct HashMap *namespaces;
     /* Imports: array of (iri, alias) pairs */
-    struct {
+    struct ImportDecl {
         char *iri;
         char *alias;
     } *imports;

@@ -1,0 +1,7 @@
+xform version "2.1";
+<kinds>{
+  for i in .//item return
+    match @type:
+      case @type = "product" => <kind>product</kind>;
+      default => <kind>other</kind>;
+}</kinds>

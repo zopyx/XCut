@@ -23,7 +23,7 @@ impl Parser {
             self.lexer.next();
             self.lexer.expect(TK::Kw, Some("version"))?;
             let ver = self.lexer.expect(TK::Str, None)?.value;
-            if ver != "2.0" {
+            if ver != "2.0" && ver != "2.1" {
                 return Err("XFST0005: unsupported version".into());
             }
             self.lexer.expect(TK::Punct, Some(";"))?;
@@ -80,7 +80,7 @@ impl Parser {
         let iri = self.lexer.expect(TK::Str, None)?.value;
         let alias = if self.lexer.peek().kind == TK::Kw && self.lexer.peek().value == "as" {
             self.lexer.next();
-            Some(self.lexer.expect(TK::Ident, None)?.value)
+            Some(self._expect_identifier()?)
         } else {
             None
         };
@@ -91,7 +91,7 @@ impl Parser {
 
     fn parse_var(&mut self) -> Result<(String, Expr), String> {
         self.lexer.expect(TK::Kw, Some("var"))?;
-        let name = self.lexer.expect(TK::Ident, None)?.value;
+        let name = self._expect_identifier()?;
         self.lexer.expect(TK::Op, Some(":="))?;
         let expr = self.parse_expr()?;
         self.lexer.expect(TK::Punct, Some(";"))?;
@@ -120,7 +120,7 @@ impl Parser {
     }
 
     fn parse_param(&mut self) -> Result<Param, String> {
-        let name = self.lexer.expect(TK::Ident, None)?.value;
+        let name = self._expect_identifier()?;
         let type_ref = if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == ":" {
             self.lexer.next();
             Some(self.parse_type_ref()?)
@@ -138,7 +138,7 @@ impl Parser {
 
     fn parse_type_ref(&mut self) -> Result<String, String> {
         let tok = self.lexer.peek();
-        if tok.kind == TK::Ident
+        if (tok.kind == TK::Ident || tok.kind == TK::Kw)
             && ["string", "number", "boolean", "null", "map"].contains(&tok.value.as_str())
         {
             return Ok(self.lexer.next().value);
@@ -187,7 +187,7 @@ impl Parser {
 
     fn parse_let(&mut self) -> Result<Expr, String> {
         self.lexer.expect(TK::Kw, Some("let"))?;
-        let name = self.lexer.expect(TK::Ident, None)?.value;
+        let name = self._expect_identifier()?;
         self.lexer.expect(TK::Op, Some(":="))?;
         let value = self.parse_expr()?;
         self.lexer.expect(TK::Kw, Some("in"))?;
@@ -197,7 +197,7 @@ impl Parser {
 
     fn parse_for(&mut self) -> Result<Expr, String> {
         self.lexer.expect(TK::Kw, Some("for"))?;
-        let name = self.lexer.expect(TK::Ident, None)?.value;
+        let name = self._expect_identifier()?;
         self.lexer.expect(TK::Kw, Some("in"))?;
         let seq = self.parse_expr()?;
         let where_clause =
@@ -352,14 +352,27 @@ impl Parser {
             let v = self.lexer.next().value;
             return Ok(Expr::Literal(LiteralValue::Str(v)));
         }
+        if pk == TK::Kw && ["true", "false", "null"].contains(&pv.as_str()) {
+            self.lexer.next();
+            let val = match pv.as_str() {
+                "true" => LiteralValue::Bool(true),
+                "false" => LiteralValue::Bool(false),
+                "null" => LiteralValue::Null,
+                _ => unreachable!(),
+            };
+            return Ok(Expr::Literal(val));
+        }
         if pk == TK::Punct && pv == "(" {
             self.lexer.next();
             let e = self.parse_expr()?;
             self.lexer.expect(TK::Punct, Some(")"))?;
             return Ok(e);
         }
+        if pk == TK::Kw && pv == "apply" {
+            return self.parse_apply();
+        }
         // text{...} constructor vs text(...) function call
-        if pk == TK::Ident && pv == "text" {
+        if pk == TK::Kw && pv == "text" {
             let saved_pos = self.lexer.pos;
             let saved_buf = self.lexer.buf.clone();
             self.lexer.next(); // consume "text"
@@ -369,7 +382,38 @@ impl Parser {
                 self.lexer.expect(TK::Punct, Some("}"))?;
                 return Ok(Expr::TextConstructor(Box::new(e)));
             }
-            // Not text{...}, restore
+            if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "(" {
+                return self.parse_func_call("text".to_string());
+            }
+            // Not text{...} or text(...), restore
+            self.lexer.pos = saved_pos;
+            self.lexer.buf = saved_buf;
+        }
+        if pk == TK::Kw && pv == "comment" {
+            let saved_pos = self.lexer.pos;
+            let saved_buf = self.lexer.buf.clone();
+            self.lexer.next(); // consume "comment"
+            if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "{" {
+                self.lexer.next(); // consume "{"
+                let e = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some("}"))?;
+                return Ok(Expr::CommentConstructor(Box::new(e)));
+            }
+            self.lexer.pos = saved_pos;
+            self.lexer.buf = saved_buf;
+        }
+        if pk == TK::Kw && pv == "pi" {
+            let saved_pos = self.lexer.pos;
+            let saved_buf = self.lexer.buf.clone();
+            self.lexer.next(); // consume "pi"
+            if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "{" {
+                self.lexer.next(); // consume "{"
+                let target = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some(","))?;
+                let value = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some("}"))?;
+                return Ok(Expr::PIConstructor(Box::new(PIConstructor { target, value })));
+            }
             self.lexer.pos = saved_pos;
             self.lexer.buf = saved_buf;
         }
@@ -377,9 +421,20 @@ impl Parser {
         if pk == TK::Op && pv == "<" {
             return self.parse_constructor();
         }
-        // Path starting with . or /
-        if pk == TK::Dot || pk == TK::Slash {
+        // Path starting with . or / or @
+        if pk == TK::Dot || pk == TK::Slash || pk == TK::At {
             return self.parse_path(None);
+        }
+        // string/number/boolean/map as function calls
+        if pk == TK::Kw && ["string", "number", "boolean", "map"].contains(&pv.as_str()) {
+            let saved_pos = self.lexer.pos;
+            let saved_buf = self.lexer.buf.clone();
+            self.lexer.next();
+            if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "(" {
+                return self.parse_func_call(pv);
+            }
+            self.lexer.pos = saved_pos;
+            self.lexer.buf = saved_buf;
         }
         // Identifier: variable, function call, or path start
         if pk == TK::Ident {
@@ -396,18 +451,62 @@ impl Parser {
         Err(format!("Unexpected token {:?} {:?} at {}", pk, pv, self.lexer.peek().pos))
     }
 
+    fn parse_apply(&mut self) -> Result<Expr, String> {
+        self.lexer.expect(TK::Kw, Some("apply"))?;
+        self.lexer.expect(TK::Punct, Some("("))?;
+        let expr = self.parse_expr()?;
+        let mut ruleset = None;
+        if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "," {
+            self.lexer.next();
+            ruleset = Some(self.parse_qname()?);
+        }
+        self.lexer.expect(TK::Punct, Some(")"))?;
+        Ok(Expr::ApplyExpr(Box::new(ApplyExpr { expr, ruleset })))
+    }
+
     fn parse_func_call(&mut self, name: String) -> Result<Expr, String> {
         self.lexer.expect(TK::Punct, Some("("))?;
         let mut args = Vec::new();
+        let mut named_args = Vec::new();
         if !(self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == ")") {
-            args.push(self.parse_expr()?);
+            let (arg_name, arg_expr) = self.parse_argument()?;
+            if let Some(n) = arg_name {
+                named_args.push((n, arg_expr));
+            } else {
+                args.push(arg_expr);
+            }
             while self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "," {
                 self.lexer.next();
-                args.push(self.parse_expr()?);
+                let (arg_name2, arg_expr2) = self.parse_argument()?;
+                if let Some(n) = arg_name2 {
+                    named_args.push((n, arg_expr2));
+                } else {
+                    if !named_args.is_empty() {
+                        return Err("XFST0001: positional argument after named argument".into());
+                    }
+                    args.push(arg_expr2);
+                }
             }
         }
         self.lexer.expect(TK::Punct, Some(")"))?;
-        Ok(Expr::FuncCall(Box::new(FuncCall { name, args })))
+        Ok(Expr::FuncCall(Box::new(FuncCall { name, args, named_args })))
+    }
+
+    fn parse_argument(&mut self) -> Result<(Option<String>, Expr), String> {
+        // Look ahead for named argument: ident := expr
+        if self.lexer.peek().kind == TK::Ident {
+            let saved_pos = self.lexer.pos;
+            let saved_buf = self.lexer.buf.clone();
+            let name = self.lexer.next().value;
+            if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == ":=" {
+                self.lexer.next();
+                let expr = self.parse_expr()?;
+                return Ok((Some(name), expr));
+            }
+            self.lexer.pos = saved_pos;
+            self.lexer.buf = saved_buf;
+        }
+        Ok((None, self.parse_expr()?))
     }
 
     fn path_continues(&mut self) -> bool {
@@ -425,6 +524,19 @@ impl Parser {
                 (TK::Dot, _) => PathStart { kind: PathStartKind::Context, name: None },
                 (TK::Slash, "//") => PathStart { kind: PathStartKind::DescRoot, name: None },
                 (TK::Slash, _) => PathStart { kind: PathStartKind::Root, name: None },
+                (TK::At, _) => {
+                    // Bare @name is shorthand for ./@name
+                    let name = self.parse_qname()?;
+                    let steps = vec![PathStep {
+                        axis: PathAxis::Attr,
+                        test: StepTest::named(&name),
+                        predicates: vec![],
+                    }];
+                    return Ok(Expr::PathExpr(Box::new(PathExpr {
+                        start: PathStart { kind: PathStartKind::Context, name: None },
+                        steps,
+                    })));
+                }
                 (_, _) => return Err(format!("Invalid path start at {}", tok.pos)),
             }
         };
@@ -534,21 +646,20 @@ impl Parser {
             self.lexer.next();
             return Ok(StepTest::wildcard());
         }
-        if pk == TK::Ident && ["text", "node", "comment", "pi"].contains(&pv.as_str()) {
-            self.lexer.next();
-            self.lexer.expect(TK::Punct, Some("("))?;
-            self.lexer.expect(TK::Punct, Some(")"))?;
-            return Ok(match pv.as_str() {
-                "text" => StepTest::text(),
-                "node" => StepTest::node(),
-                "comment" => StepTest {
-                    kind: crate::ast::StepTestKind::Comment,
-                    name: None,
-                },
-                _ => StepTest { kind: crate::ast::StepTestKind::Pi, name: None },
-            });
-        }
-        if pk == TK::Ident {
+        if pk == TK::Ident || pk == TK::Kw {
+            if ["text", "node", "comment", "pi", "document"].contains(&pv.as_str()) {
+                self.lexer.next();
+                self.lexer.expect(TK::Punct, Some("("))?;
+                self.lexer.expect(TK::Punct, Some(")"))?;
+                return Ok(match pv.as_str() {
+                    "text" => StepTest::text(),
+                    "node" => StepTest::node(),
+                    "comment" => StepTest { kind: StepTestKind::Comment, name: None },
+                    "pi" => StepTest { kind: StepTestKind::Pi, name: None },
+                    "document" => StepTest { kind: StepTestKind::Document, name: None },
+                    _ => unreachable!(),
+                });
+            }
             let name = self.parse_qname()?;
             return Ok(StepTest::named(&name));
         }
@@ -565,8 +676,19 @@ impl Parser {
         Ok(preds)
     }
 
+    fn _expect_identifier(&mut self) -> Result<String, String> {
+        let tok = self.lexer.next();
+        if tok.kind == TK::Ident {
+            return Ok(tok.value);
+        }
+        if tok.kind == TK::Kw {
+            return Err(format!("XFST0006: reserved word '{}' used as identifier", tok.value));
+        }
+        Err(format!("Expected identifier at {}", tok.pos))
+    }
+
     fn parse_qname(&mut self) -> Result<String, String> {
-        Ok(self.lexer.expect(TK::Ident, None)?.value)
+        self._expect_identifier()
     }
 
     fn parse_pattern(&mut self) -> Result<Pattern, String> {
@@ -576,44 +698,101 @@ impl Parser {
         if pk == TK::At {
             self.lexer.next();
             let name = self.parse_qname()?;
-            return Ok(Pattern::Attribute(name));
+            let mut value = None;
+            if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == "=" {
+                // Look ahead: if next token is ">", this is "=>" not an attr value
+                let saved_pos = self.lexer.pos;
+                let saved_buf = self.lexer.buf.clone();
+                self.lexer.next();
+                if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == ">" {
+                    self.lexer.pos = saved_pos;
+                    self.lexer.buf = saved_buf;
+                } else {
+                    value = Some(self.parse_pattern_literal()?);
+                }
+            }
+            return Ok(Pattern::Attribute(AttributePattern { name, value }));
         }
-        if pk == TK::Ident && ["node", "text", "comment"].contains(&pv.as_str()) {
-            self.lexer.next();
-            self.lexer.expect(TK::Punct, Some("("))?;
-            self.lexer.expect(TK::Punct, Some(")"))?;
-            return Ok(Pattern::Typed(pv));
+        if pk == TK::Ident || pk == TK::Kw {
+            if ["node", "text", "comment", "pi", "document"].contains(&pv.as_str()) {
+                self.lexer.next();
+                self.lexer.expect(TK::Punct, Some("("))?;
+                self.lexer.expect(TK::Punct, Some(")"))?;
+                return Ok(Pattern::Typed(pv));
+            }
+            if pv == "_" {
+                self.lexer.next();
+                return Ok(Pattern::Wildcard);
+            }
         }
-        if pk == TK::Ident && pv == "_" {
-            self.lexer.next();
-            return Ok(Pattern::Wildcard);
+        if pk == TK::Str {
+            let v = self.lexer.next().value;
+            return Ok(Pattern::Literal(v));
         }
         if pk == TK::Op && pv == "<" {
             self.lexer.next();
             let name = self.parse_qname()?;
-            self.lexer.expect(TK::Op, Some(">"))?;
-            let (var, child) =
-                if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "{" {
+            let mut attrs: Vec<(String, Option<LiteralValue>)> = Vec::new();
+            while self.lexer.peek().kind == TK::At {
+                self.lexer.next();
+                let attr_name = self.parse_qname()?;
+                let mut attr_value = None;
+                if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == "=" {
                     self.lexer.next();
-                    let v = self.lexer.expect(TK::Ident, None)?.value;
-                    self.lexer.expect(TK::Punct, Some("}"))?;
-                    (Some(v), None)
-                } else if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == "<" {
-                    let c = self.parse_pattern()?;
-                    (None, Some(Box::new(c)))
-                } else {
-                    return Err("Invalid element pattern content".into());
-                };
+                    attr_value = Some(self.parse_pattern_literal()?);
+                }
+                attrs.push((attr_name, attr_value));
+            }
+            self.lexer.expect(TK::Op, Some(">"))?;
+            let mut var: Option<String> = None;
+            let mut children: Vec<Pattern> = Vec::new();
+            if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == "{" {
+                self.lexer.next();
+                var = Some(self._expect_identifier()?);
+                self.lexer.expect(TK::Punct, Some("}"))?;
+            } else if self.lexer.peek().kind == TK::Op && self.lexer.peek().value == "<" {
+                // Could be end tag or child patterns
+                while !(self.lexer.peek().kind == TK::Op && self.lexer.peek().value == "<"
+                    && self.lexer.pos < self.lexer.chars.len()
+                    && self.lexer.chars[self.lexer.pos] == '/')
+                {
+                    children.push(self.parse_pattern()?);
+                }
+            }
             self.lexer.expect(TK::Op, Some("<"))?;
             self.lexer.expect(TK::Slash, Some("/"))?;
             let end = self.parse_qname()?;
             if end != name {
-                return Err("Mismatched pattern end tag".into());
+                return Err(format!("Mismatched pattern end tag: expected {}, got {}", name, end));
             }
             self.lexer.expect(TK::Op, Some(">"))?;
-            return Ok(Pattern::Element(ElementPattern { name, var, child }));
+            return Ok(Pattern::Element(ElementPattern { name, var, attrs, children }));
         }
         Err(format!("Invalid pattern at {}", self.lexer.peek().pos))
+    }
+
+    fn parse_pattern_literal(&mut self) -> Result<LiteralValue, String> {
+        let kind = self.lexer.peek().kind.clone();
+        let value = self.lexer.peek().value.clone();
+        if kind == TK::Str {
+            self.lexer.next();
+            return Ok(LiteralValue::Str(value));
+        }
+        if kind == TK::Num {
+            self.lexer.next();
+            let n: f64 = value.parse().map_err(|e| format!("Bad number in pattern: {}", e))?;
+            return Ok(LiteralValue::Num(n));
+        }
+        if kind == TK::Kw && ["true", "false", "null"].contains(&value.as_str()) {
+            self.lexer.next();
+            return match value.as_str() {
+                "true" => Ok(LiteralValue::Bool(true)),
+                "false" => Ok(LiteralValue::Bool(false)),
+                "null" => Ok(LiteralValue::Null),
+                _ => unreachable!(),
+            };
+        }
+        Err("Invalid literal in pattern".into())
     }
 
     fn parse_constructor(&mut self) -> Result<Expr, String> {
@@ -649,7 +828,6 @@ impl Parser {
         let mut contents = Vec::new();
         self.lexer.buf = None;
         loop {
-            // Skip insignificant whitespace tracking (we preserve chardata)
             let pos = self.lexer.pos;
             if pos >= self.lexer.chars.len() {
                 return Err("Unterminated constructor".into());
@@ -680,6 +858,28 @@ impl Parser {
                 contents.push(Expr::TextConstructor(Box::new(e)));
                 continue;
             }
+            // comment{ constructor
+            if self.starts_with_at("comment{") {
+                self.lexer.pos += 7; // "comment"
+                self.lexer.buf = None;
+                self.lexer.expect(TK::Punct, Some("{"))?;
+                let e = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some("}"))?;
+                contents.push(Expr::CommentConstructor(Box::new(e)));
+                continue;
+            }
+            // pi{ constructor
+            if self.starts_with_at("pi{") {
+                self.lexer.pos += 2; // "pi"
+                self.lexer.buf = None;
+                self.lexer.expect(TK::Punct, Some("{"))?;
+                let target = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some(","))?;
+                let value = self.parse_expr()?;
+                self.lexer.expect(TK::Punct, Some("}"))?;
+                contents.push(Expr::PIConstructor(Box::new(PIConstructor { target, value })));
+                continue;
+            }
             let ch = self.lexer.chars[self.lexer.pos];
             if ch == '<' {
                 self.lexer.buf = None;
@@ -698,9 +898,6 @@ impl Parser {
             let cd = self.parse_chardata();
             if !cd.trim().is_empty() {
                 contents.push(Expr::CharData(cd));
-            } else if !cd.is_empty() {
-                // preserve whitespace-only chardata as empty to match Python
-                // (Python: `if text and text.strip(): ...`)
             }
         }
 

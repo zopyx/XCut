@@ -20,7 +20,7 @@ static int is_keyword(const char *s) {
 }
 
 Lexer* lexer_new(const char *text) {
-    Lexer *lex = malloc(sizeof(Lexer));
+    Lexer *lex = (Lexer*)malloc(sizeof(Lexer));
     if (!lex) return NULL;
     lex->text = text;
     lex->len = strlen(text);
@@ -55,7 +55,7 @@ static void skip_ws(Lexer *lex) {
 }
 
 static Token* make_token(TokenKind kind, const char *value, size_t pos) {
-    Token *tok = malloc(sizeof(Token));
+    Token *tok = (Token*)malloc(sizeof(Token));
     if (!tok) return NULL;
     tok->kind = kind;
     tok->value = value ? strdup(value) : NULL;
@@ -192,7 +192,7 @@ Token* lexer_next(Lexer *lex) {
             lex->pos++;
         }
         size_t len = lex->pos - start;
-        char *s = malloc(len + 1);
+        char *s = (char*)malloc(len + 1);
         memcpy(s, lex->text + start, len);
         s[len] = '\0';
         return make_token(TK_NUM, s, start);
@@ -220,7 +220,7 @@ Token* lexer_next(Lexer *lex) {
             }
         }
         size_t len = lex->pos - start;
-        char *s = malloc(len + 1);
+        char *s = (char*)malloc(len + 1);
         memcpy(s, lex->text + start, len);
         s[len] = '\0';
         TokenKind kind = is_keyword(s) ? TK_KW : TK_IDENT;

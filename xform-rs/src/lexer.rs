@@ -2,6 +2,8 @@ const KEYWORDS: &[&str] = &[
     "xform", "version", "import", "as", "ns", "def", "var", "let", "in",
     "for", "where", "return", "if", "then", "else", "match", "case",
     "default", "and", "or", "not", "div", "mod", "rule",
+    "true", "false", "null", "string", "number", "boolean", "map",
+    "apply", "text", "comment", "pi",
 ];
 
 #[derive(Debug, Clone, PartialEq)]

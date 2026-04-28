@@ -26,6 +26,17 @@ const KEYWORDS = new Set([
     "div",
     "mod",
     "rule",
+    "apply",
+    "text",
+    "comment",
+    "pi",
+    "true",
+    "false",
+    "null",
+    "string",
+    "number",
+    "boolean",
+    "map",
 ]);
 class Lexer {
     constructor(text) {

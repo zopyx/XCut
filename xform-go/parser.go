@@ -14,6 +14,24 @@ func NewParser(text string) *Parser {
 	return &Parser{text: text, lexer: NewLexer(text)}
 }
 
+var softKeywords = map[string]bool{
+	"true":    true,
+	"false":   true,
+	"null":    true,
+	"string":  true,
+	"number":  true,
+	"boolean": true,
+	"map":     true,
+	"apply":   true,
+	"text":    true,
+	"comment": true,
+	"pi":      true,
+}
+
+func isSoftKeyword(val string) bool {
+	return softKeywords[val]
+}
+
 func (p *Parser) ParseModule() *Module {
 	functions := map[string]FunctionDef{}
 	rules := map[string][]RuleDef{}
@@ -26,7 +44,7 @@ func (p *Parser) ParseModule() *Module {
 		p.lexer.Next()
 		p.lexer.Expect(TokKW, "version")
 		version := p.lexer.Expect(TokString, "").Val
-		if version != "2.0" {
+		if version != "2.0" && version != "2.1" {
 			panic(fmt.Errorf("XFST0005: unsupported version"))
 		}
 		p.lexer.Expect(TokPunct, ";")
@@ -91,7 +109,7 @@ func (p *Parser) parseImport(imports *[][2]*string) {
 	var alias *string
 	if p.lexer.Peek().Kind == TokKW && p.lexer.Peek().Val == "as" {
 		p.lexer.Next()
-		val := p.lexer.Expect(TokIdent, "").Val
+		val := p.expectIdentifier()
 		alias = &val
 	}
 	p.lexer.Expect(TokPunct, ";")
@@ -101,7 +119,7 @@ func (p *Parser) parseImport(imports *[][2]*string) {
 
 func (p *Parser) parseVar() (string, Expr) {
 	p.lexer.Expect(TokKW, "var")
-	name := p.lexer.Expect(TokIdent, "").Val
+	name := p.expectIdentifier()
 	p.lexer.Expect(TokOp, ":=")
 	value := p.parseExpr()
 	p.lexer.Expect(TokPunct, ";")
@@ -128,7 +146,7 @@ func (p *Parser) parseDef(functions map[string]FunctionDef) {
 }
 
 func (p *Parser) parseParam() Param {
-	name := p.lexer.Expect(TokIdent, "").Val
+	name := p.expectIdentifier()
 	var typeRef *string
 	var def Expr
 	if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == ":" {
@@ -193,7 +211,7 @@ func (p *Parser) parseIf() Expr {
 
 func (p *Parser) parseLet() Expr {
 	p.lexer.Expect(TokKW, "let")
-	name := p.lexer.Expect(TokIdent, "").Val
+	name := p.expectIdentifier()
 	p.lexer.Expect(TokOp, ":=")
 	value := p.parseExpr()
 	p.lexer.Expect(TokKW, "in")
@@ -203,7 +221,7 @@ func (p *Parser) parseLet() Expr {
 
 func (p *Parser) parseFor() Expr {
 	p.lexer.Expect(TokKW, "for")
-	name := p.lexer.Expect(TokIdent, "").Val
+	name := p.expectIdentifier()
 	p.lexer.Expect(TokKW, "in")
 	seq := p.parseExpr()
 	var where Expr
@@ -351,7 +369,20 @@ func (p *Parser) parsePrimary() Expr {
 		p.lexer.Expect(TokPunct, ")")
 		return expr
 	}
-	if tok.Kind == TokIdent && tok.Val == "text" {
+	if tok.Kind == TokKW && tok.Val == "apply" {
+		p.lexer.Next()
+		p.lexer.Expect(TokPunct, "(")
+		expr := p.parseExpr()
+		var ruleset *string
+		if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "," {
+			p.lexer.Next()
+			rs := p.expectIdentifier()
+			ruleset = &rs
+		}
+		p.lexer.Expect(TokPunct, ")")
+		return ApplyExpr{Expr: expr, Ruleset: ruleset}
+	}
+	if (tok.Kind == TokIdent && tok.Val == "text") || (tok.Kind == TokKW && tok.Val == "text") {
 		savedPos := p.lexer.Pos
 		savedBuf := p.lexer.Buffer
 		p.lexer.Next()
@@ -364,13 +395,44 @@ func (p *Parser) parsePrimary() Expr {
 		p.lexer.Pos = savedPos
 		p.lexer.Buffer = savedBuf
 	}
+	if tok.Kind == TokKW && tok.Val == "comment" {
+		savedPos := p.lexer.Pos
+		savedBuf := p.lexer.Buffer
+		p.lexer.Next()
+		if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "{" {
+			p.lexer.Next()
+			expr := p.parseExpr()
+			p.lexer.Expect(TokPunct, "}")
+			return CommentConstructor{Expr: expr}
+		}
+		p.lexer.Pos = savedPos
+		p.lexer.Buffer = savedBuf
+	}
+	if tok.Kind == TokKW && tok.Val == "pi" {
+		savedPos := p.lexer.Pos
+		savedBuf := p.lexer.Buffer
+		p.lexer.Next()
+		if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "{" {
+			p.lexer.Next()
+			target := p.parseExpr()
+			p.lexer.Expect(TokPunct, ",")
+			value := p.parseExpr()
+			p.lexer.Expect(TokPunct, "}")
+			return PIConstructor{Target: target, Value: value}
+		}
+		p.lexer.Pos = savedPos
+		p.lexer.Buffer = savedBuf
+	}
 	if tok.Kind == TokOp && tok.Val == "<" {
 		return p.parseConstructor()
 	}
 	if tok.Kind == TokDot || tok.Kind == TokSlash {
 		return p.parsePath(nil)
 	}
-	if tok.Kind == TokIdent {
+	if tok.Kind == TokAt {
+		return p.parsePath(nil)
+	}
+	if tok.Kind == TokIdent || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
 		name := p.lexer.Next().Val
 		if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "(" {
 			return p.parseFuncCall(name)
@@ -386,15 +448,35 @@ func (p *Parser) parsePrimary() Expr {
 func (p *Parser) parseFuncCall(name string) Expr {
 	p.lexer.Expect(TokPunct, "(")
 	args := []Expr{}
+	namedArgs := []NamedArg{}
+	seenNamed := false
 	if !(p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == ")") {
-		args = append(args, p.parseExpr())
-		for p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "," {
-			p.lexer.Next()
-			args = append(args, p.parseExpr())
+		for {
+			argExpr := p.parseExpr()
+			if p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == ":=" {
+				p.lexer.Next()
+				varRef, ok := argExpr.(VarRef)
+				if !ok {
+					panic(fmt.Errorf("XFST0001: expected identifier before :="))
+				}
+				namedValue := p.parseExpr()
+				namedArgs = append(namedArgs, NamedArg{Name: varRef.Name, Expr: namedValue})
+				seenNamed = true
+			} else {
+				if seenNamed {
+					panic(fmt.Errorf("XFST0001: positional argument after named argument"))
+				}
+				args = append(args, argExpr)
+			}
+			if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "," {
+				p.lexer.Next()
+				continue
+			}
+			break
 		}
 	}
 	p.lexer.Expect(TokPunct, ")")
-	return FuncCall{Name: name, Args: args}
+	return FuncCall{Name: name, Args: args, NamedArgs: namedArgs}
 }
 
 func (p *Parser) pathContinues() bool {
@@ -418,6 +500,8 @@ func (p *Parser) parsePath(start *PathStart) Expr {
 			} else {
 				actualStart = &PathStart{Kind: "root"}
 			}
+		} else if tok.Kind == TokAt {
+			actualStart = &PathStart{Kind: "attr"}
 		} else {
 			panic(fmt.Errorf("invalid path start at %d", tok.Pos))
 		}
@@ -434,7 +518,7 @@ func (p *Parser) parsePath(start *PathStart) Expr {
 			test := p.parseStepTest()
 			preds := p.parsePredicates()
 			steps = append(steps, PathStep{Axis: "child", Test: test, Predicates: preds})
-		} else if tok.Kind == TokIdent {
+		} else if tok.Kind == TokIdent || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
 			test := p.parseStepTest()
 			preds := p.parsePredicates()
 			steps = append(steps, PathStep{Axis: "child", Test: test, Predicates: preds})
@@ -442,10 +526,17 @@ func (p *Parser) parsePath(start *PathStart) Expr {
 	}
 	if actualStart.Kind == "desc" || actualStart.Kind == "desc_root" {
 		tok := p.lexer.Peek()
-		if tok.Kind == TokIdent || tok.Kind == TokOp {
+		if tok.Kind == TokIdent || tok.Kind == TokOp || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
 			test := p.parseStepTest()
 			preds := p.parsePredicates()
 			steps = append(steps, PathStep{Axis: "desc_or_self", Test: test, Predicates: preds})
+		}
+	}
+	if actualStart.Kind == "attr" {
+		tok := p.lexer.Peek()
+		if tok.Kind == TokIdent || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
+			test := StepTest{Kind: "name", Name: strPtr(p.parseQName())}
+			steps = append(steps, PathStep{Axis: "attr", Test: test, Predicates: []Expr{}})
 		}
 	}
 
@@ -506,8 +597,8 @@ func (p *Parser) parseStepTest() StepTest {
 		p.lexer.Next()
 		return StepTest{Kind: "wildcard"}
 	}
-	if tok.Kind == TokIdent {
-		if tok.Val == "text" || tok.Val == "node" || tok.Val == "comment" || tok.Val == "pi" {
+	if tok.Kind == TokIdent || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
+		if tok.Val == "text" || tok.Val == "node" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document" {
 			p.lexer.Next()
 			p.lexer.Expect(TokPunct, "(")
 			p.lexer.Expect(TokPunct, ")")
@@ -530,7 +621,20 @@ func (p *Parser) parsePredicates() []Expr {
 }
 
 func (p *Parser) parseQName() string {
-	return p.lexer.Expect(TokIdent, "").Val
+	return p.expectIdentifier()
+}
+
+func (p *Parser) parseLiteral() Literal {
+	tok := p.lexer.Peek()
+	if tok.Kind == TokString {
+		p.lexer.Next()
+		return Literal{Value: tok.Val}
+	}
+	if tok.Kind == TokNumber {
+		p.lexer.Next()
+		return Literal{Value: mustParseFloat(tok.Val)}
+	}
+	panic(fmt.Errorf("expected literal at %d", tok.Pos))
 }
 
 func (p *Parser) parsePattern() Pattern {
@@ -538,9 +642,17 @@ func (p *Parser) parsePattern() Pattern {
 	if tok.Kind == TokAt {
 		p.lexer.Next()
 		name := p.parseQName()
+		if p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == "=" {
+			p.lexer.Next()
+			val := p.parseLiteral()
+			return AttributePattern{Name: name, Value: &val}
+		}
 		return AttributePattern{Name: name}
 	}
-	if tok.Kind == TokIdent && (tok.Val == "node" || tok.Val == "text" || tok.Val == "comment") {
+	if tok.Kind == TokString {
+		return LiteralPattern{Value: p.lexer.Next().Val}
+	}
+	if tok.Kind == TokIdent && (tok.Val == "node" || tok.Val == "text" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document") {
 		p.lexer.Next()
 		p.lexer.Expect(TokPunct, "(")
 		p.lexer.Expect(TokPunct, ")")
@@ -552,17 +664,31 @@ func (p *Parser) parsePattern() Pattern {
 	}
 	if tok.Kind == TokOp && tok.Val == "<" {
 		p.lexer.Next()
-		name := p.parseQName()
+		name := p.expectIdentifier()
+		attrs := []PatternAttr{}
+		for p.lexer.Peek().Kind == TokAt {
+			p.lexer.Next()
+			attrName := p.expectIdentifier()
+			var attrVal *Literal
+			if p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == "=" {
+				p.lexer.Next()
+				lit := p.parseLiteral()
+				attrVal = &lit
+			}
+			attrs = append(attrs, PatternAttr{Name: attrName, Value: attrVal})
+		}
 		p.lexer.Expect(TokOp, ">")
 		varName := (*string)(nil)
-		var child Pattern
+		children := []Pattern{}
 		if p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == "{" {
 			p.lexer.Next()
-			v := p.lexer.Expect(TokIdent, "").Val
+			v := p.expectIdentifier()
 			varName = &v
 			p.lexer.Expect(TokPunct, "}")
 		} else if p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == "<" {
-			child = p.parsePattern()
+			for p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == "<" {
+				children = append(children, p.parsePattern())
+			}
 		} else {
 			panic(fmt.Errorf("invalid element pattern content"))
 		}
@@ -573,7 +699,7 @@ func (p *Parser) parsePattern() Pattern {
 			panic(fmt.Errorf("mismatched pattern end tag"))
 		}
 		p.lexer.Expect(TokOp, ">")
-		return ElementPattern{Name: name, Var: varName, Child: child}
+		return ElementPattern{Name: name, Var: varName, Attrs: attrs, Children: children}
 	}
 	panic(fmt.Errorf("invalid pattern at %d", tok.Pos))
 }
@@ -623,6 +749,26 @@ func (p *Parser) parseConstructor() Expr {
 			expr := p.parseExpr()
 			p.lexer.Expect(TokPunct, "}")
 			contents = append(contents, TextConstructor{Expr: expr})
+			continue
+		}
+		if len(p.text[p.lexer.Pos:]) >= 9 && p.text[p.lexer.Pos:p.lexer.Pos+9] == "comment{" {
+			p.lexer.Pos += 7
+			p.lexer.ClearBuffer()
+			p.lexer.Expect(TokPunct, "{")
+			expr := p.parseExpr()
+			p.lexer.Expect(TokPunct, "}")
+			contents = append(contents, CommentConstructor{Expr: expr})
+			continue
+		}
+		if len(p.text[p.lexer.Pos:]) >= 3 && p.text[p.lexer.Pos:p.lexer.Pos+3] == "pi{" {
+			p.lexer.Pos += 2
+			p.lexer.ClearBuffer()
+			p.lexer.Expect(TokPunct, "{")
+			target := p.parseExpr()
+			p.lexer.Expect(TokPunct, ",")
+			value := p.parseExpr()
+			p.lexer.Expect(TokPunct, "}")
+			contents = append(contents, PIConstructor{Target: target, Value: value})
 			continue
 		}
 		ch := p.text[p.lexer.Pos]
@@ -687,6 +833,17 @@ func (p *Parser) readEndTag() (string, int) {
 		panic(fmt.Errorf("unterminated end tag"))
 	}
 	return name, pos + 1
+}
+
+func (p *Parser) expectIdentifier() string {
+	tok := p.lexer.Peek()
+	if tok.Kind == TokIdent {
+		return p.lexer.Next().Val
+	}
+	if tok.Kind == TokKW && isSoftKeyword(tok.Val) {
+		return p.lexer.Next().Val
+	}
+	panic(fmt.Errorf("XFST0006: expected identifier, got %s %s at %d", tok.Kind, tok.Val, tok.Pos))
 }
 
 func mustParseFloat(s string) float64 {

@@ -1,0 +1,6 @@
+xform version "2.1";
+let idx := index(.//item, key:=string(@id)) in
+<stats size={mapSize(idx)}>{
+  for k in sort(keys(idx)) return
+    <group key={string(k)} count={count(lookup(idx, k))}/>
+}</stats>

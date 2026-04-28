@@ -125,7 +125,7 @@ def test_parse_pattern_child_and_errors() -> None:
     module = Parser(source).parse_module()
     pat = module.expr.cases[0][0]
     assert isinstance(pat, ast.ElementPattern)
-    assert pat.child is not None
+    assert pat.children
 
     with pytest.raises(SyntaxError, match="Invalid element pattern content"):
         Parser("xform version '2.0'; match .: case <a>_</a> => 1;").parse_module()

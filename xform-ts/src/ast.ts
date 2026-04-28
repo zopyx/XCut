@@ -31,11 +31,14 @@ export type Expr =
   | ForExpr
   | MatchExpr
   | FuncCall
+  | ApplyExpr
   | UnaryOp
   | BinaryOp
   | PathExpr
   | Constructor
   | TextConstructor
+  | CommentConstructor
+  | PIConstructor
   | Text
   | Interp;
 
@@ -102,9 +105,20 @@ export class MatchExpr {
 export class FuncCall {
   name: string;
   args: Expr[];
-  constructor(name: string, args: Expr[]) {
+  namedArgs: Array<[string, Expr]>;
+  constructor(name: string, args: Expr[], namedArgs: Array<[string, Expr]> = []) {
     this.name = name;
     this.args = args;
+    this.namedArgs = namedArgs;
+  }
+}
+
+export class ApplyExpr {
+  expr: Expr;
+  ruleset: string | null;
+  constructor(expr: Expr, ruleset: string | null = null) {
+    this.expr = expr;
+    this.ruleset = ruleset;
   }
 }
 
@@ -155,6 +169,22 @@ export class TextConstructor {
   }
 }
 
+export class CommentConstructor {
+  expr: Expr;
+  constructor(expr: Expr) {
+    this.expr = expr;
+  }
+}
+
+export class PIConstructor {
+  target: Expr;
+  value: Expr;
+  constructor(target: Expr, value: Expr) {
+    this.target = target;
+    this.value = value;
+  }
+}
+
 export class Text {
   value: string;
   constructor(value: string) {
@@ -170,7 +200,7 @@ export class Interp {
 }
 
 export class PathStart {
-  kind: string; // context, root, desc, desc_root, var
+  kind: string; // context, root, desc, desc_root, var, attr
   name: string | null;
   constructor(kind: string, name: string | null = null) {
     this.kind = kind;
@@ -190,7 +220,7 @@ export class PathStep {
 }
 
 export class StepTest {
-  kind: string; // name, wildcard, text, node, comment, pi
+  kind: string; // name, wildcard, text, node, comment, pi, document
   name: string | null;
   constructor(kind: string, name: string | null = null) {
     this.kind = kind;
@@ -198,7 +228,7 @@ export class StepTest {
   }
 }
 
-export type Pattern = WildcardPattern | ElementPattern | TypedPattern | AttributePattern;
+export type Pattern = WildcardPattern | ElementPattern | TypedPattern | AttributePattern | LiteralPattern;
 
 export class WildcardPattern {}
 
@@ -206,15 +236,30 @@ export class ElementPattern {
   name: string;
   varName: string | null;
   child: Pattern | null;
-  constructor(name: string, varName: string | null = null, child: Pattern | null = null) {
+  attrs: Array<[string, Literal | null]>;
+  children: Pattern[];
+  constructor(
+    name: string,
+    varName: string | null = null,
+    child: Pattern | null = null,
+    attrs: Array<[string, Literal | null]> = [],
+    children: Pattern[] = [],
+  ) {
     this.name = name;
     this.varName = varName;
     this.child = child;
+    this.attrs = attrs;
+    this.children = children;
+    // Normalize legacy child into children
+    if (this.child !== null && this.children.length === 0) {
+      this.children = [this.child];
+      this.child = null;
+    }
   }
 }
 
 export class TypedPattern {
-  kind: string; // node, text, comment
+  kind: string; // node, text, comment, pi, document
   constructor(kind: string) {
     this.kind = kind;
   }
@@ -222,8 +267,17 @@ export class TypedPattern {
 
 export class AttributePattern {
   name: string;
-  constructor(name: string) {
+  value: Literal | null;
+  constructor(name: string, value: Literal | null = null) {
     this.name = name;
+    this.value = value;
+  }
+}
+
+export class LiteralPattern {
+  value: string;
+  constructor(value: string) {
+    this.value = value;
   }
 }
 

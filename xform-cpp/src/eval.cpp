@@ -7,7 +7,7 @@
 
 /* Item functions */
 Item* item_new(ItemKind kind) {
-    Item *item = calloc(1, sizeof(Item));
+    Item *item = (Item*)calloc(1, sizeof(Item));
     item->kind = kind;
     return item;
 }
@@ -100,7 +100,7 @@ Item* item_copy(Item *item) {
 
 /* Seq functions */
 Seq* seq_new(void) {
-    return calloc(1, sizeof(Seq));
+    return (Seq*)calloc(1, sizeof(Seq));
 }
 
 void seq_free(Seq *seq) {
@@ -116,7 +116,7 @@ void seq_append(Seq *seq, Item *item) {
     if (!seq || !item) return;
     if (seq->count >= seq->capacity) {
         seq->capacity = seq->capacity ? seq->capacity * 2 : 4;
-        seq->items = realloc(seq->items, seq->capacity * sizeof(Item*));
+        seq->items = (Item**)realloc(seq->items, seq->capacity * sizeof(Item*));
     }
     seq->items[seq->count++] = item;
 }
@@ -144,7 +144,7 @@ Item* seq_first(Seq *seq) {
 
 /* XMap functions */
 XMap* xmap_new(void) {
-    XMap *map = malloc(sizeof(XMap));
+    XMap *map = (XMap*)malloc(sizeof(XMap));
     map->data = hm_new();
     return map;
 }
@@ -155,7 +155,7 @@ void xmap_free(XMap *map) {
     size_t count;
     HMEntry *entries = hm_entries(map->data, &count);
     for (size_t i = 0; i < count; i++) {
-        seq_free(entries[i].value);
+        seq_free((Seq*)entries[i].value);
     }
     free(entries);
     hm_free(map->data);
@@ -169,12 +169,12 @@ void xmap_put(XMap *map, const char *key, Seq *value) {
 
 Seq* xmap_get(XMap *map, const char *key) {
     if (!map || !key) return NULL;
-    return hm_get(map->data, key);
+    return (Seq*)hm_get(map->data, key);
 }
 
 /* Context functions */
 Context* ctx_new(XmlNode *root) {
-    Context *ctx = calloc(1, sizeof(Context));
+    Context *ctx = (Context*)calloc(1, sizeof(Context));
     ctx->root = node_ref(root);
     ctx->variables = hm_new();
     ctx->functions = hm_new();
@@ -205,7 +205,7 @@ void ctx_free(Context *ctx) {
 }
 
 Context* ctx_with_item(Context *ctx, Item *item) {
-    Context *new_ctx = malloc(sizeof(Context));
+    Context *new_ctx = (Context*)malloc(sizeof(Context));
     *new_ctx = *ctx;
     new_ctx->context_item = item_copy(item);
     new_ctx->variables = ctx->variables;
@@ -215,7 +215,7 @@ Context* ctx_with_item(Context *ctx, Item *item) {
 }
 
 Context* ctx_with_vars(Context *ctx, HashMap *vars) {
-    Context *new_ctx = malloc(sizeof(Context));
+    Context *new_ctx = (Context*)malloc(sizeof(Context));
     *new_ctx = *ctx;
     new_ctx->context_item = ctx->context_item ? item_copy(ctx->context_item) : NULL;
     new_ctx->variables = vars;
@@ -443,7 +443,7 @@ Seq* eval_expr(Expr *expr, Context *ctx) {
         
         case EXPR_VAR_REF: {
             /* Check variables first */
-            Seq *val = hm_get(ctx->variables, expr->data.var_ref);
+            Seq *val = (Seq*)hm_get(ctx->variables, expr->data.var_ref);
             if (val) {
                 return seq_copy(val);
             }
@@ -608,7 +608,7 @@ Seq* eval_expr(Expr *expr, Context *ctx) {
         }
         
         case EXPR_FUNC_CALL: {
-            Seq **args = malloc(expr->data.func_call->arg_count * sizeof(Seq*));
+            Seq **args = (Seq**)malloc(expr->data.func_call->arg_count * sizeof(Seq*));
             for (size_t i = 0; i < expr->data.func_call->arg_count; i++) {
                 args[i] = eval_expr(expr->data.func_call->args[i], ctx);
             }
@@ -738,7 +738,7 @@ Seq* eval_path(PathExpr *pe, Context *ctx) {
             seq_append(base, item_new_node(ctx->root));
             break;
         case PS_VAR: {
-            Seq *val = hm_get(ctx->variables, pe->start.name);
+            Seq *val = (Seq*)hm_get(ctx->variables, pe->start.name);
             if (val) {
                 seq_extend(base, val);
             } else {
@@ -802,7 +802,7 @@ Seq* apply_step(Seq *items, PathStep *step, Context *ctx) {
         
         switch (step->axis) {
             case AXIS_SELF:
-                candidates = malloc(sizeof(XmlNode*));
+                candidates = (XmlNode**)malloc(sizeof(XmlNode*));
                 candidates[0] = node_ref(node);
                 candidate_count = 1;
                 break;
@@ -812,14 +812,14 @@ Seq* apply_step(Seq *items, PathStep *step, Context *ctx) {
                 break;
                 
             case AXIS_DESC_OR_SELF:
-                candidates = malloc((node->child_count + 1) * sizeof(XmlNode*));
+                candidates = (XmlNode**)malloc((node->child_count + 1) * sizeof(XmlNode*));
                 candidates[0] = node_ref(node);
                 candidate_count = 1;
                 for (size_t j = 0; j < node->child_count; j++) {
                     candidates[candidate_count++] = node_ref(node->children[j]);
                     size_t subcount;
                     XmlNode **sub = node_descendants(node->children[j], &subcount);
-                    candidates = realloc(candidates, 
+                    candidates = (XmlNode**)realloc(candidates, 
                         (candidate_count + subcount) * sizeof(XmlNode*));
                     for (size_t k = 0; k < subcount; k++) {
                         candidates[candidate_count++] = sub[k];
@@ -835,7 +835,7 @@ Seq* apply_step(Seq *items, PathStep *step, Context *ctx) {
             case AXIS_ATTR:
                 if (node->kind == NODE_ELEMENT) {
                     if (step->test.kind == TEST_WILDCARD) {
-                        candidates = malloc(node->attr_count * sizeof(XmlNode*));
+                        candidates = (XmlNode**)malloc(node->attr_count * sizeof(XmlNode*));
                         for (size_t j = 0; j < node->attr_count; j++) {
                             candidates[j] = node_new_attribute(
                                 node->attrs[j].name, 
@@ -843,7 +843,7 @@ Seq* apply_step(Seq *items, PathStep *step, Context *ctx) {
                         }
                         candidate_count = node->attr_count;
                     } else if (step->test.kind == TEST_NAME) {
-                        candidates = malloc(sizeof(XmlNode*));
+                        candidates = (XmlNode**)malloc(sizeof(XmlNode*));
                         for (size_t j = 0; j < node->attr_count; j++) {
                             if (strcmp(node->attrs[j].name, step->test.name) == 0) {
                                 candidates[0] = node_new_attribute(
@@ -859,7 +859,7 @@ Seq* apply_step(Seq *items, PathStep *step, Context *ctx) {
                 
             case AXIS_CHILD:
                 if (node->kind == NODE_ELEMENT || node->kind == NODE_DOCUMENT) {
-                    candidates = malloc(node->child_count * sizeof(XmlNode*));
+                    candidates = (XmlNode**)malloc(node->child_count * sizeof(XmlNode*));
                     for (size_t j = 0; j < node->child_count; j++) {
                         candidates[j] = node_ref(node->children[j]);
                     }
@@ -928,7 +928,7 @@ XmlNode* eval_constructor(Constructor *c, Context *ctx) {
             while (end > start && isspace((unsigned char)*end)) end--;
             if (end >= start) {
                 size_t len = end - start + 1;
-                char *trimmed = malloc(len + 1);
+                char *trimmed = (char*)malloc(len + 1);
                 memcpy(trimmed, start, len);
                 trimmed[len] = '\0';
                 if (strlen(trimmed) > 0) {
@@ -1053,7 +1053,7 @@ HashMap* match_pattern(Pattern *pat, Item *item) {
 /* Function calling */
 Seq* call_function(const char *name, Seq **args, size_t arg_count, Context *ctx) {
     /* Check user-defined functions */
-    FunctionDef *fd = hm_get(ctx->functions, name);
+    FunctionDef *fd = (FunctionDef*)hm_get(ctx->functions, name);
     if (fd) {
         HashMap *vars = hm_new();
         /* Copy existing vars */
@@ -1336,7 +1336,7 @@ Seq* eval_module(Module *mod, XmlNode *doc) {
     size_t count;
     HMEntry *entries = hm_entries(mod->vars, &count);
     for (size_t i = 0; i < count; i++) {
-        Seq *val = eval_expr(entries[i].value, ctx);
+        Seq *val = eval_expr((Expr*)entries[i].value, ctx);
         hm_set(ctx->variables, entries[i].key, val);
     }
     free(entries);

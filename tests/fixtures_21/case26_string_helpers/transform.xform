@@ -1,0 +1,5 @@
+xform version "2.1";
+let s := normalizeSpace(text(.//title)) in
+<out contains={ string(contains(s, "XML")) }
+     starts={ string(startsWith(s, "Hello")) }
+     ends={ string(endsWith(s, "World")) }>{ s }</out>

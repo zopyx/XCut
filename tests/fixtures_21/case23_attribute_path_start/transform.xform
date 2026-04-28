@@ -1,0 +1,5 @@
+xform version "2.1";
+<ids>{
+  for i in .//item return
+    <id>{ @id }</id>
+}</ids>

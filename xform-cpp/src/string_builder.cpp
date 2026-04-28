@@ -5,9 +5,9 @@
 #define INITIAL_CAPACITY 16
 
 StringBuilder* sb_new(void) {
-    StringBuilder *sb = malloc(sizeof(StringBuilder));
+    StringBuilder *sb = (StringBuilder*)malloc(sizeof(StringBuilder));
     if (!sb) return NULL;
-    sb->data = malloc(INITIAL_CAPACITY);
+    sb->data = (char*)malloc(INITIAL_CAPACITY);
     if (!sb->data) {
         free(sb);
         return NULL;
@@ -28,7 +28,7 @@ void sb_free(StringBuilder *sb) {
 void sb_append(StringBuilder *sb, char c) {
     if (sb->len + 1 >= sb->capacity) {
         size_t new_cap = sb->capacity * 2;
-        char *new_data = realloc(sb->data, new_cap);
+        char *new_data = (char*)realloc(sb->data, new_cap);
         if (!new_data) return;
         sb->data = new_data;
         sb->capacity = new_cap;
@@ -48,7 +48,7 @@ void sb_append_n(StringBuilder *sb, const char *str, size_t n) {
     if (sb->len + n + 1 > sb->capacity) {
         size_t new_cap = sb->capacity * 2;
         while (new_cap < sb->len + n + 1) new_cap *= 2;
-        char *new_data = realloc(sb->data, new_cap);
+        char *new_data = (char*)realloc(sb->data, new_cap);
         if (!new_data) return;
         sb->data = new_data;
         sb->capacity = new_cap;

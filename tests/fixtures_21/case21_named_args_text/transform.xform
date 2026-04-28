@@ -1,0 +1,5 @@
+xform version "2.1";
+<out>{
+  for p in .//p return
+    <p>{ text(p, deep:=false) }</p>
+}</out>

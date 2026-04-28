@@ -188,7 +188,7 @@ void module_free(Module *mod) {
         size_t count;
         HMEntry *entries = hm_entries(mod->rules, &count);
         for (size_t i = 0; i < count; i++) {
-            RuleDef **rules = entries[i].value;
+            RuleDef **rules = (RuleDef**)entries[i].value;
             for (size_t j = 0; rules[j]; j++) {
                 rule_def_free(rules[j]);
                 free(rules[j]);
@@ -241,13 +241,13 @@ StepTest step_test_node(void) {
 }
 
 Expr* expr_new(ExprKind kind) {
-    Expr *e = calloc(1, sizeof(Expr));
+    Expr *e = (Expr*)calloc(1, sizeof(Expr));
     if (e) e->kind = kind;
     return e;
 }
 
 Pattern* pattern_new(PatternKind kind) {
-    Pattern *p = calloc(1, sizeof(Pattern));
+    Pattern *p = (Pattern*)calloc(1, sizeof(Pattern));
     if (p) p->kind = kind;
     return p;
 }

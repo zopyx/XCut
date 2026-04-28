@@ -52,6 +52,17 @@ var keywords = map[string]bool{
 	"div":     true,
 	"mod":     true,
 	"rule":    true,
+	"apply":   true,
+	"text":    true,
+	"comment": true,
+	"pi":      true,
+	"true":    true,
+	"false":   true,
+	"null":    true,
+	"string":  true,
+	"number":  true,
+	"boolean": true,
+	"map":     true,
 }
 
 type Lexer struct {

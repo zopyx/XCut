@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 from .parser import Parser
@@ -14,14 +15,21 @@ def main() -> None:
     ap.add_argument("xform", help="xform module")
     args = ap.parse_args()
 
-    xml_text = Path(args.input).read_text(encoding="utf-8")
-    xform_text = Path(args.xform).read_text(encoding="utf-8")
+    try:
+        xml_text = Path(args.input).read_text(encoding="utf-8")
+        xform_text = Path(args.xform).read_text(encoding="utf-8")
 
-    doc = parse_xml(xml_text)
-    module = Parser(xform_text).parse_module()
-    result = eval_module(module, doc)
-    output = "".join(serialize(item) if hasattr(item, "kind") else str(item) for item in result)
-    print(output)
+        doc = parse_xml(xml_text)
+        module = Parser(xform_text).parse_module()
+        result = eval_module(module, doc)
+        output = "".join(serialize(item) if hasattr(item, "kind") else str(item) for item in result)
+        print(output)
+    except SyntaxError as exc:
+        print(f"SyntaxError: {exc}", file=sys.stderr)
+        sys.exit(1)
+    except RuntimeError as exc:
+        print(f"RuntimeError: {exc}", file=sys.stderr)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

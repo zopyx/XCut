@@ -4,7 +4,7 @@ import FoundationXML
 #endif
 
 public final class Node {
-    public let kind: String // document, element, attribute, text, comment, pi
+    public let kind: String
     public var name: String?
     public var value: String?
     public var children: [Node]
@@ -82,7 +82,7 @@ final class XMLBuilder: NSObject, XMLParserDelegate {
 
     func parser(_ parser: XMLParser, foundProcessingInstructionWithTarget target: String, data: String?) {
         guard let parent = stack.last else { return }
-        let node = Node(kind: "pi", value: data ?? "")
+        let node = Node(kind: "pi", name: target, value: data ?? "")
         node.parent = parent
         parent.children.append(node)
     }
@@ -177,12 +177,15 @@ public struct IfExpr: Expr { public let cond: Expr; public let thenExpr: Expr; p
 public struct LetExpr: Expr { public let name: String; public let value: Expr; public let body: Expr }
 public struct ForExpr: Expr { public let name: String; public let seq: Expr; public let whereExpr: Expr?; public let body: Expr }
 public struct MatchExpr: Expr { public let target: Expr; public let cases: [(Pattern, Expr)]; public let defaultExpr: Expr? }
-public struct FuncCall: Expr { public let name: String; public let args: [Expr] }
+public struct FuncCall: Expr { public let name: String; public let args: [Expr]; public let namedArgs: [(String, Expr)] }
+public struct ApplyExpr: Expr { public let expr: Expr; public let ruleset: String? }
 public struct UnaryOp: Expr { public let op: String; public let expr: Expr }
 public struct BinaryOp: Expr { public let op: String; public let left: Expr; public let right: Expr }
 public struct PathExpr: Expr { public let start: PathStart; public let steps: [PathStep] }
 public struct Constructor: Expr { public let name: String; public let attrs: [(String, Expr)]; public let contents: [Expr] }
 public struct TextConstructor: Expr { public let expr: Expr }
+public struct CommentConstructor: Expr { public let expr: Expr }
+public struct PIConstructor: Expr { public let target: Expr; public let value: Expr }
 public struct Text: Expr { public let value: String }
 public struct Interp: Expr { public let expr: Expr }
 
@@ -192,9 +195,10 @@ public struct StepTest { public let kind: String; public let name: String? }
 
 public protocol Pattern {}
 public struct WildcardPattern: Pattern {}
-public struct ElementPattern: Pattern { public let name: String; public let varName: String?; public let child: Pattern? }
+public struct ElementPattern: Pattern { public let name: String; public let varName: String?; public let attrs: [(String, Any?)]; public let children: [Pattern] }
 public struct TypedPattern: Pattern { public let kind: String }
-public struct AttributePattern: Pattern { public let name: String }
+public struct AttributePattern: Pattern { public let name: String; public let value: Any? }
+public struct LiteralPattern: Pattern { public let value: String }
 
 public struct Param { public let name: String; public let typeRef: String?; public let defaultExpr: Expr? }
 public struct FunctionDef { public let params: [Param]; public let body: Expr }
@@ -370,7 +374,9 @@ final class Lexer {
 
 private let keywords: Set<String> = [
     "xform", "version", "import", "as", "ns", "def", "var", "let", "in", "for", "where", "return",
-    "if", "then", "else", "match", "case", "default", "and", "or", "not", "div", "mod", "rule"
+    "if", "then", "else", "match", "case", "default", "and", "or", "not", "div", "mod", "rule",
+    "true", "false", "null", "string", "number", "boolean", "map",
+    "apply", "text", "comment", "pi"
 ]
 
 // Parser
@@ -396,7 +402,7 @@ public final class Parser {
             _ = lexer.next()
             _ = lexer.expect(.kw, "version")
             let version = lexer.expect(.string).value
-            if version != "2.0" { fatalError("XFST0005: unsupported version") }
+            if version != "2.0" && version != "2.1" { fatalError("XFST0005: unsupported version") }
             _ = lexer.expect(.punct, ";")
         }
 
@@ -450,7 +456,7 @@ public final class Parser {
         var alias: String? = nil
         if lexer.peek().kind == .kw && lexer.peek().value == "as" {
             _ = lexer.next()
-            alias = lexer.expect(.ident).value
+            alias = expectIdentifier()
         }
         _ = lexer.expect(.punct, ";")
         imports.append((iri, alias))
@@ -458,7 +464,7 @@ public final class Parser {
 
     private func parseVar() -> (String, Expr) {
         _ = lexer.expect(.kw, "var")
-        let name = lexer.expect(.ident).value
+        let name = expectIdentifier()
         _ = lexer.expect(.op, ":=")
         let value = parseExpr()
         _ = lexer.expect(.punct, ";")
@@ -485,7 +491,7 @@ public final class Parser {
     }
 
     private func parseParam() -> Param {
-        let name = lexer.expect(.ident).value
+        let name = expectIdentifier()
         var typeRef: String? = nil
         var def: Expr? = nil
         if lexer.peek().kind == .punct && lexer.peek().value == ":" {
@@ -501,7 +507,7 @@ public final class Parser {
 
     private func parseTypeRef() -> String {
         let tok = lexer.peek()
-        if tok.kind == .ident && ["string", "number", "boolean", "null", "map"].contains(tok.value) {
+        if (tok.kind == .ident || tok.kind == .kw) && ["string", "number", "boolean", "null", "map"].contains(tok.value) {
             return lexer.next().value
         }
         return parseQName()
@@ -539,7 +545,7 @@ public final class Parser {
 
     private func parseLet() -> Expr {
         _ = lexer.expect(.kw, "let")
-        let name = lexer.expect(.ident).value
+        let name = expectIdentifier()
         _ = lexer.expect(.op, ":=")
         let value = parseExpr()
         _ = lexer.expect(.kw, "in")
@@ -549,7 +555,7 @@ public final class Parser {
 
     private func parseFor() -> Expr {
         _ = lexer.expect(.kw, "for")
-        let name = lexer.expect(.ident).value
+        let name = expectIdentifier()
         _ = lexer.expect(.kw, "in")
         let seq = parseExpr()
         var whereExpr: Expr? = nil
@@ -679,6 +685,7 @@ public final class Parser {
 
     private func parsePrimary() -> Expr {
         let tok = lexer.peek()
+
         if tok.kind == .number {
             _ = lexer.next()
             return Literal(value: Double(tok.value) ?? 0.0)
@@ -687,13 +694,25 @@ public final class Parser {
             _ = lexer.next()
             return Literal(value: tok.value)
         }
+        if tok.kind == .kw && ["true", "false", "null"].contains(tok.value) {
+            _ = lexer.next()
+            switch tok.value {
+            case "true": return Literal(value: true)
+            case "false": return Literal(value: false)
+            case "null": return Literal(value: NSNull())
+            default: fatalError("Unexpected")
+            }
+        }
         if tok.kind == .punct && tok.value == "(" {
             _ = lexer.next()
             let expr = parseExpr()
             _ = lexer.expect(.punct, ")")
             return expr
         }
-        if tok.kind == .ident && tok.value == "text" {
+        if tok.kind == .kw && tok.value == "apply" {
+            return parseApply()
+        }
+        if tok.kind == .kw && tok.value == "text" {
             let savedPos = lexer.pos
             let savedBuf = lexer.snapshotBuffer()
             _ = lexer.next()
@@ -703,14 +722,55 @@ public final class Parser {
                 _ = lexer.expect(.punct, "}")
                 return TextConstructor(expr: expr)
             }
+            if lexer.peek().kind == .punct && lexer.peek().value == "(" {
+                return parseFuncCall("text")
+            }
+            lexer.pos = savedPos
+            lexer.restoreBuffer(savedBuf)
+        }
+        if tok.kind == .kw && tok.value == "comment" {
+            let savedPos = lexer.pos
+            let savedBuf = lexer.snapshotBuffer()
+            _ = lexer.next()
+            if lexer.peek().kind == .punct && lexer.peek().value == "{" {
+                _ = lexer.next()
+                let expr = parseExpr()
+                _ = lexer.expect(.punct, "}")
+                return CommentConstructor(expr: expr)
+            }
+            lexer.pos = savedPos
+            lexer.restoreBuffer(savedBuf)
+        }
+        if tok.kind == .kw && tok.value == "pi" {
+            let savedPos = lexer.pos
+            let savedBuf = lexer.snapshotBuffer()
+            _ = lexer.next()
+            if lexer.peek().kind == .punct && lexer.peek().value == "{" {
+                _ = lexer.next()
+                let target = parseExpr()
+                _ = lexer.expect(.punct, ",")
+                let value = parseExpr()
+                _ = lexer.expect(.punct, "}")
+                return PIConstructor(target: target, value: value)
+            }
             lexer.pos = savedPos
             lexer.restoreBuffer(savedBuf)
         }
         if tok.kind == .op && tok.value == "<" {
             return parseConstructor()
         }
-        if tok.kind == .dot || tok.kind == .slash {
+        if tok.kind == .dot || tok.kind == .slash || tok.kind == .at {
             return parsePath(start: nil)
+        }
+        if tok.kind == .kw && ["string", "number", "boolean", "map"].contains(tok.value) {
+            let savedPos = lexer.pos
+            let savedBuf = lexer.snapshotBuffer()
+            _ = lexer.next()
+            if lexer.peek().kind == .punct && lexer.peek().value == "(" {
+                return parseFuncCall(tok.value)
+            }
+            lexer.pos = savedPos
+            lexer.restoreBuffer(savedBuf)
         }
         if tok.kind == .ident {
             let name = lexer.next().value
@@ -725,18 +785,59 @@ public final class Parser {
         fatalError("Unexpected token at \(tok.pos)")
     }
 
+    private func parseApply() -> Expr {
+        _ = lexer.expect(.kw, "apply")
+        _ = lexer.expect(.punct, "(")
+        let expr = parseExpr()
+        var ruleset: String? = nil
+        if lexer.peek().kind == .punct && lexer.peek().value == "," {
+            _ = lexer.next()
+            ruleset = parseQName()
+        }
+        _ = lexer.expect(.punct, ")")
+        return ApplyExpr(expr: expr, ruleset: ruleset)
+    }
+
     private func parseFuncCall(_ name: String) -> Expr {
         _ = lexer.expect(.punct, "(")
         var args: [Expr] = []
+        var namedArgs: [(String, Expr)] = []
         if !(lexer.peek().kind == .punct && lexer.peek().value == ")") {
-            args.append(parseExpr())
+            let (argName, argExpr) = parseArgument()
+            if let n = argName {
+                namedArgs.append((n, argExpr))
+            } else {
+                args.append(argExpr)
+            }
             while lexer.peek().kind == .punct && lexer.peek().value == "," {
                 _ = lexer.next()
-                args.append(parseExpr())
+                let (argName2, argExpr2) = parseArgument()
+                if let n = argName2 {
+                    namedArgs.append((n, argExpr2))
+                } else {
+                    if !namedArgs.isEmpty { fatalError("XFST0001: positional argument after named argument") }
+                    args.append(argExpr2)
+                }
             }
         }
         _ = lexer.expect(.punct, ")")
-        return FuncCall(name: name, args: args)
+        return FuncCall(name: name, args: args, namedArgs: namedArgs)
+    }
+
+    private func parseArgument() -> (String?, Expr) {
+        if lexer.peek().kind == .ident {
+            let savedPos = lexer.pos
+            let savedBuf = lexer.snapshotBuffer()
+            let name = lexer.next().value
+            if lexer.peek().kind == .op && lexer.peek().value == ":=" {
+                _ = lexer.next()
+                let expr = parseExpr()
+                return (name, expr)
+            }
+            lexer.pos = savedPos
+            lexer.restoreBuffer(savedBuf)
+        }
+        return (nil, parseExpr())
     }
 
     private func pathContinues() -> Bool {
@@ -752,6 +853,10 @@ public final class Parser {
                 actualStart = tok.value == ".//" ? PathStart(kind: "desc", name: nil) : PathStart(kind: "context", name: nil)
             } else if tok.kind == .slash {
                 actualStart = tok.value == "//" ? PathStart(kind: "desc_root", name: nil) : PathStart(kind: "root", name: nil)
+            } else if tok.kind == .at {
+                let name = parseQName()
+                let steps = [PathStep(axis: "attr", test: StepTest(kind: "name", name: name), predicates: [])]
+                return PathExpr(start: PathStart(kind: "context", name: nil), steps: steps)
             } else {
                 fatalError("Invalid path start at \(tok.pos)")
             }
@@ -767,7 +872,7 @@ public final class Parser {
                 let test = parseStepTest()
                 let preds = parsePredicates()
                 steps.append(PathStep(axis: "child", test: test, predicates: preds))
-            } else if tok.kind == .ident {
+            } else if tok.kind == .ident || tok.kind == .kw {
                 let test = parseStepTest()
                 let preds = parsePredicates()
                 steps.append(PathStep(axis: "child", test: test, predicates: preds))
@@ -775,7 +880,7 @@ public final class Parser {
         }
         if ["desc", "desc_root"].contains(actualStart!.kind) {
             let tok = lexer.peek()
-            if tok.kind == .ident || tok.kind == .op {
+            if tok.kind == .ident || tok.kind == .kw || tok.kind == .op {
                 let test = parseStepTest()
                 let preds = parsePredicates()
                 steps.append(PathStep(axis: "desc_or_self", test: test, predicates: preds))
@@ -835,8 +940,8 @@ public final class Parser {
             _ = lexer.next()
             return StepTest(kind: "wildcard", name: nil)
         }
-        if tok.kind == .ident {
-            if ["text", "node", "comment", "pi"].contains(tok.value) {
+        if tok.kind == .ident || tok.kind == .kw {
+            if ["text", "node", "comment", "pi", "document"].contains(tok.value) {
                 _ = lexer.next()
                 _ = lexer.expect(.punct, "(")
                 _ = lexer.expect(.punct, ")")
@@ -858,8 +963,15 @@ public final class Parser {
         return preds
     }
 
+    private func expectIdentifier() -> String {
+        let tok = lexer.next()
+        if tok.kind == .ident { return tok.value }
+        if tok.kind == .kw { fatalError("XFST0006: reserved word '\(tok.value)' used as identifier") }
+        fatalError("Expected identifier at \(tok.pos)")
+    }
+
     private func parseQName() -> String {
-        return lexer.expect(.ident).value
+        return expectIdentifier()
     }
 
     private func parsePattern() -> Pattern {
@@ -867,41 +979,92 @@ public final class Parser {
         if tok.kind == .at {
             _ = lexer.next()
             let name = parseQName()
-            return AttributePattern(name: name)
+            var value: Any? = nil
+            if lexer.peek().kind == .op && lexer.peek().value == "=" {
+                let savedPos = lexer.pos
+                let savedBuf = lexer.snapshotBuffer()
+                _ = lexer.next()
+                if lexer.peek().kind == .op && lexer.peek().value == ">" {
+                    lexer.pos = savedPos
+                    lexer.restoreBuffer(savedBuf)
+                } else {
+                    value = parsePatternLiteral()
+                }
+            }
+            return AttributePattern(name: name, value: value)
         }
-        if tok.kind == .ident && ["node", "text", "comment"].contains(tok.value) {
-            _ = lexer.next()
-            _ = lexer.expect(.punct, "(")
-            _ = lexer.expect(.punct, ")")
-            return TypedPattern(kind: tok.value)
+        if tok.kind == .ident || tok.kind == .kw {
+            if ["node", "text", "comment", "pi", "document"].contains(tok.value) {
+                _ = lexer.next()
+                _ = lexer.expect(.punct, "(")
+                _ = lexer.expect(.punct, ")")
+                return TypedPattern(kind: tok.value)
+            }
+            if tok.value == "_" {
+                _ = lexer.next()
+                return WildcardPattern()
+            }
         }
-        if tok.kind == .ident && tok.value == "_" {
+        if tok.kind == .string {
             _ = lexer.next()
-            return WildcardPattern()
+            return LiteralPattern(value: tok.value)
         }
         if tok.kind == .op && tok.value == "<" {
             _ = lexer.next()
             let name = parseQName()
+            var attrs: [(String, Any?)] = []
+            while lexer.peek().kind == .at {
+                _ = lexer.next()
+                let attrName = parseQName()
+                var attrValue: Any? = nil
+                if lexer.peek().kind == .op && lexer.peek().value == "=" {
+                    _ = lexer.next()
+                    attrValue = parsePatternLiteral()
+                }
+                attrs.append((attrName, attrValue))
+            }
             _ = lexer.expect(.op, ">")
             var varName: String? = nil
-            var child: Pattern? = nil
+            var children: [Pattern] = []
             if lexer.peek().kind == .punct && lexer.peek().value == "{" {
                 _ = lexer.next()
-                varName = lexer.expect(.ident).value
+                varName = expectIdentifier()
                 _ = lexer.expect(.punct, "}")
             } else if lexer.peek().kind == .op && lexer.peek().value == "<" {
-                child = parsePattern()
-            } else {
-                fatalError("Invalid element pattern content")
+                while !(lexer.peek().kind == .op && lexer.peek().value == "<" && textAt(lexer.pos, prefix: "/")) {
+                    children.append(parsePattern())
+                }
             }
             _ = lexer.expect(.op, "<")
             _ = lexer.expect(.slash, "/")
             let end = parseQName()
             if end != name { fatalError("Mismatched pattern end tag") }
             _ = lexer.expect(.op, ">")
-            return ElementPattern(name: name, varName: varName, child: child)
+            return ElementPattern(name: name, varName: varName, attrs: attrs, children: children)
         }
         fatalError("Invalid pattern at \(tok.pos)")
+    }
+
+    private func parsePatternLiteral() -> Any {
+        let tok = lexer.peek()
+        if tok.kind == .string {
+            _ = lexer.next()
+            return tok.value
+        }
+        if tok.kind == .number {
+            _ = lexer.next()
+            return Double(tok.value) ?? 0.0
+        }
+        if tok.kind == .kw && ["true", "false", "null"].contains(tok.value) {
+            _ = lexer.next()
+            switch tok.value {
+            case "true": return true
+            case "false": return false
+            case "null": return NSNull()
+            default: fatalError("Invalid literal in pattern")
+            }
+        }
+        fatalError("Invalid literal in pattern")
     }
 
     private func parseConstructor() -> Expr {
@@ -947,6 +1110,26 @@ public final class Parser {
                 let expr = parseExpr()
                 _ = lexer.expect(.punct, "}")
                 contents.append(TextConstructor(expr: expr))
+                continue
+            }
+            if textAt(lexer.pos, prefix: "comment{") {
+                lexer.pos += 7
+                lexer.clearBuffer()
+                _ = lexer.expect(.punct, "{")
+                let expr = parseExpr()
+                _ = lexer.expect(.punct, "}")
+                contents.append(CommentConstructor(expr: expr))
+                continue
+            }
+            if textAt(lexer.pos, prefix: "pi{") {
+                lexer.pos += 2
+                lexer.clearBuffer()
+                _ = lexer.expect(.punct, "{")
+                let target = parseExpr()
+                _ = lexer.expect(.punct, ",")
+                let value = parseExpr()
+                _ = lexer.expect(.punct, "}")
+                contents.append(PIConstructor(target: target, value: value))
                 continue
             }
             let ch = charAt(lexer.pos)
@@ -1089,7 +1272,19 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
         return out
     case let e as FuncCall:
         let args = e.args.map { evalExpr($0, ctx) }
-        return callFunction(e.name, args, ctx)
+        var named: [String: [Any]] = [:]
+        for (n, ex) in e.namedArgs {
+            named[n] = evalExpr(ex, ctx)
+        }
+        var namedRaw: [String: Expr] = [:]
+        for (n, ex) in e.namedArgs {
+            namedRaw[n] = ex
+        }
+        return callFunction(e.name, args, ctx, named, namedRaw)
+    case let e as ApplyExpr:
+        let seq = evalExpr(e.expr, ctx)
+        let ruleset = e.ruleset ?? "main"
+        return doApply(seq, ruleset, ctx)
     case let e as UnaryOp:
         let val = evalExpr(e.expr, ctx)
         if e.op == "-" { return [-toNumber(val)] }
@@ -1117,6 +1312,12 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
         return [evalConstructor(e, ctx)]
     case let e as TextConstructor:
         return [Node(kind: "text", value: toString(evalExpr(e.expr, ctx)))]
+    case let e as CommentConstructor:
+        return [Node(kind: "comment", value: toString(evalExpr(e.expr, ctx)))]
+    case let e as PIConstructor:
+        let target = toString(evalExpr(e.target, ctx))
+        let value = toString(evalExpr(e.value, ctx))
+        return [Node(kind: "pi", name: target, value: value)]
     case let e as Text:
         return [e.value]
     case let e as Interp:
@@ -1224,11 +1425,12 @@ public func applyStep(_ items: [Any], _ step: PathStep, _ ctx: Context) -> [Any]
 
 private func matchesStepTest(_ test: StepTest, _ node: Node) -> Bool {
     switch test.kind {
-    case "wildcard": return node.kind == "element"
+    case "wildcard": return node.kind == "element" || node.kind == "attribute"
     case "text": return node.kind == "text"
     case "node": return true
     case "comment": return node.kind == "comment"
     case "pi": return node.kind == "pi"
+    case "document": return node.kind == "document"
     case "name": return node.name == test.name
     default: return false
     }
@@ -1236,7 +1438,9 @@ private func matchesStepTest(_ test: StepTest, _ node: Node) -> Bool {
 
 public func evalConstructor(_ expr: Constructor, _ ctx: Context) -> Node {
     let node = Node(kind: "element", name: expr.name, attrs: [:], attrOrder: expr.attrs.map { $0.0 })
+    var seenAttrs = Set<String>()
     for (name, aexpr) in expr.attrs {
+        if !seenAttrs.insert(name).inserted { fatalError("XFDY0005") }
         let val = evalExpr(aexpr, ctx)
         node.attrs[name] = toString(val)
     }
@@ -1249,35 +1453,61 @@ public func evalConstructor(_ expr: Constructor, _ ctx: Context) -> Node {
         let seq = evalExpr(content, ctx)
         for item in seq {
             if let n = item as? Node {
+                if n.kind == "attribute" { fatalError("XFDY0005") }
                 children.append(deepCopy(n, recurse: true))
             } else {
                 children.append(Node(kind: "text", value: toString([item])))
             }
         }
     }
-    for c in children { c.parent = node }
-    node.children = children
+    // Merge adjacent text nodes
+    var merged: [Node] = []
+    for child in children {
+        if child.kind == "text" {
+            if let last = merged.last, last.kind == "text" {
+                last.value = (last.value ?? "") + (child.value ?? "")
+                continue
+            }
+        }
+        merged.append(child)
+    }
+    for c in merged { c.parent = node }
+    node.children = merged
     return node
 }
 
-public func callFunction(_ name: String, _ args: [[Any]], _ ctx: Context) -> [Any] {
+public func callFunction(_ name: String, _ args: [[Any]], _ ctx: Context, _ named: [String: [Any]] = [:], _ namedRaw: [String: Expr] = [:]) -> [Any] {
     if let fn = ctx.functions[name] {
-        return callUserFunction(fn, args, ctx)
+        return callUserFunction(fn, args, ctx, named)
     }
     guard let builtin = builtins[name] else { fatalError("XFST0003: unknown function \(name)") }
-    return builtin(args, ctx)
+    return builtin(args, ctx, named, namedRaw)
 }
 
-private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context) -> [Any] {
+private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context, _ named: [String: [Any]] = [:]) -> [Any] {
     let params = fn.params
-    if args.count > params.count { fatalError("XFDY0002: wrong arity") }
+    if args.count > params.count { fatalError("XFDY0008: too many arguments") }
     var newVars = ctx.variables
-    for (i, v) in args.enumerated() { newVars[params[i].name] = v }
-    if args.count < params.count {
-        for i in args.count..<params.count {
-            let param = params[i]
-            guard let def = param.defaultExpr else { fatalError("XFDY0002: wrong arity") }
-            newVars[param.name] = evalExpr(def, ctx)
+    var bound = Set<String>()
+    for (i, v) in args.enumerated() {
+        newVars[params[i].name] = v
+        bound.insert(params[i].name)
+    }
+    for (paramName, value) in named {
+        if bound.contains(paramName) { fatalError("XFDY0008: duplicate argument") }
+        guard params.contains(where: { $0.name == paramName }) else { fatalError("XFDY0008: unknown parameter") }
+        newVars[paramName] = value
+        bound.insert(paramName)
+    }
+    for param in params {
+        if !bound.contains(param.name) {
+            let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
+            if let def = param.defaultExpr {
+                newVars[param.name] = evalExpr(def, newCtx)
+                bound.insert(param.name)
+            } else {
+                fatalError("XFDY0008: missing required parameter")
+            }
         }
     }
     let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
@@ -1292,7 +1522,8 @@ public func toBoolean(_ seq: [Any]) -> Bool {
         else if let n = item as? Double { if n != 0 { return true } }
         else if let n = item as? Int { if n != 0 { return true } }
         else if let s = item as? String { if !s.isEmpty { return true } }
-        else if item as AnyObject? != nil { return true }
+        else if let _ = item as? [String: [Any]] { return true }
+        else if item is FunctionRef { return true }
     }
     return false
 }
@@ -1305,6 +1536,8 @@ public func toString(_ seq: [Any]) -> String {
     if let b = item as? Bool { return b ? "true" : "false" }
     if let n = item as? Double { return n == floor(n) ? String(Int(n)) : String(n) }
     if let n = item as? Int { return String(n) }
+    if let _ = item as? [String: [Any]] { return "[map]" }
+    if let ref = item as? FunctionRef { return ref.name }
     return String(describing: item)
 }
 
@@ -1325,8 +1558,17 @@ public func matchPattern(_ pattern: Pattern, _ item: Any) -> (Bool, [String: [An
     switch pattern {
     case is WildcardPattern:
         return (true, [:])
+    case let p as LiteralPattern:
+        if let node = item as? Node, node.kind == "text", node.value == p.value { return (true, [:]) }
+        return (false, [:])
     case let p as AttributePattern:
-        if let node = item as? Node, node.kind == "attribute", node.name == p.name { return (true, [:]) }
+        if let node = item as? Node, node.kind == "attribute", node.name == p.name {
+            if let val = p.value {
+                if node.value == String(describing: val) { return (true, [:]) }
+                return (false, [:])
+            }
+            return (true, [:])
+        }
         return (false, [:])
     case let p as TypedPattern:
         if item is NSNull { return (false, [:]) }
@@ -1334,24 +1576,32 @@ public func matchPattern(_ pattern: Pattern, _ item: Any) -> (Bool, [String: [An
         if let node = item as? Node {
             if p.kind == "text" { return (node.kind == "text", [:]) }
             if p.kind == "comment" { return (node.kind == "comment", [:]) }
+            if p.kind == "pi" { return (node.kind == "pi", [:]) }
+            if p.kind == "document" { return (node.kind == "document", [:]) }
         }
         return (false, [:])
     case let p as ElementPattern:
         if let node = item as? Node, node.kind == "element", node.name == p.name {
+            // Check attribute constraints
+            for (attrName, attrValue) in p.attrs {
+                guard let foundValue = node.attrs[attrName] else { return (false, [:]) }
+                if let expected = attrValue {
+                    if foundValue != String(describing: expected) { return (false, [:]) }
+                }
+            }
             var bindings: [String: [Any]] = [:]
             if let v = p.varName {
                 bindings[v] = node.children
                 return (true, bindings)
             }
-            if let childPattern = p.child {
-                for child in node.children {
-                    let (matched, childBindings) = matchPattern(childPattern, child)
-                    if matched {
-                        for (k, v) in childBindings { bindings[k] = v }
-                        return (true, bindings)
-                    }
+            if !p.children.isEmpty {
+                if node.children.count != p.children.count { return (false, [:]) }
+                for (childPat, childNode) in zip(p.children, node.children) {
+                    let (matched, childBindings) = matchPattern(childPat, childNode)
+                    if !matched { return (false, [:]) }
+                    for (k, v) in childBindings { bindings[k] = v }
                 }
-                return (false, [:])
+                return (true, bindings)
             }
             return (true, [:])
         }
@@ -1361,193 +1611,8 @@ public func matchPattern(_ pattern: Pattern, _ item: Any) -> (Bool, [String: [An
     }
 }
 
-// Builtins
-
-private typealias BuiltinFn = (_ args: [[Any]], _ ctx: Context) -> [Any]
-
-private func fnString(_ args: [[Any]], _ ctx: Context) -> [Any] { [toString(args.first ?? [])] }
-private func fnNumber(_ args: [[Any]], _ ctx: Context) -> [Any] { [toNumber(args.first ?? [])] }
-private func fnBoolean(_ args: [[Any]], _ ctx: Context) -> [Any] { [toBoolean(args.first ?? [])] }
-
-private func fnTypeOf(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return ["null"] }
-    let item = args[0][0]
-    if item is Node { return ["node"] }
-    if item is [String: [Any]] { return ["map"] }
-    if item is Bool { return ["boolean"] }
-    if item is Double || item is Int { return ["number"] }
-    if item is NSNull { return ["null"] }
-    return ["string"]
-}
-
-private func fnName(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [""] }
-    if let node = args[0][0] as? Node { return [node.name ?? ""] }
-    return [""]
-}
-
-private func fnAttr(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [""] }
-    guard let node = args[0][0] as? Node, node.kind == "element" else { return [""] }
-    if args.count < 2 { return [""] }
-    let key = toString(args[1])
-    return [node.attrs[key] ?? ""]
-}
-
-private func fnText(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [""] }
-    let item = args[0][0]
-    if let node = item as? Node {
-        var deep = true
-        if args.count > 1 { deep = toBoolean(args[1]) }
-        if deep { return [node.stringValue()] }
-        if node.kind == "element" || node.kind == "document" {
-            let direct = node.children.filter { $0.kind == "text" }.map { $0.value ?? "" }.joined()
-            return [direct]
-        }
-        return [node.stringValue()]
-    }
-    return [toString(args[0])]
-}
-
-private func fnChildren(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [] }
-    if let node = args[0][0] as? Node { return node.children }
-    return []
-}
-
-private func fnElements(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [] }
-    guard let node = args[0][0] as? Node, node.kind == "element" || node.kind == "document" else { return [] }
-    let nameTest = args.count > 1 ? toString(args[1]) : ""
-    let out = node.children.filter { $0.kind == "element" && (nameTest.isEmpty || $0.name == nameTest) }
-    return out
-}
-
-private func fnCopy(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [] }
-    guard let node = args[0][0] as? Node else { return [] }
-    let recurse = args.count > 1 ? toBoolean(args[1]) : true
-    return [deepCopy(node, recurse: recurse)]
-}
-
-private func fnCount(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    return [Double(args.first?.count ?? 0)]
-}
-
-private func fnEmpty(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    return [args.first?.isEmpty ?? true]
-}
-
-private func fnDistinct(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty { return [] }
-    var seen: Set<String> = []
-    var out: [Any] = []
-    for item in args[0] {
-        let key = toString([item])
-        if seen.contains(key) { continue }
-        seen.insert(key)
-        out.append(item)
-    }
-    return out
-}
-
-private func fnSort(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty { return [] }
-    var seq = args[0]
-    var keyFn: String? = nil
-    if args.count > 1, let ref = args[1].first as? FunctionRef { keyFn = ref.name }
-    seq.sort { a, b in
-        if let k = keyFn, let fn = ctx.functions[k] {
-            let ka = toString(callUserFunction(fn, [[a]], ctx))
-            let kb = toString(callUserFunction(fn, [[b]], ctx))
-            return ka < kb
-        }
-        return toString([a]) < toString([b])
-    }
-    return seq
-}
-
-private func fnConcat(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    var out: [Any] = []
-    for seq in args { out.append(contentsOf: seq) }
-    return out
-}
-
-private func fnHead(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [] }
-    return [args[0][0]]
-}
-
-private func fnTail(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty { return [] }
-    return Array(args[0].dropFirst())
-}
-
-private func fnLast(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty || args[0].isEmpty {
-        if let last = ctx.last { return [Double(last)] }
-        return []
-    }
-    return [args[0].last!]
-}
-
-private func fnIndex(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty { return [] }
-    let seq = args[0]
-    var keyFn: String? = nil
-    if args.count > 1, let ref = args[1].first as? FunctionRef { keyFn = ref.name }
-    var index: [String: [Any]] = [:]
-    for item in seq {
-        var key = toString([item])
-        if let k = keyFn, let fn = ctx.functions[k] {
-            key = toString(callUserFunction(fn, [[item]], ctx))
-        }
-        index[key, default: []].append(item)
-    }
-    return [index]
-}
-
-private func fnLookup(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.count < 2 { return [] }
-    if args[0].isEmpty { return [] }
-    guard let mapping = args[0][0] as? [String: [Any]] else { return [] }
-    let key = toString(args[1])
-    return mapping[key] ?? []
-}
-
-private func fnGroupBy(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.count < 2 { return [] }
-    let seq = args[0]
-    var keyFn: String? = nil
-    if let ref = args[1].first as? FunctionRef { keyFn = ref.name }
-    var groups: [String: [Any]] = [:]
-    for item in seq {
-        var key = toString([item])
-        if let k = keyFn, let fn = ctx.functions[k] {
-            key = toString(callUserFunction(fn, [[item]], ctx))
-        }
-        groups[key, default: []].append(item)
-    }
-    return groups.map { ["key": [$0.key], "items": $0.value] as [String: [Any]] }
-}
-
-private func fnSeq(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    var out: [Any] = []
-    for seq in args { out.append(contentsOf: seq) }
-    return out
-}
-
-private func fnPosition(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if let pos = ctx.position { return [Double(pos)] }
-    return []
-}
-
-private func fnApply(_ args: [[Any]], _ ctx: Context) -> [Any] {
-    if args.isEmpty { return [] }
-    let seq = args[0]
-    var ruleset = "main"
-    if args.count > 1 && !args[1].isEmpty { ruleset = toString(args[1]) }
+private func doApply(_ seq: [Any], _ ruleset: String, _ ctx: Context) -> [Any] {
+    if ruleset != "main" && !ctx.rules.keys.contains(ruleset) { fatalError("XFST0007") }
     let rules = ctx.rules[ruleset] ?? []
     var out: [Any] = []
     for item in seq {
@@ -1563,16 +1628,310 @@ private func fnApply(_ args: [[Any]], _ ctx: Context) -> [Any] {
                 break
             }
         }
-        if !matched { fatalError("XFDY0001: no matching rule") }
+        if !matched {
+            out.append(contentsOf: applyBuiltin(item, ruleset, ctx))
+        }
     }
     return out
 }
 
-private func fnSum(_ args: [[Any]], _ ctx: Context) -> [Any] {
+private func applyBuiltin(_ item: Any, _ ruleset: String, _ ctx: Context) -> [Any] {
+    guard let node = item as? Node else { return [] }
+    switch node.kind {
+    case "document":
+        return doApply(node.children, ruleset, ctx)
+    case "element":
+        let applied = doApply(node.children, ruleset, ctx)
+        let newChildren = applied.compactMap { $0 as? Node }
+        let newEl = Node(kind: "element", name: node.name, attrs: node.attrs, attrOrder: node.attrOrder)
+        for c in newChildren { c.parent = newEl }
+        newEl.children = newChildren
+        return [newEl]
+    case "attribute", "text", "comment", "pi":
+        return [deepCopy(node, recurse: true)]
+    default:
+        return []
+    }
+}
+
+// Builtins
+
+private typealias BuiltinFn = (_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any]
+
+private func fnString(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] { [toString(args.first ?? [])] }
+private func fnNumber(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] { [toNumber(args.first ?? [])] }
+private func fnBoolean(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] { [toBoolean(args.first ?? [])] }
+
+private func fnTypeOf(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return ["null"] }
+    let item = args[0][0]
+    if item is Node { return ["node"] }
+    if item is [String: [Any]] { return ["map"] }
+    if item is Bool { return ["boolean"] }
+    if item is Double || item is Int { return ["number"] }
+    if item is NSNull { return ["null"] }
+    return ["string"]
+}
+
+private func fnName(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [""] }
+    if let node = args[0][0] as? Node { return [node.name ?? ""] }
+    return [""]
+}
+
+private func fnAttr(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [""] }
+    guard let node = args[0][0] as? Node, node.kind == "element" else { return [""] }
+    if args.count < 2 { return [""] }
+    let key = toString(args[1])
+    return [node.attrs[key] ?? ""]
+}
+
+private func fnText(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [""] }
+    let item = args[0][0]
+    if let node = item as? Node {
+        var deep = true
+        if args.count > 1 {
+            deep = toBoolean(args[1])
+        } else if let d = named["deep"] {
+            deep = toBoolean(d)
+        }
+        if deep { return [node.stringValue()] }
+        if node.kind == "element" || node.kind == "document" {
+            let direct = node.children.filter { $0.kind == "text" }.map { $0.value ?? "" }.joined()
+            return [direct]
+        }
+        return [node.stringValue()]
+    }
+    return [toString(args[0])]
+}
+
+private func fnChildren(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    if let node = args[0][0] as? Node { return node.children }
+    return []
+}
+
+private func fnElements(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    guard let node = args[0][0] as? Node, node.kind == "element" || node.kind == "document" else { return [] }
+    let nameTest = args.count > 1 ? toString(args[1]) : ""
+    return node.children.filter { $0.kind == "element" && (nameTest.isEmpty || $0.name == nameTest) }
+}
+
+private func fnAttributes(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    guard let node = args[0][0] as? Node, node.kind == "element" else { return [] }
+    return node.attrs.map { Node(kind: "attribute", name: $0.key, value: $0.value) }
+}
+
+private func fnCopy(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    guard let node = args[0][0] as? Node else { return [] }
+    var recurse = true
+    if args.count > 1 {
+        recurse = toBoolean(args[1])
+    } else if let r = named["recurse"] {
+        recurse = toBoolean(r)
+    }
+    return [deepCopy(node, recurse: recurse)]
+}
+
+private func fnCount(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    return [Double(args.first?.count ?? 0)]
+}
+
+private func fnEmpty(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    return [args.first?.isEmpty ?? true]
+}
+
+private func fnDistinct(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty { return [] }
+    var seen: Set<String> = []
+    var out: [Any] = []
+    for item in args[0] {
+        let key = toString([item])
+        if seen.contains(key) { continue }
+        seen.insert(key)
+        out.append(item)
+    }
+    return out
+}
+
+private func fnSort(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty { return [] }
+    var seq = args[0]
+    var keyFn: String? = nil
+    if args.count > 1, let ref = args[1].first as? FunctionRef { keyFn = ref.name }
+    seq.sort {
+        if let k = keyFn, let fn = ctx.functions[k] {
+            let ka = toString(callUserFunction(fn, [[$0]], ctx))
+            let kb = toString(callUserFunction(fn, [[$1]], ctx))
+            return ka < kb
+        }
+        return toString([$0]) < toString([$1])
+    }
+    return seq
+}
+
+private func fnConcat(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    var out: [Any] = []
+    for seq in args { out.append(contentsOf: seq) }
+    return out
+}
+
+private func fnHead(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    return [args[0][0]]
+}
+
+private func fnTail(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    return Array(args[0].dropFirst())
+}
+
+private func fnLast(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty {
+        if let last = ctx.last { return [Double(last)] }
+        fatalError("XFDY0006")
+    }
+    return [args[0].last!]
+}
+
+private func fnPosition(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if let pos = ctx.position { return [Double(pos)] }
+    fatalError("XFDY0006")
+}
+
+private func fnIndex(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty { return [] }
+    let seq = args[0]
+    var keyFn: String? = nil
+    if args.count > 1, let ref = args[1].first as? FunctionRef { keyFn = ref.name }
+    var keyExpr: Expr? = nil
+    if let ke = namedRaw["key"] { keyExpr = ke }
+    var index: [String: [Any]] = [:]
+    for item in seq {
+        var key = toString([item])
+        if let k = keyFn, let fn = ctx.functions[k] {
+            key = toString(callUserFunction(fn, [[item]], ctx))
+        } else if let ke = keyExpr {
+            let itemCtx = Context(contextItem: item, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
+            key = toString(evalExpr(ke, itemCtx))
+        }
+        index[key, default: []].append(item)
+    }
+    return [index]
+}
+
+private func fnLookup(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.count < 2 { return [] }
+    if args[0].isEmpty { return [] }
+    guard let mapping = args[0][0] as? [String: [Any]] else { return [] }
+    let key = toString(args[1])
+    return mapping[key] ?? []
+}
+
+private func fnGroupBy(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.count < 2 { return [] }
+    let seq = args[0]
+    var keyFn: String? = nil
+    if let ref = args[1].first as? FunctionRef { keyFn = ref.name }
+    var groups: [String: [Any]] = [:]
+    for item in seq {
+        var key = toString([item])
+        if let k = keyFn, let fn = ctx.functions[k] {
+            key = toString(callUserFunction(fn, [[item]], ctx))
+        }
+        groups[key, default: []].append(item)
+    }
+    return groups.map { ["key": [$0.key], "items": $0.value] as [String: [Any]] }
+}
+
+private func fnSeq(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    var out: [Any] = []
+    for seq in args { out.append(contentsOf: seq) }
+    return out
+}
+
+private func fnSum(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty { return [0.0] }
     var total = 0.0
     for item in args[0] { total += toNumber([item]) }
     return [total]
+}
+
+private func fnApply(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty { return [] }
+    let seq = args[0]
+    var ruleset = "main"
+    if args.count > 1 && !args[1].isEmpty { ruleset = toString(args[1]) }
+    return doApply(seq, ruleset, ctx)
+}
+
+private func fnContains(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let a = toString(args.get(0, otherwise: []))
+    let b = toString(args.get(1, otherwise: []))
+    return [a.contains(b)]
+}
+
+private func fnStartsWith(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let a = toString(args.get(0, otherwise: []))
+    let b = toString(args.get(1, otherwise: []))
+    return [a.hasPrefix(b)]
+}
+
+private func fnEndsWith(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let a = toString(args.get(0, otherwise: []))
+    let b = toString(args.get(1, otherwise: []))
+    return [a.hasSuffix(b)]
+}
+
+private func fnSubstring(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let s = toString(args.get(0, otherwise: []))
+    if args.count < 2 { return [""] }
+    let start = Int(toNumber(args[1]))
+    if args.count > 2 {
+        let length = Int(toNumber(args[2]))
+        let startIndex = s.index(s.startIndex, offsetBy: max(0, start - 1), limitedBy: s.endIndex) ?? s.endIndex
+        let endIndex = s.index(startIndex, offsetBy: length, limitedBy: s.endIndex) ?? s.endIndex
+        return [String(s[startIndex..<endIndex])]
+    }
+    let startIndex = s.index(s.startIndex, offsetBy: max(0, start - 1), limitedBy: s.endIndex) ?? s.endIndex
+    return [String(s[startIndex...])]
+}
+
+private func fnNormalizeSpace(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let s = toString(args.get(0, otherwise: []))
+    let components = s.components(separatedBy: .whitespacesAndNewlines).filter { !$0.isEmpty }
+    return [components.joined(separator: " ")]
+}
+
+private func fnReplace(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.count < 3 { return [""] }
+    let s = toString(args[0])
+    let pattern = toString(args[1])
+    let replacement = toString(args[2])
+    return [s.replacingOccurrences(of: pattern, with: replacement)]
+}
+
+private func fnKeys(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [] }
+    guard let mapping = args[0][0] as? [String: [Any]] else { return [] }
+    return mapping.keys.sorted()
+}
+
+private func fnMapSize(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.isEmpty || args[0].isEmpty { return [0.0] }
+    guard let mapping = args[0][0] as? [String: [Any]] else { return [0.0] }
+    return [Double(mapping.count)]
+}
+
+private extension Array {
+    func get(_ index: Int, otherwise: Element) -> Element {
+        return indices.contains(index) ? self[index] : otherwise
+    }
 }
 
 private let builtins: [String: BuiltinFn] = [
@@ -1585,6 +1944,7 @@ private let builtins: [String: BuiltinFn] = [
     "text": fnText,
     "children": fnChildren,
     "elements": fnElements,
+    "attributes": fnAttributes,
     "copy": fnCopy,
     "count": fnCount,
     "empty": fnEmpty,
@@ -1600,7 +1960,15 @@ private let builtins: [String: BuiltinFn] = [
     "tail": fnTail,
     "last": fnLast,
     "position": fnPosition,
-    "apply": fnApply
+    "apply": fnApply,
+    "contains": fnContains,
+    "startsWith": fnStartsWith,
+    "endsWith": fnEndsWith,
+    "substring": fnSubstring,
+    "normalizeSpace": fnNormalizeSpace,
+    "replace": fnReplace,
+    "keys": fnKeys,
+    "mapSize": fnMapSize
 ]
 
 public func serializeItem(_ item: Any) -> String {

@@ -182,12 +182,21 @@ pub fn parse_xml(text: &str) -> Result<Rc<XmlNode>, String> {
 }
 
 pub fn deep_copy(node: &Rc<XmlNode>) -> Rc<XmlNode> {
+    deep_copy_recurse(node, true)
+}
+
+pub fn deep_copy_recurse(node: &Rc<XmlNode>, recurse: bool) -> Rc<XmlNode> {
+    let children = if node.kind == NodeKind::Element && !recurse {
+        vec![]
+    } else {
+        node.children.iter().map(|c| deep_copy_recurse(c, recurse)).collect()
+    };
     Rc::new(XmlNode {
         kind: node.kind.clone(),
         name: node.name.clone(),
         value: node.value.clone(),
         attrs: node.attrs.clone(),
-        children: node.children.iter().map(deep_copy).collect(),
+        children,
     })
 }
 
@@ -260,6 +269,26 @@ pub fn make_text(value: &str) -> Rc<XmlNode> {
 pub fn make_attr(name: &str, value: &str) -> Rc<XmlNode> {
     Rc::new(XmlNode {
         kind: NodeKind::Attribute,
+        name: Some(name.to_string()),
+        value: Some(value.to_string()),
+        attrs: vec![],
+        children: vec![],
+    })
+}
+
+pub fn make_comment(value: &str) -> Rc<XmlNode> {
+    Rc::new(XmlNode {
+        kind: NodeKind::Comment,
+        name: None,
+        value: Some(value.to_string()),
+        attrs: vec![],
+        children: vec![],
+    })
+}
+
+pub fn make_pi(name: &str, value: &str) -> Rc<XmlNode> {
+    Rc::new(XmlNode {
+        kind: NodeKind::Pi,
         name: Some(name.to_string()),
         value: Some(value.to_string()),
         attrs: vec![],

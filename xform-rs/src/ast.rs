@@ -38,11 +38,14 @@ pub enum Expr {
     ForExpr(Box<ForExpr>),
     MatchExpr(Box<MatchExpr>),
     FuncCall(Box<FuncCall>),
+    ApplyExpr(Box<ApplyExpr>),
     UnaryOp { op: String, expr: Box<Expr> },
     BinaryOp { op: String, left: Box<Expr>, right: Box<Expr> },
     PathExpr(Box<PathExpr>),
     Constructor(Box<Constructor>),
     TextConstructor(Box<Expr>),
+    CommentConstructor(Box<Expr>),
+    PIConstructor(Box<PIConstructor>),
     CharData(String),
     Interp(Box<Expr>),
 }
@@ -88,6 +91,13 @@ pub struct MatchExpr {
 pub struct FuncCall {
     pub name: String,
     pub args: Vec<Expr>,
+    pub named_args: Vec<(String, Expr)>,
+}
+
+#[derive(Debug, Clone)]
+pub struct ApplyExpr {
+    pub expr: Expr,
+    pub ruleset: Option<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -158,19 +168,34 @@ pub enum StepTestKind {
     Node,
     Comment,
     Pi,
+    Document,
 }
 
 #[derive(Debug, Clone)]
 pub enum Pattern {
     Wildcard,
     Element(ElementPattern),
-    Attribute(String),
+    Attribute(AttributePattern),
     Typed(String),
+    Literal(String),
 }
 
 #[derive(Debug, Clone)]
 pub struct ElementPattern {
     pub name: String,
     pub var: Option<String>,
-    pub child: Option<Box<Pattern>>,
+    pub attrs: Vec<(String, Option<LiteralValue>)>,
+    pub children: Vec<Pattern>,
+}
+
+#[derive(Debug, Clone)]
+pub struct AttributePattern {
+    pub name: String,
+    pub value: Option<LiteralValue>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PIConstructor {
+    pub target: Expr,
+    pub value: Expr,
 }

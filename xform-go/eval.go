@@ -5,6 +5,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 type Context struct {
@@ -119,7 +120,20 @@ func EvalExpr(expr Expr, ctx Context) []any {
 		for _, a := range e.Args {
 			args = append(args, EvalExpr(a, ctx))
 		}
-		return CallFunction(e.Name, args, ctx)
+		named := map[string][]any{}
+		namedRaw := map[string]Expr{}
+		for _, na := range e.NamedArgs {
+			named[na.Name] = EvalExpr(na.Expr, ctx)
+			namedRaw[na.Name] = na.Expr
+		}
+		return CallFunction(e.Name, args, ctx, named, namedRaw)
+	case ApplyExpr:
+		seq := EvalExpr(e.Expr, ctx)
+		ruleset := "main"
+		if e.Ruleset != nil {
+			ruleset = *e.Ruleset
+		}
+		return doApply(seq, ruleset, ctx)
 	case UnaryOp:
 		val := EvalExpr(e.Expr, ctx)
 		if e.Op == "-" {
@@ -154,6 +168,12 @@ func EvalExpr(expr Expr, ctx Context) []any {
 		return []any{EvalConstructor(e, ctx)}
 	case TextConstructor:
 		return []any{&Node{Kind: "text", Value: ToString(EvalExpr(e.Expr, ctx)), Attrs: map[string]string{}}}
+	case CommentConstructor:
+		return []any{&Node{Kind: "comment", Value: ToString(EvalExpr(e.Expr, ctx)), Attrs: map[string]string{}}}
+	case PIConstructor:
+		target := ToString(EvalExpr(e.Target, ctx))
+		value := ToString(EvalExpr(e.Value, ctx))
+		return []any{&Node{Kind: "pi", Name: target, Value: value, Attrs: map[string]string{}}}
 	case Text:
 		return []any{e.Value}
 	case Interp:
@@ -227,6 +247,13 @@ func EvalPath(expr PathExpr, ctx Context) []any {
 				}
 			}
 		}
+	case "attr":
+		if ctx.ContextItem != nil {
+			base = []any{ctx.ContextItem}
+		}
+		if expr.Start.Name != nil {
+			steps = append([]PathStep{{Axis: "attr", Test: StepTest{Kind: "name", Name: expr.Start.Name}, Predicates: []Expr{}}}, steps...)
+		}
 	}
 	current := base
 	for _, step := range steps {
@@ -280,7 +307,9 @@ func ApplyStep(items []any, step PathStep, ctx Context) []any {
 				}
 			}
 		case "child":
-			candidates = append(candidates, node.Children...)
+			if node.Kind == "element" || node.Kind == "document" {
+				candidates = append(candidates, node.Children...)
+			}
 		}
 
 		filtered := []*Node{}
@@ -311,7 +340,7 @@ func ApplyStep(items []any, step PathStep, ctx Context) []any {
 func matchesStepTest(test StepTest, node *Node) bool {
 	switch test.Kind {
 	case "wildcard":
-		return node.Kind == "element"
+		return node.Kind == "element" || node.Kind == "attribute"
 	case "text":
 		return node.Kind == "text"
 	case "node":
@@ -320,6 +349,8 @@ func matchesStepTest(test StepTest, node *Node) bool {
 		return node.Kind == "comment"
 	case "pi":
 		return node.Kind == "pi"
+	case "document":
+		return node.Kind == "document"
 	case "name":
 		if test.Name == nil {
 			return false
@@ -332,7 +363,12 @@ func matchesStepTest(test StepTest, node *Node) bool {
 func EvalConstructor(expr Constructor, ctx Context) *Node {
 	order := make([]string, 0, len(expr.Attrs))
 	node := &Node{Kind: "element", Name: expr.Name, Attrs: map[string]string{}, AttrOrder: order}
+	seenAttrs := map[string]bool{}
 	for _, attr := range expr.Attrs {
+		if seenAttrs[attr.Name] {
+			panic(fmt.Errorf("XFDY0005"))
+		}
+		seenAttrs[attr.Name] = true
 		val := EvalExpr(attr.Expr, ctx)
 		node.Attrs[attr.Name] = ToString(val)
 		node.AttrOrder = append(node.AttrOrder, attr.Name)
@@ -346,6 +382,9 @@ func EvalConstructor(expr Constructor, ctx Context) *Node {
 			seq := EvalExpr(content, ctx)
 			for _, item := range seq {
 				if n, ok := item.(*Node); ok {
+					if n.Kind == "attribute" {
+						panic(fmt.Errorf("XFDY0005"))
+					}
 					child := DeepCopy(n, true)
 					children = append(children, child)
 				} else {
@@ -354,46 +393,74 @@ func EvalConstructor(expr Constructor, ctx Context) *Node {
 			}
 		}
 	}
-	for _, c := range children {
+	// Merge adjacent text nodes
+	merged := []*Node{}
+	for _, child := range children {
+		if child.Kind == "text" && len(merged) > 0 && merged[len(merged)-1].Kind == "text" {
+			merged[len(merged)-1].Value += child.Value
+		} else {
+			merged = append(merged, child)
+		}
+	}
+	for _, c := range merged {
 		c.Parent = node
 	}
-	node.Children = children
+	node.Children = merged
 	return node
 }
 
 type FunctionRef struct{ Name string }
 
-func CallFunction(name string, args [][]any, ctx Context) []any {
+func CallFunction(name string, args [][]any, ctx Context, namedArgs map[string][]any, namedRaw map[string]Expr) []any {
 	if fn, ok := ctx.Functions[name]; ok {
-		return callUserFunction(fn, args, ctx)
+		return callUserFunction(fn, args, ctx, namedArgs, namedRaw)
 	}
 
 	builtin, ok := builtins[name]
 	if !ok {
 		panic(fmt.Errorf("XFST0003: unknown function %s", name))
 	}
-	return builtin(args, ctx)
+	return builtin(args, ctx, namedArgs, namedRaw)
 }
 
-func callUserFunction(fn FunctionDef, args [][]any, ctx Context) []any {
+func callUserFunction(fn FunctionDef, args [][]any, ctx Context, namedArgs map[string][]any, namedRaw map[string]Expr) []any {
 	params := fn.Params
 	if len(args) > len(params) {
-		panic(fmt.Errorf("XFDY0002: wrong arity"))
+		panic(fmt.Errorf("XFDY0008: too many arguments"))
 	}
 	newVars := copyVars(ctx.Variables)
+	bound := map[string]bool{}
 	for i, v := range args {
 		newVars[params[i].Name] = v
+		bound[params[i].Name] = true
 	}
-	if len(args) < len(params) {
-		for i := len(args); i < len(params); i++ {
-			param := params[i]
-			if param.Default == nil {
-				panic(fmt.Errorf("XFDY0002: wrong arity"))
-			}
-			newVars[param.Name] = EvalExpr(param.Default, ctx)
+	for paramName, value := range namedArgs {
+		if bound[paramName] {
+			panic(fmt.Errorf("XFDY0008: duplicate argument"))
 		}
+		found := false
+		for _, p := range params {
+			if p.Name == paramName {
+				found = true
+				break
+			}
+		}
+		if !found {
+			panic(fmt.Errorf("XFDY0008: unknown parameter"))
+		}
+		newVars[paramName] = value
+		bound[paramName] = true
 	}
 	newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+	for _, param := range params {
+		if !bound[param.Name] {
+			if param.Default == nil {
+				panic(fmt.Errorf("XFDY0008: missing required parameter"))
+			}
+			newVars[param.Name] = EvalExpr(param.Default, newCtx)
+			bound[param.Name] = true
+		}
+	}
 	return EvalExpr(fn.Body, newCtx)
 }
 
@@ -501,6 +568,12 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 		return true, map[string][]any{}
 	case AttributePattern:
 		if node, ok := item.(*Node); ok && node.Kind == "attribute" && node.Name == p.Name {
+			if p.Value != nil {
+				if node.Value == p.Value.Value {
+					return true, map[string][]any{}
+				}
+				return false, map[string][]any{}
+			}
 			return true, map[string][]any{}
 		}
 		return false, map[string][]any{}
@@ -518,10 +591,32 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 		if p.Kind == "comment" {
 			return ok && node.Kind == "comment", map[string][]any{}
 		}
+		if p.Kind == "pi" {
+			return ok && node.Kind == "pi", map[string][]any{}
+		}
+		if p.Kind == "document" {
+			return ok && node.Kind == "document", map[string][]any{}
+		}
+		return false, map[string][]any{}
+	case LiteralPattern:
+		if node, ok := item.(*Node); ok && node.Kind == "text" && node.Value == p.Value {
+			return true, map[string][]any{}
+		}
 		return false, map[string][]any{}
 	case ElementPattern:
 		if node, ok := item.(*Node); ok && node.Kind == "element" && node.Name == p.Name {
 			bindings := map[string][]any{}
+			// Check attribute constraints
+			for _, attr := range p.Attrs {
+				if _, hasAttr := node.Attrs[attr.Name]; !hasAttr {
+					return false, map[string][]any{}
+				}
+				if attr.Value != nil {
+					if node.Attrs[attr.Name] != attr.Value.Value {
+						return false, map[string][]any{}
+					}
+				}
+			}
 			if p.Var != nil {
 				children := []any{}
 				for _, c := range node.Children {
@@ -530,17 +625,20 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 				bindings[*p.Var] = children
 				return true, bindings
 			}
-			if p.Child != nil {
-				for _, child := range node.Children {
-					matched, childBindings := MatchPattern(p.Child, child)
-					if matched {
-						for k, v := range childBindings {
-							bindings[k] = v
-						}
-						return true, bindings
+			if len(p.Children) > 0 {
+				if len(node.Children) != len(p.Children) {
+					return false, map[string][]any{}
+				}
+				for i, childPat := range p.Children {
+					matched, childBindings := MatchPattern(childPat, node.Children[i])
+					if !matched {
+						return false, map[string][]any{}
+					}
+					for k, v := range childBindings {
+						bindings[k] = v
 					}
 				}
-				return false, map[string][]any{}
+				return true, bindings
 			}
 			return true, map[string][]any{}
 		}
@@ -549,15 +647,91 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 	return false, map[string][]any{}
 }
 
+func doApply(seq []any, ruleset string, ctx Context) []any {
+	if ruleset != "main" {
+		if _, ok := ctx.Rules[ruleset]; !ok {
+			panic(fmt.Errorf("XFST0007"))
+		}
+	}
+	rules := ctx.Rules[ruleset]
+	out := []any{}
+	for _, item := range seq {
+		matched := false
+		for _, rule := range rules {
+			ok, bindings := MatchPattern(rule.Pattern, item)
+			if ok {
+				matched = true
+				newVars := copyVars(ctx.Variables)
+				for k, v := range bindings {
+					newVars[k] = v
+				}
+				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+				out = append(out, EvalExpr(rule.Body, newCtx)...)
+				break
+			}
+		}
+		if !matched {
+			out = append(out, applyBuiltin(item, ruleset, ctx)...)
+		}
+	}
+	return out
+}
+
+func applyBuiltin(item any, ruleset string, ctx Context) []any {
+	node, ok := item.(*Node)
+	if !ok {
+		return []any{}
+	}
+	if node.Kind == "document" {
+		children := []any{}
+		for _, c := range node.Children {
+			children = append(children, c)
+		}
+		return doApply(children, ruleset, ctx)
+	}
+	if node.Kind == "element" {
+		newEl := &Node{Kind: "element", Name: node.Name, Attrs: map[string]string{}, AttrOrder: append([]string{}, node.AttrOrder...)}
+		for k, v := range node.Attrs {
+			newEl.Attrs[k] = v
+		}
+		children := doApply(nodeChildrenAny(node), ruleset, ctx)
+		for _, c := range children {
+			if n, ok := c.(*Node); ok {
+				n.Parent = newEl
+				newEl.Children = append(newEl.Children, n)
+			}
+		}
+		return []any{newEl}
+	}
+	if node.Kind == "attribute" || node.Kind == "text" || node.Kind == "comment" || node.Kind == "pi" {
+		return []any{DeepCopy(node, true)}
+	}
+	return []any{}
+}
+
+func nodeChildrenAny(node *Node) []any {
+	out := []any{}
+	for _, c := range node.Children {
+		out = append(out, c)
+	}
+	return out
+}
+
 // Builtins
 
-type builtinFn func(args [][]any, ctx Context) []any
+type builtinFn func(args [][]any, ctx Context, named map[string][]any, namedRaw map[string]Expr) []any
 
-func fnString(args [][]any, _ Context) []any  { return []any{ToString(firstOrEmpty(args))} }
-func fnNumber(args [][]any, _ Context) []any  { return []any{ToNumber(firstOrEmpty(args))} }
-func fnBoolean(args [][]any, _ Context) []any { return []any{ToBoolean(firstOrEmpty(args))} }
+func fnString(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	return []any{ToString(firstOrEmpty(args))}
+}
+func fnNumber(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	return []any{ToNumber(firstOrEmpty(args))}
+}
+func fnBoolean(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	return []any{ToBoolean(firstOrEmpty(args))}
+}
 
-func fnTypeOf(args [][]any, _ Context) []any {
+func fnTypeOf(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{"null"}
 	}
@@ -580,7 +754,7 @@ func fnTypeOf(args [][]any, _ Context) []any {
 	}
 }
 
-func fnName(args [][]any, _ Context) []any {
+func fnName(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{""}
 	}
@@ -590,7 +764,7 @@ func fnName(args [][]any, _ Context) []any {
 	return []any{""}
 }
 
-func fnAttr(args [][]any, _ Context) []any {
+func fnAttr(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{""}
 	}
@@ -605,7 +779,7 @@ func fnAttr(args [][]any, _ Context) []any {
 	return []any{node.Attrs[key]}
 }
 
-func fnText(args [][]any, _ Context) []any {
+func fnText(args [][]any, _ Context, named map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{""}
 	}
@@ -614,6 +788,10 @@ func fnText(args [][]any, _ Context) []any {
 		deep := true
 		if len(args) > 1 {
 			deep = ToBoolean(args[1])
+		} else if named != nil {
+			if v, ok := named["deep"]; ok {
+				deep = ToBoolean(v)
+			}
 		}
 		if deep {
 			return []any{node.StringValue()}
@@ -632,7 +810,7 @@ func fnText(args [][]any, _ Context) []any {
 	return []any{ToString(args[0])}
 }
 
-func fnChildren(args [][]any, _ Context) []any {
+func fnChildren(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
@@ -646,7 +824,7 @@ func fnChildren(args [][]any, _ Context) []any {
 	return []any{}
 }
 
-func fnElements(args [][]any, _ Context) []any {
+func fnElements(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
@@ -669,7 +847,22 @@ func fnElements(args [][]any, _ Context) []any {
 	return out
 }
 
-func fnCopy(args [][]any, _ Context) []any {
+func fnAttributes(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) == 0 || len(args[0]) == 0 {
+		return []any{}
+	}
+	node, ok := args[0][0].(*Node)
+	if !ok || node.Kind != "element" {
+		return []any{}
+	}
+	out := []any{}
+	for k, v := range node.Attrs {
+		out = append(out, &Node{Kind: "attribute", Name: k, Value: v, Attrs: map[string]string{}})
+	}
+	return out
+}
+
+func fnCopy(args [][]any, _ Context, named map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
@@ -680,25 +873,29 @@ func fnCopy(args [][]any, _ Context) []any {
 	recurse := true
 	if len(args) > 1 {
 		recurse = ToBoolean(args[1])
+	} else if named != nil {
+		if v, ok := named["recurse"]; ok {
+			recurse = ToBoolean(v)
+		}
 	}
 	return []any{DeepCopy(node, recurse)}
 }
 
-func fnCount(args [][]any, _ Context) []any {
+func fnCount(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{float64(0)}
 	}
 	return []any{float64(len(args[0]))}
 }
 
-func fnEmpty(args [][]any, _ Context) []any {
+func fnEmpty(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{true}
 	}
 	return []any{len(args[0]) == 0}
 }
 
-func fnDistinct(args [][]any, _ Context) []any {
+func fnDistinct(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{}
 	}
@@ -715,7 +912,7 @@ func fnDistinct(args [][]any, _ Context) []any {
 	return out
 }
 
-func fnSort(args [][]any, ctx Context) []any {
+func fnSort(args [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{}
 	}
@@ -730,8 +927,8 @@ func fnSort(args [][]any, ctx Context) []any {
 	sort.Slice(out, func(i, j int) bool {
 		if keyFn != "" {
 			fn := ctx.Functions[keyFn]
-			ki := ToString(callUserFunction(fn, [][]any{{out[i]}}, ctx))
-			kj := ToString(callUserFunction(fn, [][]any{{out[j]}}, ctx))
+			ki := ToString(callUserFunction(fn, [][]any{{out[i]}}, ctx, map[string][]any{}, map[string]Expr{}))
+			kj := ToString(callUserFunction(fn, [][]any{{out[j]}}, ctx, map[string][]any{}, map[string]Expr{}))
 			return ki < kj
 		}
 		return ToString([]any{out[i]}) < ToString([]any{out[j]})
@@ -739,7 +936,7 @@ func fnSort(args [][]any, ctx Context) []any {
 	return out
 }
 
-func fnConcat(args [][]any, _ Context) []any {
+func fnConcat(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	out := []any{}
 	for _, seq := range args {
 		out = append(out, seq...)
@@ -747,24 +944,24 @@ func fnConcat(args [][]any, _ Context) []any {
 	return out
 }
 
-func fnHead(args [][]any, _ Context) []any {
+func fnHead(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
 	return []any{args[0][0]}
 }
 
-func fnTail(args [][]any, _ Context) []any {
+func fnTail(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
 	return append([]any{}, args[0][1:]...)
 }
 
-func fnLast(args [][]any, ctx Context) []any {
+func fnLast(args [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		if ctx.Last == nil {
-			return []any{}
+			panic(fmt.Errorf("XFDY0006"))
 		}
 		return []any{float64(*ctx.Last)}
 	}
@@ -775,15 +972,29 @@ func fnLast(args [][]any, ctx Context) []any {
 	return []any{seq[len(seq)-1]}
 }
 
-func fnIndex(args [][]any, ctx Context) []any {
+func fnIndex(args [][]any, ctx Context, named map[string][]any, namedRaw map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{}
 	}
 	seq := args[0]
 	keyFn := ""
+	keyExpr := Expr(nil)
 	if len(args) > 1 && len(args[1]) > 0 {
 		if ref, ok := args[1][0].(FunctionRef); ok {
 			keyFn = ref.Name
+		}
+	}
+	if named != nil {
+		if v, ok := named["key"]; ok {
+			if len(v) > 0 {
+				if ref, ok := v[0].(FunctionRef); ok {
+					keyFn = ref.Name
+				} else if namedRaw != nil {
+					if ke, ok := namedRaw["key"]; ok {
+						keyExpr = ke
+					}
+				}
+			}
 		}
 	}
 	index := map[string][]any{}
@@ -791,14 +1002,17 @@ func fnIndex(args [][]any, ctx Context) []any {
 		key := ToString([]any{item})
 		if keyFn != "" {
 			fn := ctx.Functions[keyFn]
-			key = ToString(callUserFunction(fn, [][]any{{item}}, ctx))
+			key = ToString(callUserFunction(fn, [][]any{{item}}, ctx, map[string][]any{}, map[string]Expr{}))
+		} else if keyExpr != nil {
+			itemCtx := Context{ContextItem: item, Variables: copyVars(ctx.Variables), Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+			key = ToString(EvalExpr(keyExpr, itemCtx))
 		}
 		index[key] = append(index[key], item)
 	}
 	return []any{index}
 }
 
-func fnLookup(args [][]any, _ Context) []any {
+func fnLookup(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) < 2 {
 		return []any{}
 	}
@@ -813,7 +1027,7 @@ func fnLookup(args [][]any, _ Context) []any {
 	return mapping[key]
 }
 
-func fnGroupBy(args [][]any, ctx Context) []any {
+func fnGroupBy(args [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) < 2 {
 		return []any{}
 	}
@@ -829,7 +1043,7 @@ func fnGroupBy(args [][]any, ctx Context) []any {
 		key := ToString([]any{item})
 		if keyFn != "" {
 			fn := ctx.Functions[keyFn]
-			key = ToString(callUserFunction(fn, [][]any{{item}}, ctx))
+			key = ToString(callUserFunction(fn, [][]any{{item}}, ctx, map[string][]any{}, map[string]Expr{}))
 		}
 		groups[key] = append(groups[key], item)
 	}
@@ -840,7 +1054,7 @@ func fnGroupBy(args [][]any, ctx Context) []any {
 	return out
 }
 
-func fnSeq(args [][]any, _ Context) []any {
+func fnSeq(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	out := []any{}
 	for _, seq := range args {
 		out = append(out, seq...)
@@ -848,14 +1062,14 @@ func fnSeq(args [][]any, _ Context) []any {
 	return out
 }
 
-func fnPosition(_ [][]any, ctx Context) []any {
+func fnPosition(_ [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if ctx.Position == nil {
-		return []any{}
+		panic(fmt.Errorf("XFDY0006"))
 	}
 	return []any{float64(*ctx.Position)}
 }
 
-func fnApply(args [][]any, ctx Context) []any {
+func fnApply(args [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{}
 	}
@@ -864,31 +1078,10 @@ func fnApply(args [][]any, ctx Context) []any {
 	if len(args) > 1 && len(args[1]) > 0 {
 		ruleset = ToString(args[1])
 	}
-	rules := ctx.Rules[ruleset]
-	out := []any{}
-	for _, item := range seq {
-		matched := false
-		for _, rule := range rules {
-			ok, bindings := MatchPattern(rule.Pattern, item)
-			if ok {
-				matched = true
-				newVars := copyVars(ctx.Variables)
-				for k, v := range bindings {
-					newVars[k] = v
-				}
-				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
-				out = append(out, EvalExpr(rule.Body, newCtx)...)
-				break
-			}
-		}
-		if !matched {
-			panic(fmt.Errorf("XFDY0001: no matching rule"))
-		}
-	}
-	return out
+	return doApply(seq, ruleset, ctx)
 }
 
-func fnSum(args [][]any, _ Context) []any {
+func fnSum(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 {
 		return []any{0.0}
 	}
@@ -899,35 +1092,129 @@ func fnSum(args [][]any, _ Context) []any {
 	return []any{total}
 }
 
+func fnContains(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) < 2 {
+		return []any{false}
+	}
+	return []any{strings.Contains(ToString(args[0]), ToString(args[1]))}
+}
+
+func fnStartsWith(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) < 2 {
+		return []any{false}
+	}
+	return []any{strings.HasPrefix(ToString(args[0]), ToString(args[1]))}
+}
+
+func fnEndsWith(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) < 2 {
+		return []any{false}
+	}
+	return []any{strings.HasSuffix(ToString(args[0]), ToString(args[1]))}
+}
+
+func fnSubstring(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	s := ToString(firstOrEmpty(args))
+	if len(args) < 2 {
+		return []any{""}
+	}
+	start := int(ToNumber(args[1]))
+	if len(args) > 2 {
+		length := int(ToNumber(args[2]))
+		end := start - 1 + length
+		if end > len(s) {
+			end = len(s)
+		}
+		if start-1 < 0 {
+			start = 1
+		}
+		return []any{s[start-1 : end]}
+	}
+	if start-1 < 0 {
+		start = 1
+	}
+	return []any{s[start-1:]}
+}
+
+func fnNormalizeSpace(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	s := ToString(firstOrEmpty(args))
+	return []any{strings.Join(strings.Fields(s), " ")}
+}
+
+func fnReplace(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) < 3 {
+		return []any{""}
+	}
+	s := ToString(args[0])
+	pattern := ToString(args[1])
+	replacement := ToString(args[2])
+	return []any{strings.ReplaceAll(s, pattern, replacement)}
+}
+
+func fnKeys(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) == 0 || len(args[0]) == 0 {
+		return []any{}
+	}
+	mapping, ok := args[0][0].(map[string][]any)
+	if !ok {
+		return []any{}
+	}
+	out := []any{}
+	for k := range mapping {
+		out = append(out, k)
+	}
+	return out
+}
+
+func fnMapSize(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) == 0 || len(args[0]) == 0 {
+		return []any{float64(0)}
+	}
+	mapping, ok := args[0][0].(map[string][]any)
+	if !ok {
+		return []any{float64(0)}
+	}
+	return []any{float64(len(mapping))}
+}
+
 var builtins map[string]builtinFn
 
 func init() {
 	builtins = map[string]builtinFn{
-		"string":   fnString,
-		"number":   fnNumber,
-		"boolean":  fnBoolean,
-		"typeOf":   fnTypeOf,
-		"name":     fnName,
-		"attr":     fnAttr,
-		"text":     fnText,
-		"children": fnChildren,
-		"elements": fnElements,
-		"copy":     fnCopy,
-		"count":    fnCount,
-		"empty":    fnEmpty,
-		"distinct": fnDistinct,
-		"sort":     fnSort,
-		"concat":   fnConcat,
-		"index":    fnIndex,
-		"lookup":   fnLookup,
-		"groupBy":  fnGroupBy,
-		"seq":      fnSeq,
-		"sum":      fnSum,
-		"head":     fnHead,
-		"tail":     fnTail,
-		"last":     fnLast,
-		"position": fnPosition,
-		"apply":    fnApply,
+		"string":       fnString,
+		"number":       fnNumber,
+		"boolean":      fnBoolean,
+		"typeOf":       fnTypeOf,
+		"name":         fnName,
+		"attr":         fnAttr,
+		"text":         fnText,
+		"children":     fnChildren,
+		"elements":     fnElements,
+		"attributes":   fnAttributes,
+		"copy":         fnCopy,
+		"count":        fnCount,
+		"empty":        fnEmpty,
+		"distinct":     fnDistinct,
+		"sort":         fnSort,
+		"concat":       fnConcat,
+		"index":        fnIndex,
+		"lookup":       fnLookup,
+		"groupBy":      fnGroupBy,
+		"seq":          fnSeq,
+		"sum":          fnSum,
+		"head":         fnHead,
+		"tail":         fnTail,
+		"last":         fnLast,
+		"position":     fnPosition,
+		"apply":        fnApply,
+		"contains":     fnContains,
+		"startsWith":   fnStartsWith,
+		"endsWith":     fnEndsWith,
+		"substring":    fnSubstring,
+		"normalizeSpace": fnNormalizeSpace,
+		"replace":      fnReplace,
+		"keys":         fnKeys,
+		"mapSize":      fnMapSize,
 	}
 }
 

@@ -1,0 +1,3 @@
+xform version "2.1";
+def f(a, b) := a;
+f(1)

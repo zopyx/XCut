@@ -46,8 +46,19 @@ type MatchCase struct {
 }
 
 type FuncCall struct {
+	Name      string
+	Args      []Expr
+	NamedArgs []NamedArg
+}
+
+type NamedArg struct {
 	Name string
-	Args []Expr
+	Expr Expr
+}
+
+type ApplyExpr struct {
+	Expr    Expr
+	Ruleset *string
 }
 
 type UnaryOp struct {
@@ -78,6 +89,11 @@ type AttrConstructor struct {
 }
 
 type TextConstructor struct{ Expr Expr }
+type CommentConstructor struct{ Expr Expr }
+type PIConstructor struct {
+	Target Expr
+	Value  Expr
+}
 
 type Text struct{ Value string }
 
@@ -104,14 +120,26 @@ type Pattern interface{}
 type WildcardPattern struct{}
 
 type ElementPattern struct {
+	Name     string
+	Var      *string
+	Child    Pattern
+	Attrs    []PatternAttr
+	Children []Pattern
+}
+
+type PatternAttr struct {
 	Name  string
-	Var   *string
-	Child Pattern
+	Value *Literal
 }
 
 type TypedPattern struct{ Kind string }
 
-type AttributePattern struct{ Name string }
+type AttributePattern struct {
+	Name  string
+	Value *Literal
+}
+
+type LiteralPattern struct{ Value string }
 
 type Param struct {
 	Name    string

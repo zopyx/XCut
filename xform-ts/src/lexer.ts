@@ -31,6 +31,17 @@ const KEYWORDS = new Set([
   "div",
   "mod",
   "rule",
+  "apply",
+  "text",
+  "comment",
+  "pi",
+  "true",
+  "false",
+  "null",
+  "string",
+  "number",
+  "boolean",
+  "map",
 ]);
 
 export class Lexer {
@@ -138,7 +149,7 @@ export class Lexer {
       return { kind: "OP", value: ch, pos: start };
     }
 
-    if (ch === "'" || ch === "\"") {
+    if (ch === "'" || ch === '"') {
       const quote = ch;
       const start = this.pos;
       this.pos += 1;

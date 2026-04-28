@@ -3,8 +3,8 @@ use std::rc::Rc;
 
 use crate::ast::*;
 use crate::xmlmodel::{
-    deep_copy, iter_descendants, make_attr, make_element, make_text, serialize, XmlNode,
-    NodeKind,
+    deep_copy, deep_copy_recurse, iter_descendants, make_attr, make_comment, make_element,
+    make_pi, make_text, serialize, XmlNode, NodeKind,
 };
 
 pub type Seq = Vec<Item>;
@@ -169,7 +169,19 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
         Expr::FuncCall(fc) => {
             let args: Result<Vec<Seq>, String> =
                 fc.args.iter().map(|a| eval_expr(a, ctx)).collect();
-            call_function(&fc.name, args?, ctx)
+            let named: HashMap<String, Seq> = fc.named_args.iter()
+                .map(|(n, e)| eval_expr(e, ctx).map(|v| (n.clone(), v)))
+                .collect::<Result<_, _>>()?;
+            let named_raw: HashMap<String, Expr> = fc.named_args.iter()
+                .map(|(n, e)| (n.clone(), e.clone()))
+                .collect();
+            call_function(&fc.name, args?, ctx, named, named_raw)
+        }
+
+        Expr::ApplyExpr(ae) => {
+            let seq = eval_expr(&ae.expr, ctx)?;
+            let ruleset = ae.ruleset.clone().unwrap_or_else(|| "main".into());
+            _do_apply(seq, &ruleset, ctx)
         }
 
         Expr::UnaryOp { op, expr } => {
@@ -214,6 +226,17 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
         Expr::TextConstructor(e) => {
             let val = eval_expr(e, ctx)?;
             Ok(vec![Item::Node(make_text(&to_string(&val)))])
+        }
+
+        Expr::CommentConstructor(e) => {
+            let val = eval_expr(e, ctx)?;
+            Ok(vec![Item::Node(make_comment(&to_string(&val)))])
+        }
+
+        Expr::PIConstructor(pi) => {
+            let target = to_string(&eval_expr(&pi.target, ctx)?);
+            let value = to_string(&eval_expr(&pi.value, ctx)?);
+            Ok(vec![Item::Node(make_pi(&target, &value))])
         }
 
         Expr::CharData(s) => Ok(vec![Item::Str(s.clone())]),
@@ -373,17 +396,22 @@ fn apply_step(items: &Seq, step: &PathStep, ctx: &Context) -> Result<Seq, String
 fn matches_test(node: &Rc<XmlNode>, test: &StepTest) -> bool {
     match test.kind {
         StepTestKind::Node => true,
-        StepTestKind::Wildcard => node.kind == NodeKind::Element,
+        StepTestKind::Wildcard => node.kind == NodeKind::Element || node.kind == NodeKind::Attribute,
         StepTestKind::Text => node.kind == NodeKind::Text,
         StepTestKind::Comment => node.kind == NodeKind::Comment,
         StepTestKind::Pi => node.kind == NodeKind::Pi,
+        StepTestKind::Document => node.kind == NodeKind::Document,
         StepTestKind::Name => node.name.as_deref() == test.name.as_deref(),
     }
 }
 
 fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, String> {
+    let mut seen_attrs = std::collections::HashSet::new();
     let mut attrs = Vec::new();
     for (aname, aexpr) in &c.attrs {
+        if !seen_attrs.insert(aname.clone()) {
+            return Err("XFDY0005".into());
+        }
         let val = eval_expr(aexpr, ctx)?;
         attrs.push((aname.clone(), to_string(&val)));
     }
@@ -400,6 +428,9 @@ fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, Strin
                 let seq = eval_expr(content, ctx)?;
                 for item in seq {
                     match item {
+                        Item::Node(n) if n.kind == NodeKind::Attribute => {
+                            return Err("XFDY0005".into());
+                        }
                         Item::Node(n) => children.push(deep_copy(&n)),
                         other => children.push(make_text(&to_string(&[other]))),
                     }
@@ -408,15 +439,52 @@ fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, Strin
         }
     }
 
-    Ok(make_element(&c.name, attrs, children))
+    // Merge adjacent text nodes
+    let mut merged: Vec<Rc<XmlNode>> = Vec::new();
+    for child in children {
+        if child.kind == NodeKind::Text {
+            if let Some(last) = merged.last_mut() {
+                if last.kind == NodeKind::Text {
+                    let new_val = format!(
+                        "{}{}",
+                        last.value.as_deref().unwrap_or(""),
+                        child.value.as_deref().unwrap_or("")
+                    );
+                    *last = make_text(&new_val);
+                    continue;
+                }
+            }
+        }
+        merged.push(child);
+    }
+
+    Ok(make_element(&c.name, attrs, merged))
 }
 
 fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> {
     match pat {
         Pattern::Wildcard => Some(HashMap::new()),
-        Pattern::Attribute(name) => {
+        Pattern::Literal(s) => {
             if let Item::Node(n) = item {
-                if n.kind == NodeKind::Attribute && n.name.as_deref() == Some(name) {
+                if n.kind == NodeKind::Text && n.value.as_deref() == Some(s) {
+                    return Some(HashMap::new());
+                }
+            }
+            None
+        }
+        Pattern::Attribute(ap) => {
+            if let Item::Node(n) = item {
+                if n.kind == NodeKind::Attribute && n.name.as_deref() == Some(&ap.name) {
+                    if let Some(ref lit) = ap.value {
+                        let expected = match lit {
+                            LiteralValue::Str(v) => v.as_str(),
+                            _ => return None,
+                        };
+                        if n.value.as_deref() == Some(expected) {
+                            return Some(HashMap::new());
+                        }
+                        return None;
+                    }
                     return Some(HashMap::new());
                 }
             }
@@ -428,6 +496,8 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> 
                     "node" => true,
                     "text" => n.kind == NodeKind::Text,
                     "comment" => n.kind == NodeKind::Comment,
+                    "pi" => n.kind == NodeKind::Pi,
+                    "document" => n.kind == NodeKind::Document,
                     _ => false,
                 };
                 if matches {
@@ -439,22 +509,41 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> 
         Pattern::Element(ep) => {
             if let Item::Node(n) = item {
                 if n.kind == NodeKind::Element && n.name.as_deref() == Some(&ep.name) {
+                    // Check attribute constraints
+                    for (attr_name, attr_value) in &ep.attrs {
+                        let found = n.attrs.iter().find(|(k, _)| k == attr_name);
+                        if let Some((_, v)) = found {
+                            if let Some(ref lit) = attr_value {
+                                let expected = match lit {
+                                    LiteralValue::Str(s) => s.as_str(),
+                                    _ => return None,
+                                };
+                                if v != expected {
+                                    return None;
+                                }
+                            }
+                        } else {
+                            return None;
+                        }
+                    }
                     let mut bindings = HashMap::new();
                     if let Some(var) = &ep.var {
                         let seq: Seq = n.children.iter().map(|c| Item::Node(c.clone())).collect();
                         bindings.insert(var.clone(), Rc::new(seq));
                         return Some(bindings);
                     }
-                    if let Some(child_pat) = &ep.child {
-                        for child in &n.children {
-                            if let Some(b) =
-                                match_pattern(child_pat, &Item::Node(child.clone()))
-                            {
+                    if !ep.children.is_empty() {
+                        if n.children.len() != ep.children.len() {
+                            return None;
+                        }
+                        for (child_pat, child_node) in ep.children.iter().zip(n.children.iter()) {
+                            if let Some(b) = match_pattern(child_pat, &Item::Node(child_node.clone())) {
                                 bindings.extend(b);
-                                return Some(bindings);
+                            } else {
+                                return None;
                             }
                         }
-                        return None;
+                        return Some(bindings);
                     }
                     return Some(bindings);
                 }
@@ -464,20 +553,112 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> 
     }
 }
 
+fn _do_apply(seq: Seq, ruleset: &str, ctx: &Context) -> Result<Seq, String> {
+    if ruleset != "main" && !ctx.rules.contains_key(ruleset) {
+        return Err("XFST0007".into());
+    }
+    let rules = ctx.rules.get(ruleset).cloned().unwrap_or_default();
+    let mut out = Vec::new();
+    for item in seq {
+        let mut matched = false;
+        for rule in &rules {
+            if let Some(bindings) = match_pattern(&rule.pattern, &item) {
+                matched = true;
+                let mut vars = ctx.variables.clone();
+                vars.extend(bindings);
+                let new_ctx = Context {
+                    context_item: Some(item.clone()),
+                    variables: vars,
+                    ..ctx.clone()
+                };
+                out.extend(eval_expr(&rule.body, &new_ctx)?);
+                break;
+            }
+        }
+        if !matched {
+            out.extend(_apply_builtin(&item, ruleset, ctx)?);
+        }
+    }
+    Ok(out)
+}
+
+fn _apply_builtin(item: &Item, ruleset: &str, ctx: &Context) -> Result<Seq, String> {
+    let node = match item {
+        Item::Node(n) => n.clone(),
+        _ => return Ok(vec![]),
+    };
+    match node.kind {
+        NodeKind::Document => {
+            let children: Seq = node.children.iter().map(|c| Item::Node(c.clone())).collect();
+            _do_apply(children, ruleset, ctx)
+        }
+        NodeKind::Element => {
+            let children_seq: Seq = node.children.iter().map(|c| Item::Node(c.clone())).collect();
+            let applied = _do_apply(children_seq, ruleset, ctx)?;
+            let mut new_children: Vec<Rc<XmlNode>> = Vec::new();
+            for c in applied {
+                if let Item::Node(n) = c {
+                    new_children.push(n);
+                }
+            }
+            Ok(vec![Item::Node(Rc::new(XmlNode {
+                kind: NodeKind::Element,
+                name: node.name.clone(),
+                value: None,
+                attrs: node.attrs.clone(),
+                children: new_children,
+            }))])
+        }
+        NodeKind::Attribute | NodeKind::Text | NodeKind::Comment | NodeKind::Pi => {
+            Ok(vec![Item::Node(deep_copy(&node))])
+        }
+    }
+}
+
 // ── Built-in functions ───────────────────────────────────────────────────────
 
-fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, String> {
+fn call_function(
+    name: &str,
+    args: Vec<Seq>,
+    ctx: &Context,
+    named: HashMap<String, Seq>,
+    named_raw: HashMap<String, Expr>,
+) -> Result<Seq, String> {
     // User-defined function?
     if let Some(fd) = ctx.functions.get(name) {
         let fd = fd.clone();
+        if args.len() > fd.params.len() {
+            return Err(format!("XFDY0008: too many arguments for {}", name));
+        }
         let mut vars = ctx.variables.clone();
+        let mut bound = std::collections::HashSet::new();
         for (i, param) in fd.params.iter().enumerate() {
             if i < args.len() {
                 vars.insert(param.name.clone(), Rc::new(args[i].clone()));
-            } else if let Some(def) = &param.default {
-                vars.insert(param.name.clone(), Rc::new(eval_expr(def, ctx)?));
-            } else {
-                return Err(format!("XFDY0002: wrong arity for {}", name));
+                bound.insert(param.name.clone());
+            }
+        }
+        for (param_name, value) in &named {
+            if bound.contains(param_name) {
+                return Err("XFDY0008: duplicate argument".into());
+            }
+            let matching = fd.params.iter().find(|p| &p.name == param_name);
+            if matching.is_none() {
+                return Err("XFDY0008: unknown parameter".into());
+            }
+            vars.insert(param_name.clone(), Rc::new(value.clone()));
+            bound.insert(param_name.clone());
+        }
+        for param in &fd.params {
+            if !bound.contains(&param.name) {
+                let new_ctx = Context { variables: vars.clone(), ..ctx.clone() };
+                if let Some(def) = &param.default {
+                    let val = eval_expr(def, &new_ctx)?;
+                    vars.insert(param.name.clone(), Rc::new(val));
+                    bound.insert(param.name.clone());
+                } else {
+                    return Err("XFDY0008: missing required parameter".into());
+                }
             }
         }
         return eval_expr(&fd.body, &Context { variables: vars, ..ctx.clone() });
@@ -540,7 +721,13 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
             let mut it = args.into_iter();
             let node_seq = it.next().unwrap_or_default();
             let deep_seq = it.next();
-            let deep = deep_seq.as_ref().map_or(true, |s| to_boolean(s));
+            let deep = if let Some(ds) = deep_seq {
+                to_boolean(&ds)
+            } else if let Some(ds) = named.get("deep") {
+                to_boolean(ds)
+            } else {
+                true
+            };
             match node_seq.first() {
                 Some(Item::Node(n)) => {
                     let s = if deep {
@@ -593,11 +780,32 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
                 _ => Ok(vec![]),
             }
         }
+        "attributes" => {
+            let seq = args.into_iter().next().unwrap_or_default();
+            match seq.first() {
+                Some(Item::Node(n)) if n.kind == NodeKind::Element => {
+                    let out: Seq = n.attrs.iter()
+                        .map(|(k, v)| Item::Node(make_attr(k, v)))
+                        .collect();
+                    Ok(out)
+                }
+                _ => Ok(vec![]),
+            }
+        }
         "copy" => {
             let mut it = args.into_iter();
             let node_seq = it.next().unwrap_or_default();
             match node_seq.first() {
-                Some(Item::Node(n)) => Ok(vec![Item::Node(deep_copy(n))]),
+                Some(Item::Node(n)) => {
+                    let recurse = if let Some(rs) = it.next() {
+                        to_boolean(&rs)
+                    } else if let Some(rs) = named.get("recurse") {
+                        to_boolean(rs)
+                    } else {
+                        true
+                    };
+                    Ok(vec![Item::Node(deep_copy_recurse(n, recurse))])
+                }
                 _ => Ok(vec![]),
             }
         }
@@ -630,7 +838,7 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
                 .iter()
                 .map(|item| {
                     let key = if let Some(ref kf) = key_fn {
-                        call_function(kf, vec![vec![item.clone()]], ctx)
+                        call_function(kf, vec![vec![item.clone()]], ctx, HashMap::new(), HashMap::new())
                             .map(|s| to_string(&s))
                             .unwrap_or_default()
                     } else {
@@ -663,26 +871,33 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
                 if let Some(l) = ctx.last {
                     return Ok(vec![Item::Num(l)]);
                 }
-                return Ok(vec![]);
+                return Err("XFDY0006".into());
             }
             Ok(vec![seq.into_iter().last().unwrap()])
         }
-        "position" => match ctx.position {
-            Some(p) => Ok(vec![Item::Num(p)]),
-            None => Ok(vec![]),
-        },
+        "position" => {
+            match ctx.position {
+                Some(p) => Ok(vec![Item::Num(p)]),
+                None => Err("XFDY0006".into()),
+            }
+        }
         "index" => {
-            let mut it = args.into_iter();
-            let seq = it.next().unwrap_or_default();
-            let key_seq = it.next();
-            let key_fn = key_seq.as_ref().and_then(|s| match s.first() {
+            let seq = args.get(0).cloned().unwrap_or_default();
+            let key_fn = args.get(1).and_then(|s| match s.first() {
                 Some(Item::FuncRef(n)) => Some(n.clone()),
                 _ => None,
             });
+            let key_expr = named_raw.get("key").cloned();
             let mut map: XMap = HashMap::new();
             for item in seq {
                 let key = if let Some(ref kf) = key_fn {
-                    to_string(&call_function(kf, vec![vec![item.clone()]], ctx)?)
+                    to_string(&call_function(kf, vec![vec![item.clone()]], ctx, HashMap::new(), HashMap::new())?)
+                } else if let Some(ref ke) = key_expr {
+                    let item_ctx = Context {
+                        context_item: Some(item.clone()),
+                        ..ctx.clone()
+                    };
+                    to_string(&eval_expr(ke, &item_ctx)?)
                 } else {
                     to_string(&[item.clone()])
                 };
@@ -708,12 +923,11 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
                 Some(Item::FuncRef(n)) => Some(n.clone()),
                 _ => None,
             });
-            // Use a Vec to preserve insertion order (like Python dicts)
             let mut order: Vec<String> = Vec::new();
             let mut groups: HashMap<String, Seq> = HashMap::new();
             for item in seq {
                 let key = if let Some(ref kf) = key_fn {
-                    to_string(&call_function(kf, vec![vec![item.clone()]], ctx)?)
+                    to_string(&call_function(kf, vec![vec![item.clone()]], ctx, HashMap::new(), HashMap::new())?)
                 } else {
                     to_string(&[item.clone()])
                 };
@@ -743,37 +957,74 @@ fn call_function(name: &str, args: Vec<Seq>, ctx: &Context) -> Result<Seq, Strin
             Ok(vec![Item::Num(total)])
         }
         "apply" => {
+            let seq = args.get(0).cloned().unwrap_or_default();
+            let ruleset = args.get(1).map(|s| to_string(s)).filter(|s| !s.is_empty()).unwrap_or_else(|| "main".into());
+            _do_apply(seq, &ruleset, ctx)
+        }
+        "contains" => {
             let mut it = args.into_iter();
-            let seq = it.next().unwrap_or_default();
-            let ruleset_seq = it.next();
-            let ruleset = ruleset_seq
-                .as_ref()
-                .map(|s| to_string(s))
-                .filter(|s| !s.is_empty())
-                .unwrap_or_else(|| "main".into());
-            let rules = ctx.rules.get(&ruleset).cloned().unwrap_or_default();
-            let mut out = Vec::new();
-            for item in seq {
-                let mut matched = false;
-                for rule in &rules {
-                    if let Some(bindings) = match_pattern(&rule.pattern, &item) {
-                        matched = true;
-                        let mut vars = ctx.variables.clone();
-                        vars.extend(bindings);
-                        let new_ctx = Context {
-                            context_item: Some(item.clone()),
-                            variables: vars,
-                            ..ctx.clone()
-                        };
-                        out.extend(eval_expr(&rule.body, &new_ctx)?);
-                        break;
-                    }
-                }
-                if !matched {
-                    return Err("XFDY0001: no matching rule".into());
-                }
+            let a = to_string(&it.next().unwrap_or_default());
+            let b = to_string(&it.next().unwrap_or_default());
+            Ok(vec![Item::Bool(a.contains(&b))])
+        }
+        "startsWith" => {
+            let mut it = args.into_iter();
+            let a = to_string(&it.next().unwrap_or_default());
+            let b = to_string(&it.next().unwrap_or_default());
+            Ok(vec![Item::Bool(a.starts_with(&b))])
+        }
+        "endsWith" => {
+            let mut it = args.into_iter();
+            let a = to_string(&it.next().unwrap_or_default());
+            let b = to_string(&it.next().unwrap_or_default());
+            Ok(vec![Item::Bool(a.ends_with(&b))])
+        }
+        "substring" => {
+            let mut it = args.into_iter();
+            let s = to_string(&it.next().unwrap_or_default());
+            let start_seq = it.next();
+            if start_seq.is_none() {
+                return Ok(vec![Item::Str("".into())]);
             }
-            Ok(out)
+            let start = to_number(&start_seq.unwrap())? as usize;
+            let length_seq = it.next();
+            let result = if let Some(ls) = length_seq {
+                let length = to_number(&ls)? as usize;
+                s.chars().skip(start.saturating_sub(1)).take(length).collect::<String>()
+            } else {
+                s.chars().skip(start.saturating_sub(1)).collect::<String>()
+            };
+            Ok(vec![Item::Str(result)])
+        }
+        "normalizeSpace" => {
+            let s = to_string(&args.into_iter().next().unwrap_or_default());
+            let normalized: String = s.split_whitespace().collect::<Vec<_>>().join(" ");
+            Ok(vec![Item::Str(normalized)])
+        }
+        "replace" => {
+            let mut it = args.into_iter();
+            let s = to_string(&it.next().unwrap_or_default());
+            let pattern = to_string(&it.next().unwrap_or_default());
+            let replacement = to_string(&it.next().unwrap_or_default());
+            Ok(vec![Item::Str(s.replace(&pattern, &replacement))])
+        }
+        "keys" => {
+            let seq = args.into_iter().next().unwrap_or_default();
+            match seq.first() {
+                Some(Item::Map(m)) => {
+                    let mut keys: Vec<String> = m.keys().cloned().collect();
+                    keys.sort();
+                    Ok(keys.into_iter().map(Item::Str).collect())
+                }
+                _ => Ok(vec![]),
+            }
+        }
+        "mapSize" => {
+            let seq = args.into_iter().next().unwrap_or_default();
+            match seq.first() {
+                Some(Item::Map(m)) => Ok(vec![Item::Num(m.len() as f64)]),
+                _ => Ok(vec![Item::Num(0.0)]),
+            }
         }
         _ => Err(format!("XFST0003: unknown function {}", name)),
     }
@@ -836,9 +1087,7 @@ pub fn fmt_num(n: f64) -> String {
     if n.fract() == 0.0 && n.is_finite() && n.abs() < 1e15 {
         format!("{}", n as i64)
     } else {
-        // Use Python-compatible repr for simple decimals
-        let s = format!("{}", n);
-        s
+        format!("{}", n)
     }
 }
 

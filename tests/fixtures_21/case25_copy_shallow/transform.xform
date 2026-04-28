@@ -1,0 +1,4 @@
+xform version "2.1";
+<copies>{
+  for s in .//section return copy(s, recurse:=false)
+}</copies>

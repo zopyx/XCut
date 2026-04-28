@@ -1,0 +1,2 @@
+xform version "2.1";
+<out>{ position() }</out>

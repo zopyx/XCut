@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple
 
 
@@ -60,7 +60,14 @@ class MatchExpr(Expr):
 @dataclass
 class FuncCall(Expr):
     name: str
-    args: List[Expr]
+    args: List[Expr] = field(default_factory=list)
+    named_args: List[Tuple[str, Expr]] = field(default_factory=list)
+
+
+@dataclass
+class ApplyExpr(Expr):
+    expr: Expr
+    ruleset: Optional[str] = None
 
 
 @dataclass
@@ -95,6 +102,17 @@ class TextConstructor(Expr):
 
 
 @dataclass
+class CommentConstructor(Expr):
+    expr: Expr
+
+
+@dataclass
+class PIConstructor(Expr):
+    target: Expr
+    value: Expr
+
+
+@dataclass
 class Text(Expr):
     value: str
 
@@ -109,20 +127,20 @@ Content = Expr
 
 @dataclass
 class PathStart:
-    kind: str  # 'context', 'root', 'desc', 'desc_root', 'var'
+    kind: str  # 'context', 'root', 'desc', 'desc_root', 'var', 'attr'
     name: Optional[str] = None
 
 
 @dataclass
 class PathStep:
-    axis: str  # 'child', 'desc', 'self', 'parent', 'attr'
+    axis: str  # 'child', 'desc', 'self', 'parent', 'attr', 'desc_or_self'
     test: "StepTest"
     predicates: List[Expr]
 
 
 @dataclass
 class StepTest:
-    kind: str  # 'name', 'wildcard', 'text', 'node', 'comment', 'pi'
+    kind: str  # 'name', 'wildcard', 'text', 'node', 'comment', 'pi', 'document'
     name: Optional[str] = None
 
 
@@ -138,18 +156,31 @@ class WildcardPattern(Pattern):
 @dataclass
 class ElementPattern(Pattern):
     name: str
-    var: str | None = None
-    child: "Pattern | None" = None
+    var: Optional[str] = None
+    child: Optional[Pattern] = None
+    children: List[Pattern] = field(default_factory=list)
+    attrs: List[Tuple[str, Optional[Literal]]] = field(default_factory=list)
+
+    def __post_init__(self):
+        if self.child is not None and not self.children:
+            self.children = [self.child]
+            self.child = None
 
 
 @dataclass
 class TypedPattern(Pattern):
-    kind: str  # 'node', 'text', 'comment'
+    kind: str  # 'node', 'text', 'comment', 'pi', 'document'
 
 
 @dataclass
 class AttributePattern(Pattern):
     name: str
+    value: Optional[Literal] = None
+
+
+@dataclass
+class LiteralPattern(Pattern):
+    value: str
 
 
 @dataclass

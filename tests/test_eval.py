@@ -195,7 +195,7 @@ def test_call_function_user_defined_and_defaults() -> None:
     func = ast.FunctionDef([ast.Param("a"), ast.Param("b", default=ast.Literal(2.0))], ast.BinaryOp("+", ast.VarRef("a"), ast.VarRef("b")))
     ctx = Context(context_item=None, variables={}, functions={"add": func}, rules={})
     assert call_function("add", [[1.0]], ctx) == [3.0]
-    with pytest.raises(RuntimeError, match="XFDY0002"):
+    with pytest.raises(RuntimeError, match="XFDY0008"):
         call_function("add", [[1.0], [2.0], [3.0]], ctx)
 
 
@@ -294,8 +294,10 @@ def test_sort_index_groupby_lookup_and_apply() -> None:
     assert call_function("apply", [doc.children[0].children], ctx) == ["ok", "ok"]
 
 
-def test_apply_raises_when_no_rule_matches() -> None:
+def test_apply_builtin_fallback_when_no_rule_matches() -> None:
     doc = _doc_with_children()
     ctx = Context(context_item=doc, variables={}, functions={}, rules={"main": []})
-    with pytest.raises(RuntimeError, match="XFDY0001"):
-        call_function("apply", [doc.children], ctx)
+    out = call_function("apply", [doc.children], ctx)
+    assert out
+    assert isinstance(out[0], Node)
+    assert out[0].name == "root"

@@ -102,7 +102,18 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
   }
   if (expr instanceof ast.FuncCall) {
     const args = expr.args.map((a) => evalExpr(a, ctx));
-    return callFunction(expr.name, args, ctx);
+    const named: Record<string, any[]> = {};
+    const namedRaw: Record<string, ast.Expr> = {};
+    for (const [name, valExpr] of expr.namedArgs) {
+      named[name] = evalExpr(valExpr, ctx);
+      namedRaw[name] = valExpr;
+    }
+    return callFunction(expr.name, args, ctx, named, namedRaw);
+  }
+  if (expr instanceof ast.ApplyExpr) {
+    const seq = evalExpr(expr.expr, ctx);
+    const ruleset = expr.ruleset || "main";
+    return doApply(seq, ruleset, ctx);
   }
   if (expr instanceof ast.UnaryOp) {
     const val = evalExpr(expr.expr, ctx);
@@ -134,6 +145,14 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
   }
   if (expr instanceof ast.TextConstructor) {
     return [new Node({ kind: "text", value: toString(evalExpr(expr.expr, ctx)) })];
+  }
+  if (expr instanceof ast.CommentConstructor) {
+    return [new Node({ kind: "comment", value: toString(evalExpr(expr.expr, ctx)) })];
+  }
+  if (expr instanceof ast.PIConstructor) {
+    const target = toString(evalExpr(expr.target, ctx));
+    const value = toString(evalExpr(expr.value, ctx));
+    return [new Node({ kind: "pi", name: target, value })];
   }
   if (expr instanceof ast.Text) {
     return [expr.value];
@@ -182,6 +201,11 @@ export function evalPath(expr: ast.PathExpr, ctx: Context): any[] {
       if (expr.start.name) {
         steps = [new ast.PathStep("child", new ast.StepTest("name", expr.start.name), []), ...steps];
       }
+    }
+  } else if (expr.start.kind === "attr") {
+    base = ctx.contextItem !== null && ctx.contextItem !== undefined ? [ctx.contextItem] : [];
+    if (expr.start.name) {
+      steps = [new ast.PathStep("attr", new ast.StepTest("name", expr.start.name), []), ...steps];
     }
   }
 
@@ -243,7 +267,7 @@ export function applyStep(items: any[], step: ast.PathStep, ctx: Context): any[]
         }
       }
     } else if (step.axis === "child") {
-      candidates = item.children;
+      candidates = item.kind === "element" || item.kind === "document" ? item.children : [];
     }
 
     let filtered = candidates.filter((c) => matchesStepTest(step.test, c));
@@ -262,18 +286,24 @@ export function applyStep(items: any[], step: ast.PathStep, ctx: Context): any[]
 }
 
 function matchesStepTest(test: ast.StepTest, node: Node): boolean {
-  if (test.kind === "wildcard") return node.kind === "element";
-  if (test.kind === "text") return node.kind === "text";
   if (test.kind === "node") return true;
+  if (test.kind === "wildcard") return node.kind === "element" || node.kind === "attribute";
+  if (test.kind === "text") return node.kind === "text";
   if (test.kind === "comment") return node.kind === "comment";
   if (test.kind === "pi") return node.kind === "pi";
+  if (test.kind === "document") return node.kind === "document";
   if (test.kind === "name") return node.name === test.name;
   return false;
 }
 
 export function evalConstructor(expr: ast.Constructor, ctx: Context): Node {
   const node = new Node({ kind: "element", name: expr.name });
+  const seenAttrs = new Set<string>();
   for (const [name, aexpr] of expr.attrs) {
+    if (seenAttrs.has(name)) {
+      throw new Error("XFDY0005");
+    }
+    seenAttrs.add(name);
     const val = evalExpr(aexpr, ctx);
     node.attrs[name] = toString(val);
   }
@@ -286,14 +316,26 @@ export function evalConstructor(expr: ast.Constructor, ctx: Context): Node {
     const seq = evalExpr(content, ctx);
     for (const item of seq) {
       if (item instanceof Node) {
+        if (item.kind === "attribute") {
+          throw new Error("XFDY0005");
+        }
         children.push(deepCopy(item, true));
       } else {
         children.push(new Node({ kind: "text", value: toString([item]) }));
       }
     }
   }
-  for (const child of children) child.parent = node;
-  node.children = children;
+  // Merge adjacent text nodes
+  const merged: Node[] = [];
+  for (const child of children) {
+    if (child.kind === "text" && merged.length > 0 && merged[merged.length - 1].kind === "text") {
+      merged[merged.length - 1].value = (merged[merged.length - 1].value || "") + (child.value || "");
+    } else {
+      merged.push(child);
+    }
+  }
+  for (const child of merged) child.parent = node;
+  node.children = merged;
   return node;
 }
 
@@ -304,29 +346,52 @@ export class FunctionRef {
   }
 }
 
-export function callFunction(name: string, args: any[][], ctx: Context): any[] {
+export function callFunction(
+  name: string,
+  args: any[][],
+  ctx: Context,
+  namedArgs: Record<string, any[]> = {},
+  namedRaw: Record<string, ast.Expr> = {},
+): any[] {
   if (name in ctx.functions) {
     const func = ctx.functions[name];
     const params = func.params;
-    if (args.length > params.length) throw new Error("XFDY0002: wrong arity");
+    if (args.length > params.length) {
+      throw new Error("XFDY0008: too many arguments");
+    }
     const newVars: Record<string, any[]> = { ...ctx.variables };
+    const bound = new Set<string>();
     for (let i = 0; i < args.length; i += 1) {
       newVars[params[i].name] = args[i];
+      bound.add(params[i].name);
     }
-    if (args.length < params.length) {
-      for (let i = args.length; i < params.length; i += 1) {
-        const param = params[i];
-        if (!param.defaultExpr) throw new Error("XFDY0002: wrong arity");
-        newVars[param.name] = evalExpr(param.defaultExpr, ctx);
+    for (const [paramName, value] of Object.entries(namedArgs)) {
+      if (bound.has(paramName)) {
+        throw new Error("XFDY0008: duplicate argument");
       }
+      const matching = params.filter((p) => p.name === paramName);
+      if (matching.length === 0) {
+        throw new Error("XFDY0008: unknown parameter");
+      }
+      newVars[paramName] = value;
+      bound.add(paramName);
     }
     const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last);
+    for (const param of params) {
+      if (!bound.has(param.name)) {
+        if (!param.defaultExpr) {
+          throw new Error("XFDY0008: missing required parameter");
+        }
+        newVars[param.name] = evalExpr(param.defaultExpr, newCtx);
+        bound.add(param.name);
+      }
+    }
     return evalExpr(func.body, newCtx);
   }
 
   const fn = BUILTINS[name];
   if (!fn) throw new Error(`XFST0003: unknown function ${name}`);
-  return fn(args, ctx);
+  return fn(args, ctx, namedArgs, namedRaw);
 }
 
 export function toBoolean(seq: any[]): boolean {
@@ -345,7 +410,8 @@ export function toString(seq: any[]): string {
   if (item === null || item === undefined) return "";
   if (typeof item === "boolean") return item ? "true" : "false";
   if (typeof item === "number") {
-    return Number.isInteger(item) ? String(item) : String(item);
+    if (Number.isInteger(item)) return String(item);
+    return String(item);
   }
   return String(item);
 }
@@ -367,7 +433,15 @@ export function valueEqual(left: any[], right: any[]): boolean {
 export function matchPattern(pattern: ast.Pattern, item: any): [boolean, Record<string, any[]>] {
   if (pattern instanceof ast.WildcardPattern) return [true, {}];
   if (pattern instanceof ast.AttributePattern) {
-    if (item instanceof Node && item.kind === "attribute" && item.name === pattern.name) return [true, {}];
+    if (item instanceof Node && item.kind === "attribute" && item.name === pattern.name) {
+      if (pattern.value !== null) {
+        if (item.value === pattern.value.value) {
+          return [true, {}];
+        }
+        return [false, {}];
+      }
+      return [true, {}];
+    }
     return [false, {}];
   }
   if (pattern instanceof ast.TypedPattern) {
@@ -375,24 +449,46 @@ export function matchPattern(pattern: ast.Pattern, item: any): [boolean, Record<
     if (pattern.kind === "node") return [item instanceof Node, {}];
     if (pattern.kind === "text") return [item instanceof Node && item.kind === "text", {}];
     if (pattern.kind === "comment") return [item instanceof Node && item.kind === "comment", {}];
+    if (pattern.kind === "pi") return [item instanceof Node && item.kind === "pi", {}];
+    if (pattern.kind === "document") return [item instanceof Node && item.kind === "document", {}];
+    return [false, {}];
+  }
+  if (pattern instanceof ast.LiteralPattern) {
+    if (item instanceof Node && item.kind === "text" && item.value === pattern.value) {
+      return [true, {}];
+    }
     return [false, {}];
   }
   if (pattern instanceof ast.ElementPattern) {
     if (item instanceof Node && item.kind === "element" && item.name === pattern.name) {
       const bindings: Record<string, any[]> = {};
-      if (pattern.varName) {
+      // Check attribute constraints
+      for (const [attrName, attrValue] of pattern.attrs) {
+        if (!(attrName in item.attrs)) {
+          return [false, {}];
+        }
+        if (attrValue !== null) {
+          if (item.attrs[attrName] !== attrValue.value) {
+            return [false, {}];
+          }
+        }
+      }
+      if (pattern.varName !== null) {
         bindings[pattern.varName] = [...item.children];
         return [true, bindings];
       }
-      if (pattern.child) {
-        for (const child of item.children) {
-          const [matched, childBindings] = matchPattern(pattern.child, child);
-          if (matched) {
-            Object.assign(bindings, childBindings);
-            return [true, bindings];
-          }
+      if (pattern.children.length > 0) {
+        if (item.children.length !== pattern.children.length) {
+          return [false, {}];
         }
-        return [false, {}];
+        for (let i = 0; i < pattern.children.length; i += 1) {
+          const [matched, childBindings] = matchPattern(pattern.children[i], item.children[i]);
+          if (!matched) {
+            return [false, {}];
+          }
+          Object.assign(bindings, childBindings);
+        }
+        return [true, bindings];
       }
       return [true, {}];
     }
@@ -401,9 +497,57 @@ export function matchPattern(pattern: ast.Pattern, item: any): [boolean, Record<
   return [false, {}];
 }
 
+function doApply(seq: any[], ruleset: string, ctx: Context): any[] {
+  if (ruleset !== "main" && !(ruleset in ctx.rules)) {
+    throw new Error("XFST0007");
+  }
+  const rules = ctx.rules[ruleset] ?? [];
+  const out: any[] = [];
+  for (const item of seq) {
+    let matched = false;
+    for (const rule of rules) {
+      const [ok, bindings] = matchPattern(rule.pattern, item);
+      if (ok) {
+        matched = true;
+        const newVars = { ...ctx.variables, ...bindings };
+        out.push(
+          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)),
+        );
+        break;
+      }
+    }
+    if (!matched) {
+      out.push(...applyBuiltin(item, ruleset, ctx));
+    }
+  }
+  return out;
+}
+
+function applyBuiltin(item: any, ruleset: string, ctx: Context): any[] {
+  if (!(item instanceof Node)) return [];
+  if (item.kind === "document") {
+    return doApply([...item.children], ruleset, ctx);
+  }
+  if (item.kind === "element") {
+    const newEl = new Node({ kind: "element", name: item.name, attrs: { ...item.attrs } });
+    const children = doApply([...item.children], ruleset, ctx);
+    for (const c of children) {
+      if (c instanceof Node) {
+        c.parent = newEl;
+      }
+    }
+    newEl.children = children.filter((c) => c instanceof Node);
+    return [newEl];
+  }
+  if (item.kind === "attribute" || item.kind === "text" || item.kind === "comment" || item.kind === "pi") {
+    return [deepCopy(item, true)];
+  }
+  return [];
+}
+
 // Builtins
 
-type BuiltinFn = (args: any[][], ctx: Context) => any[];
+type BuiltinFn = (args: any[][], ctx: Context, named: Record<string, any[]>, namedRaw: Record<string, ast.Expr>) => any[];
 
 function fnString(args: any[][]): any[] {
   return [toString(args[0] ?? [])];
@@ -444,13 +588,19 @@ function fnAttr(args: any[][]): any[] {
   return [node.attrs[key] ?? ""];
 }
 
-function fnText(args: any[][]): any[] {
+function fnText(args: any[][], ctx: Context, named: Record<string, any[]>): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [""];
   const node = args[0][0];
   if (node instanceof Node) {
     let deep = true;
-    if (args.length > 1) deep = toBoolean(args[1]);
-    if (deep) return [node.stringValue()];
+    if (args.length > 1) {
+      deep = toBoolean(args[1]);
+    } else if (named && "deep" in named) {
+      deep = toBoolean(named["deep"]);
+    }
+    if (deep) {
+      return [node.stringValue()];
+    }
     if (node.kind === "element" || node.kind === "document") {
       const direct = node.children
         .filter((c) => c.kind === "text")
@@ -480,12 +630,23 @@ function fnElements(args: any[][]): any[] {
   return out;
 }
 
-function fnCopy(args: any[][]): any[] {
+function fnAttributes(args: any[][]): any[] {
+  if (!args || args.length === 0 || args[0].length === 0) return [];
+  const node = args[0][0];
+  if (!(node instanceof Node) || node.kind !== "element") return [];
+  return Object.entries(node.attrs).map(([k, v]) => new Node({ kind: "attribute", name: k, value: v }));
+}
+
+function fnCopy(args: any[][], ctx: Context, named: Record<string, any[]>): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [];
   const node = args[0][0];
   if (!(node instanceof Node)) return [];
   let recurse = true;
-  if (args.length > 1) recurse = toBoolean(args[1]);
+  if (args.length > 1) {
+    recurse = toBoolean(args[1]);
+  } else if (named && "recurse" in named) {
+    recurse = toBoolean(named["recurse"]);
+  }
   return [deepCopy(node, recurse)];
 }
 
@@ -545,7 +706,9 @@ function fnTail(args: any[][]): any[] {
 
 function fnLast(args: any[][], ctx: Context): any[] {
   if (!args || args.length === 0 || args[0].length === 0) {
-    if (ctx.last === null) return [];
+    if (ctx.last === null) {
+      throw new Error("XFDY0006");
+    }
     return [ctx.last];
   }
   const seq = args[0];
@@ -553,16 +716,33 @@ function fnLast(args: any[][], ctx: Context): any[] {
   return [seq[seq.length - 1]];
 }
 
-function fnIndex(args: any[][], ctx: Context): any[] {
+function fnIndex(args: any[][], ctx: Context, named: Record<string, any[]>, namedRaw: Record<string, ast.Expr>): any[] {
   if (!args || args.length === 0) return [];
   const seq = args[0];
   let keyFn: string | null = null;
+  let keyExpr: ast.Expr | null = null;
   if (args.length > 1 && args[1] && args[1][0] instanceof FunctionRef) {
     keyFn = (args[1][0] as FunctionRef).name;
   }
+  if (named && "key" in named) {
+    const candidate = named["key"];
+    if (candidate && candidate[0] instanceof FunctionRef) {
+      keyFn = candidate[0].name;
+    } else if (namedRaw && "key" in namedRaw) {
+      keyExpr = namedRaw["key"];
+    }
+  }
   const index: Record<string, any[]> = {};
   for (const item of seq) {
-    const key = keyFn ? toString(callFunction(keyFn, [[item]], ctx)) : toString([item]);
+    let key: string;
+    if (keyFn) {
+      key = toString(callFunction(keyFn, [[item]], ctx));
+    } else if (keyExpr !== null) {
+      const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last);
+      key = toString(evalExpr(keyExpr, itemCtx));
+    } else {
+      key = toString([item]);
+    }
     if (!index[key]) index[key] = [];
     index[key].push(item);
   }
@@ -601,7 +781,9 @@ function fnSeq(args: any[][]): any[] {
 }
 
 function fnPosition(_: any[][], ctx: Context): any[] {
-  if (ctx.position === null) return [];
+  if (ctx.position === null) {
+    throw new Error("XFDY0006");
+  }
   return [ctx.position];
 }
 
@@ -612,24 +794,7 @@ function fnApply(args: any[][], ctx: Context): any[] {
   if (args.length > 1 && args[1] && args[1].length > 0) {
     ruleset = toString(args[1]);
   }
-  const rules = ctx.rules[ruleset] ?? [];
-  const out: any[] = [];
-  for (const item of seq) {
-    let matched = false;
-    for (const rule of rules) {
-      const [ok, bindings] = matchPattern(rule.pattern, item);
-      if (ok) {
-        matched = true;
-        const newVars = { ...ctx.variables, ...bindings };
-        out.push(
-          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)),
-        );
-        break;
-      }
-    }
-    if (!matched) throw new Error("XFDY0001: no matching rule");
-  }
-  return out;
+  return doApply(seq, ruleset, ctx);
 }
 
 function fnSum(args: any[][]): any[] {
@@ -639,6 +804,63 @@ function fnSum(args: any[][]): any[] {
   return [total];
 }
 
+// String helpers
+
+function fnContains(args: any[][]): any[] {
+  if (args.length < 2) return [false];
+  return [toString(args[0]).indexOf(toString(args[1])) >= 0];
+}
+
+function fnStartsWith(args: any[][]): any[] {
+  if (args.length < 2) return [false];
+  return [toString(args[0]).startsWith(toString(args[1]))];
+}
+
+function fnEndsWith(args: any[][]): any[] {
+  if (args.length < 2) return [false];
+  return [toString(args[0]).endsWith(toString(args[1]))];
+}
+
+function fnSubstring(args: any[][]): any[] {
+  const s = toString(args[0] ?? []);
+  if (args.length < 2) return [""];
+  const start = Math.floor(toNumber(args[1]));
+  if (args.length > 2) {
+    const length = Math.floor(toNumber(args[2]));
+    return [s.substring(start - 1, start - 1 + length)];
+  }
+  return [s.substring(start - 1)];
+}
+
+function fnNormalizeSpace(args: any[][]): any[] {
+  const s = toString(args[0] ?? []);
+  return [s.trim().replace(/\s+/g, " ")];
+}
+
+function fnReplace(args: any[][]): any[] {
+  if (args.length < 3) return [""];
+  const s = toString(args[0]);
+  const pattern = toString(args[1]);
+  const replacement = toString(args[2]);
+  return [s.split(pattern).join(replacement)];
+}
+
+// Map helpers
+
+function fnKeys(args: any[][]): any[] {
+  if (!args || args.length === 0 || args[0].length === 0) return [];
+  const mapping = args[0][0];
+  if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) return [];
+  return Object.keys(mapping);
+}
+
+function fnMapSize(args: any[][]): any[] {
+  if (!args || args.length === 0 || args[0].length === 0) return [0.0];
+  const mapping = args[0][0];
+  if (!mapping || typeof mapping !== "object" || Array.isArray(mapping)) return [0.0];
+  return [Object.keys(mapping).length];
+}
+
 const BUILTINS: Record<string, BuiltinFn> = {
   string: (args) => fnString(args),
   number: (args) => fnNumber(args),
@@ -646,16 +868,17 @@ const BUILTINS: Record<string, BuiltinFn> = {
   typeOf: (args) => fnTypeOf(args),
   name: (args) => fnName(args),
   attr: (args) => fnAttr(args),
-  text: (args) => fnText(args),
+  text: (args, ctx, named) => fnText(args, ctx, named),
   children: (args) => fnChildren(args),
   elements: (args) => fnElements(args),
-  copy: (args) => fnCopy(args),
+  attributes: (args) => fnAttributes(args),
+  copy: (args, ctx, named) => fnCopy(args, ctx, named),
   count: (args) => fnCount(args),
   empty: (args) => fnEmpty(args),
   distinct: (args) => fnDistinct(args),
   sort: (args, ctx) => fnSort(args, ctx),
   concat: (args) => fnConcat(args),
-  index: (args, ctx) => fnIndex(args, ctx),
+  index: (args, ctx, named, namedRaw) => fnIndex(args, ctx, named, namedRaw),
   lookup: (args) => fnLookup(args),
   groupBy: (args, ctx) => fnGroupBy(args, ctx),
   seq: (args) => fnSeq(args),
@@ -665,6 +888,14 @@ const BUILTINS: Record<string, BuiltinFn> = {
   last: (args, ctx) => fnLast(args, ctx),
   position: (args, ctx) => fnPosition(args, ctx),
   apply: (args, ctx) => fnApply(args, ctx),
+  contains: (args) => fnContains(args),
+  startsWith: (args) => fnStartsWith(args),
+  endsWith: (args) => fnEndsWith(args),
+  substring: (args) => fnSubstring(args),
+  normalizeSpace: (args) => fnNormalizeSpace(args),
+  replace: (args) => fnReplace(args),
+  keys: (args) => fnKeys(args),
+  mapSize: (args) => fnMapSize(args),
 };
 
 export function serializeItem(item: any): string {

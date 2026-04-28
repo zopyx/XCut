@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, Iterable, List, Optional
 
@@ -119,7 +120,13 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         return out
     if isinstance(expr, ast.FuncCall):
         args = [eval_expr(a, ctx) for a in expr.args]
-        return call_function(expr.name, args, ctx)
+        named = {name: eval_expr(val, ctx) for name, val in expr.named_args}
+        named_raw = {name: val for name, val in expr.named_args}
+        return call_function(expr.name, args, ctx, named, named_raw)
+    if isinstance(expr, ast.ApplyExpr):
+        seq = eval_expr(expr.expr, ctx)
+        ruleset = expr.ruleset or "main"
+        return _do_apply(seq, ruleset, ctx)
     if isinstance(expr, ast.UnaryOp):
         val = eval_expr(expr.expr, ctx)
         if expr.op == "-":
@@ -148,6 +155,12 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         return [eval_constructor(expr, ctx)]
     if isinstance(expr, ast.TextConstructor):
         return [Node(kind="text", value=to_string(eval_expr(expr.expr, ctx)))]
+    if isinstance(expr, ast.CommentConstructor):
+        return [Node(kind="comment", value=to_string(eval_expr(expr.expr, ctx)))]
+    if isinstance(expr, ast.PIConstructor):
+        target = to_string(eval_expr(expr.target, ctx))
+        value = to_string(eval_expr(expr.value, ctx))
+        return [Node(kind="pi", name=target, value=value)]
     if isinstance(expr, ast.Text):
         return [expr.value]
     if isinstance(expr, ast.Interp):
@@ -297,6 +310,8 @@ def _matches_test(node: Node, test: ast.StepTest) -> bool:
         return node.kind == "comment"
     if test.kind == "pi":
         return node.kind == "pi"
+    if test.kind == "document":
+        return node.kind == "document"
     if test.kind == "name":
         return node.name == test.name
     return False
@@ -304,7 +319,11 @@ def _matches_test(node: Node, test: ast.StepTest) -> bool:
 
 def eval_constructor(expr: ast.Constructor, ctx: Context) -> Node:
     node = Node(kind="element", name=expr.name)
+    seen_attrs = set()
     for name, aexpr in expr.attrs:
+        if name in seen_attrs:
+            raise RuntimeError("XFDY0005")
+        seen_attrs.add(name)
         val = eval_expr(aexpr, ctx)
         node.attrs[name] = to_string(val)
     children: List[Node] = []
@@ -315,9 +334,19 @@ def eval_constructor(expr: ast.Constructor, ctx: Context) -> Node:
         seq = eval_expr(content, ctx)
         for item in seq:
             if isinstance(item, Node):
+                if item.kind == "attribute":
+                    raise RuntimeError("XFDY0005")
                 children.append(deep_copy(item))
             else:
                 children.append(Node(kind="text", value=to_string([item])))
+    # Merge adjacent text nodes
+    merged: List[Node] = []
+    for child in children:
+        if child.kind == "text" and merged and merged[-1].kind == "text":
+            merged[-1].value = (merged[-1].value or "") + (child.value or "")
+        else:
+            merged.append(child)
+    children = merged
     for child in children:
         child.parent = node
     node.children = children
@@ -329,28 +358,92 @@ class FunctionRef:
     name: str
 
 
-def call_function(name: str, args: List[List[Any]], ctx: Context) -> List[Any]:
+def call_function(
+    name: str,
+    args: List[List[Any]],
+    ctx: Context,
+    named_args: Optional[Dict[str, List[Any]]] = None,
+    named_raw: Optional[Dict[str, ast.Expr]] = None,
+) -> List[Any]:
+    named_args = named_args or {}
     if name in ctx.functions:
         func = ctx.functions[name]
         params = func.params
         body = func.body
         if len(args) > len(params):
-            raise RuntimeError("XFDY0002: wrong arity")
+            raise RuntimeError("XFDY0008: too many arguments")
         new_vars = dict(ctx.variables)
+        bound = set()
         for param, value in zip(params, args):
             new_vars[param.name] = value
-        if len(args) < len(params):
-            for param in params[len(args) :]:
-                if param.default is None:
-                    raise RuntimeError("XFDY0002: wrong arity")
-                new_vars[param.name] = eval_expr(param.default, ctx)
+            bound.add(param.name)
+        for param_name, value in named_args.items():
+            if param_name in bound:
+                raise RuntimeError("XFDY0008: duplicate argument")
+            matching = [p for p in params if p.name == param_name]
+            if not matching:
+                raise RuntimeError("XFDY0008: unknown parameter")
+            new_vars[param_name] = value
+            bound.add(param_name)
         new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last)
+        for param in params:
+            if param.name not in bound:
+                if param.default is None:
+                    raise RuntimeError("XFDY0008: missing required parameter")
+                new_vars[param.name] = eval_expr(param.default, new_ctx)
+                bound.add(param.name)
         return eval_expr(body, new_ctx)
 
     fn = BUILTINS.get(name)
     if fn is None:
         raise RuntimeError(f"XFST0003: unknown function {name}")
-    return fn(args, ctx)
+    try:
+        return fn(args, ctx, named_args, named_raw or {})
+    except TypeError:
+        return fn(args, ctx, named_args)
+
+
+def _do_apply(seq: List[Any], ruleset: str, ctx: Context) -> List[Any]:
+    if ruleset != "main" and ruleset not in ctx.rules:
+        raise RuntimeError("XFST0007")
+    rules = ctx.rules.get(ruleset, [])
+    out: List[Any] = []
+    for item in seq:
+        matched = False
+        for rule in rules:
+            ok, bindings = match_pattern(rule.pattern, item)
+            if ok:
+                matched = True
+                new_vars = dict(ctx.variables)
+                new_vars.update(bindings)
+                out.extend(
+                    eval_expr(
+                        rule.body,
+                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
+                    )
+                )
+                break
+        if not matched:
+            out.extend(_apply_builtin(item, ruleset, ctx))
+    return out
+
+
+def _apply_builtin(item: Any, ruleset: str, ctx: Context) -> List[Any]:
+    if not isinstance(item, Node):
+        return []
+    if item.kind == "document":
+        return _do_apply(list(item.children), ruleset, ctx)
+    if item.kind == "element":
+        new_el = Node(kind="element", name=item.name, attrs=dict(item.attrs))
+        children = _do_apply(list(item.children), ruleset, ctx)
+        for c in children:
+            if isinstance(c, Node):
+                c.parent = new_el
+        new_el.children = [c for c in children if isinstance(c, Node)]
+        return [new_el]
+    if item.kind in ("attribute", "text", "comment", "pi"):
+        return [deep_copy(item)]
+    return []
 
 
 def to_boolean(seq: List[Any]) -> bool:
@@ -404,6 +497,10 @@ def match_pattern(pattern: ast.Pattern, item: Any) -> tuple[bool, Dict[str, List
         return True, {}
     if isinstance(pattern, ast.AttributePattern):
         if isinstance(item, Node) and item.kind == "attribute" and item.name == pattern.name:
+            if pattern.value is not None:
+                if item.value == _literal_value(pattern.value):
+                    return True, {}
+                return False, {}
             return True, {}
         return False, {}
     if isinstance(pattern, ast.TypedPattern):
@@ -415,40 +512,63 @@ def match_pattern(pattern: ast.Pattern, item: Any) -> tuple[bool, Dict[str, List
             return isinstance(item, Node) and item.kind == "text", {}
         if pattern.kind == "comment":
             return isinstance(item, Node) and item.kind == "comment", {}
+        if pattern.kind == "pi":
+            return isinstance(item, Node) and item.kind == "pi", {}
+        if pattern.kind == "document":
+            return isinstance(item, Node) and item.kind == "document", {}
+        return False, {}
+    if isinstance(pattern, ast.LiteralPattern):
+        if isinstance(item, Node) and item.kind == "text" and item.value == pattern.value:
+            return True, {}
         return False, {}
     if isinstance(pattern, ast.ElementPattern):
         if isinstance(item, Node) and item.kind == "element" and item.name == pattern.name:
             bindings: Dict[str, List[Any]] = {}
+            # Check attribute constraints
+            for attr_name, attr_value in pattern.attrs:
+                if attr_name not in item.attrs:
+                    return False, {}
+                if attr_value is not None:
+                    if item.attrs[attr_name] != _literal_value(attr_value):
+                        return False, {}
             if pattern.var is not None:
                 bindings[pattern.var] = list(item.children)
                 return True, bindings
-            if pattern.child is not None:
-                for child in item.children:
-                    matched, child_bindings = match_pattern(pattern.child, child)
-                    if matched:
-                        bindings.update(child_bindings)
-                        return True, bindings
-                return False, {}
+            if pattern.children:
+                if len(item.children) != len(pattern.children):
+                    return False, {}
+                for child_pat, child_node in zip(pattern.children, item.children):
+                    matched, child_bindings = match_pattern(child_pat, child_node)
+                    if not matched:
+                        return False, {}
+                    bindings.update(child_bindings)
+                return True, bindings
             return True, {}
         return False, {}
     return False, {}
 
 
+def _literal_value(lit: Any) -> Any:
+    if isinstance(lit, ast.Literal):
+        return lit.value
+    return lit
+
+
 # Built-in functions
 
-def _fn_string(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_string(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     return [to_string(args[0] if args else [])]
 
 
-def _fn_number(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_number(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     return [to_number(args[0] if args else [])]
 
 
-def _fn_boolean(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_boolean(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     return [to_boolean(args[0] if args else [])]
 
 
-def _fn_typeof(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_typeof(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return ["null"]
     item = args[0][0]
@@ -465,7 +585,7 @@ def _fn_typeof(args: List[List[Any]], ctx: Context) -> List[Any]:
     return ["string"]
 
 
-def _fn_name(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_name(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return [""]
     item = args[0][0]
@@ -474,7 +594,7 @@ def _fn_name(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [""]
 
 
-def _fn_attr(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_attr(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return [""]
     node = args[0][0]
@@ -486,7 +606,7 @@ def _fn_attr(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [node.attrs.get(key, "")]
 
 
-def _fn_text(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_text(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return [""]
     node = args[0][0]
@@ -494,6 +614,8 @@ def _fn_text(args: List[List[Any]], ctx: Context) -> List[Any]:
         deep = True
         if len(args) > 1:
             deep = to_boolean(args[1])
+        elif "deep" in named:
+            deep = to_boolean(named["deep"])
         if deep:
             return [node.string_value()]
         if node.kind in ("element", "document"):
@@ -507,7 +629,7 @@ def _fn_text(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [to_string(args[0])]
 
 
-def _fn_children(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_children(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     node = args[0][0]
@@ -516,7 +638,7 @@ def _fn_children(args: List[List[Any]], ctx: Context) -> List[Any]:
     return []
 
 
-def _fn_elements(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_elements(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     node = args[0][0]
@@ -529,7 +651,16 @@ def _fn_elements(args: List[List[Any]], ctx: Context) -> List[Any]:
     return out
 
 
-def _fn_copy(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_attributes(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if not args or not args[0]:
+        return []
+    node = args[0][0]
+    if not isinstance(node, Node) or node.kind != "element":
+        return []
+    return [Node(kind="attribute", name=k, value=v) for k, v in node.attrs.items()]
+
+
+def _fn_copy(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     node = args[0][0]
@@ -538,18 +669,20 @@ def _fn_copy(args: List[List[Any]], ctx: Context) -> List[Any]:
     recurse = True
     if len(args) > 1:
         recurse = to_boolean(args[1])
+    elif "recurse" in named:
+        recurse = to_boolean(named["recurse"])
     return [deep_copy(node, recurse=recurse)]
 
 
-def _fn_count(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_count(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     return [float(len(args[0]) if args else 0)]
 
 
-def _fn_empty(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_empty(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     return [len(args[0]) == 0 if args else True]
 
 
-def _fn_distinct(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_distinct(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args:
         return []
     seen = set()
@@ -563,7 +696,7 @@ def _fn_distinct(args: List[List[Any]], ctx: Context) -> List[Any]:
     return out
 
 
-def _fn_sort(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_sort(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args:
         return []
     seq = args[0]
@@ -577,29 +710,29 @@ def _fn_sort(args: List[List[Any]], ctx: Context) -> List[Any]:
     return sorted(seq, key=lambda i: to_string([i]))
 
 
-def _fn_concat(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_concat(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     out: List[Any] = []
     for seq in args:
         out.extend(seq)
     return out
 
 
-def _fn_head(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_head(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     return [args[0][0]]
 
 
-def _fn_tail(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_tail(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     return list(args[0][1:])
 
 
-def _fn_last(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_last(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         if ctx.last is None:
-            return []
+            raise RuntimeError("XFDY0006")
         return [float(ctx.last)]
     seq = args[0]
     if not seq:
@@ -607,26 +740,36 @@ def _fn_last(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [seq[-1]]
 
 
-def _fn_index(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_index(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]], named_raw: Optional[Dict[str, ast.Expr]] = None) -> List[Any]:
     if not args:
         return []
     seq = args[0]
     key_fn = None
+    key_expr = None
     if len(args) > 1 and args[1]:
         candidate = args[1][0]
         if isinstance(candidate, FunctionRef):
             key_fn = candidate.name
+    if "key" in named:
+        candidate = named["key"]
+        if candidate and isinstance(candidate[0], FunctionRef):
+            key_fn = candidate[0].name
+    if named_raw and "key" in named_raw:
+        key_expr = named_raw["key"]
     index: Dict[str, List[Any]] = {}
     for item in seq:
         if key_fn:
             key = to_string(call_function(key_fn, [[item]], ctx))
+        elif key_expr is not None:
+            item_ctx = Context(item, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last)
+            key = to_string(eval_expr(key_expr, item_ctx))
         else:
             key = to_string([item])
         index.setdefault(key, []).append(item)
     return [index]
 
 
-def _fn_lookup(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_lookup(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if len(args) < 2:
         return []
     if not args[0]:
@@ -638,7 +781,7 @@ def _fn_lookup(args: List[List[Any]], ctx: Context) -> List[Any]:
     return mapping.get(key, [])
 
 
-def _fn_group_by(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_group_by(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if len(args) < 2:
         return []
     seq = args[0]
@@ -657,49 +800,30 @@ def _fn_group_by(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [{"key": k, "items": v} for k, v in groups.items()]
 
 
-def _fn_seq(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_seq(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     out: List[Any] = []
     for seq in args:
         out.extend(seq)
     return out
 
 
-def _fn_position(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_position(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if ctx.position is None:
-        return []
+        raise RuntimeError("XFDY0006")
     return [float(ctx.position)]
 
 
-def _fn_apply(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_apply(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args:
         return []
     seq = args[0]
     ruleset = "main"
     if len(args) > 1 and args[1]:
         ruleset = to_string(args[1])
-    rules = ctx.rules.get(ruleset, [])
-    out: List[Any] = []
-    for item in seq:
-        matched = False
-        for rule in rules:
-            ok, bindings = match_pattern(rule.pattern, item)
-            if ok:
-                matched = True
-                new_vars = dict(ctx.variables)
-                new_vars.update(bindings)
-                out.extend(
-                    eval_expr(
-                        rule.body,
-                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
-                    )
-                )
-                break
-        if not matched:
-            raise RuntimeError("XFDY0001: no matching rule")
-    return out
+    return _do_apply(seq, ruleset, ctx)
 
 
-def _fn_sum(args: List[List[Any]], ctx: Context) -> List[Any]:
+def _fn_sum(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args:
         return [0.0]
     total = 0.0
@@ -708,7 +832,72 @@ def _fn_sum(args: List[List[Any]], ctx: Context) -> List[Any]:
     return [total]
 
 
-BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
+# String helpers
+
+def _fn_contains(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if len(args) < 2:
+        return [False]
+    return [to_string(args[0]).find(to_string(args[1])) >= 0]
+
+
+def _fn_startsWith(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if len(args) < 2:
+        return [False]
+    return [to_string(args[0]).startswith(to_string(args[1]))]
+
+
+def _fn_endsWith(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if len(args) < 2:
+        return [False]
+    return [to_string(args[0]).endswith(to_string(args[1]))]
+
+
+def _fn_substring(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    s = to_string(args[0] if args else [])
+    if len(args) < 2:
+        return [""]
+    start = int(to_number(args[1]))
+    if len(args) > 2:
+        length = int(to_number(args[2]))
+        return [s[start - 1 : start - 1 + length]]
+    return [s[start - 1 :]]
+
+
+def _fn_normalizeSpace(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    s = to_string(args[0] if args else [])
+    return [re.sub(r"\s+", " ", s.strip())]
+
+
+def _fn_replace(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if len(args) < 3:
+        return [""]
+    s = to_string(args[0])
+    pattern = to_string(args[1])
+    replacement = to_string(args[2])
+    return [s.replace(pattern, replacement)]
+
+
+# Map helpers
+
+def _fn_keys(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if not args or not args[0]:
+        return []
+    mapping = args[0][0]
+    if not isinstance(mapping, dict):
+        return []
+    return list(mapping.keys())
+
+
+def _fn_mapSize(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if not args or not args[0]:
+        return [0.0]
+    mapping = args[0][0]
+    if not isinstance(mapping, dict):
+        return [0.0]
+    return [float(len(mapping))]
+
+
+BUILTINS: Dict[str, Callable[[List[List[Any]], Context, Dict[str, List[Any]]], List[Any]]] = {
     "string": _fn_string,
     "number": _fn_number,
     "boolean": _fn_boolean,
@@ -718,6 +907,7 @@ BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
     "text": _fn_text,
     "children": _fn_children,
     "elements": _fn_elements,
+    "attributes": _fn_attributes,
     "copy": _fn_copy,
     "count": _fn_count,
     "empty": _fn_empty,
@@ -734,4 +924,12 @@ BUILTINS: Dict[str, Callable[[List[List[Any]], Context], List[Any]]] = {
     "last": _fn_last,
     "position": _fn_position,
     "apply": _fn_apply,
+    "contains": _fn_contains,
+    "startsWith": _fn_startsWith,
+    "endsWith": _fn_endsWith,
+    "substring": _fn_substring,
+    "normalizeSpace": _fn_normalizeSpace,
+    "replace": _fn_replace,
+    "keys": _fn_keys,
+    "mapSize": _fn_mapSize,
 }
