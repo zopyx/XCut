@@ -37,7 +37,7 @@ jobs:
       - name: Run Kotlin transformation tests
         run: |
           uv sync --extra dev
-          uv run python -m pytest tests/test_transformations.py -v -k kotlin_xform
+          uv run python -m pytest tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
           XF_TEST_LANGS: kotlin
