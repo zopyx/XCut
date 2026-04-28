@@ -183,10 +183,7 @@ def _run_cpp_xform(xform: Path, xml: Path) -> str:
         capture_output=True,
         text=True,
     )
-    output = result.stdout.strip()
-    if output.startswith("xform-cpp:"):
-        pytest.skip("C++ CLI not implemented yet")
-    return output
+    return result.stdout.strip()
 
 
 def _cases():

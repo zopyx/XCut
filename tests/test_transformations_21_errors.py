@@ -268,9 +268,6 @@ def test_kotlin_xform_errors_21(case: Path) -> None:
 @pytest.mark.parametrize("case", _params_for("cpp"))
 def test_cpp_xform_errors_21(case: Path) -> None:
     result = _run(_cpp_cmd(case / "transform.xform", case / "input.xml"))
-    combined = f"{result.stdout}\n{result.stderr}"
-    if combined.startswith("xform-cpp:"):
-        pytest.skip("C++ CLI not implemented yet")
     _assert_expected_error(result, (case / "expected_error.txt").read_text(encoding="utf-8").strip())
 
 
