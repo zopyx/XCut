@@ -36,14 +36,14 @@ void node_unref(XmlNode *node) {
 }
 
 XmlNode* node_new_document(void) {
-    XmlNode *n = calloc(1, sizeof(XmlNode));
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
     n->kind = NODE_DOCUMENT;
     n->ref_count = 1;
     return n;
 }
 
 XmlNode* node_new_element(const char *name) {
-    XmlNode *n = calloc(1, sizeof(XmlNode));
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
     n->kind = NODE_ELEMENT;
     n->name = strdup(name);
     n->ref_count = 1;
@@ -51,7 +51,7 @@ XmlNode* node_new_element(const char *name) {
 }
 
 XmlNode* node_new_text(const char *value) {
-    XmlNode *n = calloc(1, sizeof(XmlNode));
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
     n->kind = NODE_TEXT;
     n->value = strdup(value);
     n->ref_count = 1;
@@ -59,8 +59,25 @@ XmlNode* node_new_text(const char *value) {
 }
 
 XmlNode* node_new_attribute(const char *name, const char *value) {
-    XmlNode *n = calloc(1, sizeof(XmlNode));
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
     n->kind = NODE_ATTRIBUTE;
+    n->name = strdup(name);
+    n->value = strdup(value);
+    n->ref_count = 1;
+    return n;
+}
+
+XmlNode* node_new_comment(const char *value) {
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
+    n->kind = NODE_COMMENT;
+    n->value = strdup(value);
+    n->ref_count = 1;
+    return n;
+}
+
+XmlNode* node_new_pi(const char *name, const char *value) {
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
+    n->kind = NODE_PI;
     n->name = strdup(name);
     n->value = strdup(value);
     n->ref_count = 1;
@@ -69,7 +86,7 @@ XmlNode* node_new_attribute(const char *name, const char *value) {
 
 void node_add_child(XmlNode *parent, XmlNode *child) {
     if (!parent || !child) return;
-    parent->children = realloc(parent->children, 
+    parent->children = (XmlNode**)realloc(parent->children, 
         (parent->child_count + 1) * sizeof(XmlNode*));
     parent->children[parent->child_count++] = node_ref(child);
 }
@@ -110,7 +127,7 @@ char* node_string_value(XmlNode *node) {
 XmlNode* node_deep_copy(XmlNode *node) {
     if (!node) return NULL;
     
-    XmlNode *copy = calloc(1, sizeof(XmlNode));
+    XmlNode *copy = (XmlNode*)calloc(1, sizeof(XmlNode));
     copy->kind = node->kind;
     copy->name = node->name ? strdup(node->name) : NULL;
     copy->value = node->value ? strdup(node->value) : NULL;
@@ -125,7 +142,7 @@ XmlNode* node_deep_copy(XmlNode *node) {
     }
     
     /* Copy children */
-    copy->children = malloc(node->child_count * sizeof(XmlNode*));
+    copy->children = (XmlNode**)malloc(node->child_count * sizeof(XmlNode*));
     copy->child_count = node->child_count;
     for (size_t i = 0; i < node->child_count; i++) {
         copy->children[i] = node_deep_copy(node->children[i]);
@@ -140,13 +157,13 @@ XmlNode** node_descendants(XmlNode *node, size_t *count) {
     
     for (size_t i = 0; i < node->child_count; i++) {
         XmlNode *child = node->children[i];
-        result = realloc(result, (*count + 1) * sizeof(XmlNode*));
+        result = (XmlNode**)realloc(result, (*count + 1) * sizeof(XmlNode*));
         result[(*count)++] = node_ref(child);
         
         size_t subcount;
         XmlNode **sub = node_descendants(child, &subcount);
         if (subcount > 0) {
-            result = realloc(result, (*count + subcount) * sizeof(XmlNode*));
+            result = (XmlNode**)realloc(result, (*count + subcount) * sizeof(XmlNode*));
             for (size_t j = 0; j < subcount; j++) {
                 result[(*count)++] = sub[j];
             }
@@ -207,7 +224,7 @@ static XmlNode* convert_node(xmlNode *node) {
         }
         
         case XML_COMMENT_NODE: {
-            XmlNode *n = calloc(1, sizeof(XmlNode));
+            XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
             n->kind = NODE_COMMENT;
             n->value = (char*)xmlNodeGetContent(node);
             if (!n->value) n->value = strdup("");
@@ -216,7 +233,7 @@ static XmlNode* convert_node(xmlNode *node) {
         }
         
         case XML_PI_NODE: {
-            XmlNode *n = calloc(1, sizeof(XmlNode));
+            XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
             n->kind = NODE_PI;
             n->name = strdup((const char*)node->name);
             n->value = (char*)xmlNodeGetContent(node);
@@ -341,8 +358,17 @@ static void serialize_node(XmlNode *node, StringBuilder *sb) {
         }
         
         case NODE_COMMENT:
+            sb_append_str(sb, "<!--");
+            sb_append_str(sb, node->value ? node->value : "");
+            sb_append_str(sb, "-->");
+            break;
+        
         case NODE_PI:
-            /* Omit comments and PIs in output */
+            sb_append_str(sb, "<?");
+            sb_append_str(sb, node->name ? node->name : "");
+            sb_append(sb, ' ');
+            sb_append_str(sb, node->value ? node->value : "");
+            sb_append_str(sb, "?>");
             break;
         
         case NODE_ATTRIBUTE:

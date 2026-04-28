@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures"
 ENABLED_LANGS = {
     s.strip().lower()
-    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin").split(",")
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin,c").split(",")
     if s.strip()
 }
 

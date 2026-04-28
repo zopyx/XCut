@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures_21_errors"
 ENABLED_LANGS = {
     s.strip().lower()
-    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin").split(",")
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin,c").split(",")
     if s.strip()
 }
 
@@ -23,6 +23,7 @@ JS_XFORM_BIN = ROOT / "xform-js" / "src" / "cli.js"
 JAVA_XFORM_BIN = ROOT / "xform-java" / "bin" / "xform"
 KOTLIN_XFORM_JAR = ROOT / "xform-kotlin" / "build" / "libs" / "xform-kotlin-1.0.jar"
 CPP_XFORM_BIN = ROOT / "xform-cpp" / "build" / "src" / "xform"
+C_XFORM_BIN = ROOT / "xform-c" / "build" / "src" / "xform"
 
 
 def _cases():
@@ -97,6 +98,14 @@ def _params_for(lang: str):
             "case37_missing_required_param",
         },
         "cpp": {
+            "case31_unsupported_version",
+            "case32_unknown_ruleset",
+            "case33_position_outside_for",
+            "case34_last_outside_for",
+            "case35_duplicate_attributes",
+            "case37_missing_required_param",
+        },
+        "c": {
             "case31_unsupported_version",
             "case32_unknown_ruleset",
             "case33_position_outside_for",
@@ -200,6 +209,14 @@ def _cpp_cmd(xform: Path, xml: Path) -> list[str]:
     return [str(CPP_XFORM_BIN), str(xml), str(xform)]
 
 
+def _c_cmd(xform: Path, xml: Path) -> list[str]:
+    if "c" not in ENABLED_LANGS:
+        pytest.skip("C tests disabled")
+    if not C_XFORM_BIN.exists():
+        pytest.skip("C xform binary not built")
+    return [str(C_XFORM_BIN), str(xml), str(xform)]
+
+
 @pytest.mark.parametrize("case", _params_for("python"))
 def test_python_xform_errors_21(case: Path) -> None:
     result = _run(_python_cmd(case / "transform.xform", case / "input.xml"))
@@ -254,4 +271,10 @@ def test_cpp_xform_errors_21(case: Path) -> None:
     combined = f"{result.stdout}\n{result.stderr}"
     if combined.startswith("xform-cpp:"):
         pytest.skip("C++ CLI not implemented yet")
+    _assert_expected_error(result, (case / "expected_error.txt").read_text(encoding="utf-8").strip())
+
+
+@pytest.mark.parametrize("case", _params_for("c"))
+def test_c_xform_errors_21(case: Path) -> None:
+    result = _run(_c_cmd(case / "transform.xform", case / "input.xml"))
     _assert_expected_error(result, (case / "expected_error.txt").read_text(encoding="utf-8").strip())

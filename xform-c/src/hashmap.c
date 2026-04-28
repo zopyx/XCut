@@ -26,9 +26,9 @@ static unsigned long hash(const char *str) {
 }
 
 HashMap* hm_new(void) {
-    HashMap *hm = malloc(sizeof(HashMap));
+    HashMap *hm = (HashMap*)(malloc(sizeof(HashMap)));
     if (!hm) return NULL;
-    hm->buckets = calloc(INITIAL_CAPACITY, sizeof(Entry*));
+    hm->buckets = (Entry**)(calloc(INITIAL_CAPACITY, sizeof(Entry*)));
     if (!hm->buckets) {
         free(hm);
         return NULL;
@@ -98,7 +98,7 @@ bool hm_set(HashMap *hm, const char *key, void *value) {
     }
     
     /* Insert new entry */
-    e = malloc(sizeof(Entry));
+    e = (Entry*)(malloc(sizeof(Entry)));
     if (!e) return false;
     e->key = strdup(key);
     if (!e->key) {
@@ -125,7 +125,7 @@ HMEntry* hm_entries(HashMap *hm, size_t *count) {
     *count = hm->size;
     if (hm->size == 0) return NULL;
     
-    HMEntry *entries = malloc(hm->size * sizeof(HMEntry));
+    HMEntry *entries = (HMEntry*)(malloc(hm->size * sizeof(HMEntry)));
     if (!entries) return NULL;
     
     size_t idx = 0;

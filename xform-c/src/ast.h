@@ -51,7 +51,8 @@ typedef enum {
     PS_ROOT,
     PS_DESC,
     PS_DESC_ROOT,
-    PS_VAR
+    PS_VAR,
+    PS_ATTR
 } PathStartKind;
 
 typedef struct {
@@ -76,7 +77,8 @@ typedef enum {
     TEST_TEXT,
     TEST_NODE,
     TEST_COMMENT,
-    TEST_PI
+    TEST_PI,
+    TEST_DOCUMENT
 } StepTestKind;
 
 typedef struct {
@@ -126,7 +128,10 @@ typedef enum {
     EXPR_CONSTRUCTOR,
     EXPR_TEXT_CONSTRUCTOR,
     EXPR_CHAR_DATA,
-    EXPR_INTERP
+    EXPR_INTERP,
+    EXPR_APPLY,
+    EXPR_COMMENT_CONSTRUCTOR,
+    EXPR_PI_CONSTRUCTOR
 } ExprKind;
 
 /* Forward declarations for expression types */
@@ -157,10 +162,17 @@ typedef struct MatchExpr {
     struct Expr *default_expr;
 } MatchExpr;
 
+typedef struct NamedArg {
+    char *name;
+    struct Expr *expr;
+} NamedArg;
+
 typedef struct FuncCall {
     char *name;
     struct Expr **args;
     size_t arg_count;
+    NamedArg *named_args;
+    size_t named_arg_count;
 } FuncCall;
 
 typedef struct UnaryOp {
@@ -173,6 +185,20 @@ typedef struct BinaryOp {
     struct Expr *left;
     struct Expr *right;
 } BinaryOp;
+
+typedef struct ApplyExpr {
+    struct Expr *expr;
+    char *ruleset;  /* NULL for default */
+} ApplyExpr;
+
+typedef struct CommentConstructor {
+    struct Expr *expr;
+} CommentConstructor;
+
+typedef struct PIConstructor {
+    struct Expr *target;
+    struct Expr *value;
+} PIConstructor;
 
 /* Expression */
 typedef struct Expr {
@@ -192,6 +218,9 @@ typedef struct Expr {
         struct Expr *text_constructor;  /* EXPR_TEXT_CONSTRUCTOR */
         char *char_data;                /* EXPR_CHAR_DATA */
         struct Expr *interp;            /* EXPR_INTERP */
+        ApplyExpr *apply_expr;          /* EXPR_APPLY */
+        CommentConstructor *comment_constructor; /* EXPR_COMMENT_CONSTRUCTOR */
+        PIConstructor *pi_constructor;  /* EXPR_PI_CONSTRUCTOR */
     } data;
 } Expr;
 
@@ -203,17 +232,24 @@ typedef enum {
     PAT_TYPED
 } PatternKind;
 
+typedef struct AttributePattern {
+    char *name;
+    LiteralValue *value;  /* NULL if no value comparison */
+} AttributePattern;
+
 typedef struct ElementPattern {
     char *name;
     char *var;           /* NULL if no var */
     struct Pattern *child;  /* NULL if no child pattern */
+    struct Pattern **children; /* NULL if no exact children */
+    size_t child_count;
 } ElementPattern;
 
 typedef struct Pattern {
     PatternKind kind;
     union {
         ElementPattern *element;
-        char *attribute;  /* attribute name */
+        AttributePattern *attribute;
         char *typed;      /* type name */
     } data;
 } Pattern;
@@ -229,7 +265,7 @@ typedef struct {
     /* Namespaces: prefix -> uri */
     struct HashMap *namespaces;
     /* Imports: array of (iri, alias) pairs */
-    struct {
+    struct ImportDecl {
         char *iri;
         char *alias;
     } *imports;
@@ -254,6 +290,7 @@ StepTest step_test_named(const char *name);
 StepTest step_test_wildcard(void);
 StepTest step_test_text(void);
 StepTest step_test_node(void);
+StepTest step_test_document(void);
 Expr* expr_new(ExprKind kind);
 Pattern* pattern_new(PatternKind kind);
 

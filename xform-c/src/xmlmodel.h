@@ -40,6 +40,8 @@ XmlNode* node_new_document(void);
 XmlNode* node_new_element(const char *name);
 XmlNode* node_new_text(const char *value);
 XmlNode* node_new_attribute(const char *name, const char *value);
+XmlNode* node_new_comment(const char *value);
+XmlNode* node_new_pi(const char *name, const char *value);
 
 /* String value of node */
 char* node_string_value(XmlNode *node);

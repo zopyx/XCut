@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures_21"
 ENABLED_LANGS = {
     s.strip().lower()
-    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin").split(",")
+    for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java,kotlin,c").split(",")
     if s.strip()
 }
 
@@ -30,6 +30,7 @@ JS_XFORM_BIN = ROOT / "xform-js" / "src" / "cli.js"
 JAVA_XFORM_BIN = ROOT / "xform-java" / "bin" / "xform"
 KOTLIN_XFORM_JAR = ROOT / "xform-kotlin" / "build" / "libs" / "xform-kotlin-1.0.jar"
 CPP_XFORM_BIN = ROOT / "xform-cpp" / "build" / "src" / "xform"
+C_XFORM_BIN = ROOT / "xform-c" / "build" / "src" / "xform"
 
 
 def _cases():
@@ -174,6 +175,19 @@ def _run_cpp_xform(xform: Path, xml: Path) -> str:
     return output
 
 
+def _run_c_xform(xform: Path, xml: Path) -> str:
+    if "c" not in ENABLED_LANGS:
+        pytest.skip("C tests disabled")
+    if not C_XFORM_BIN.exists():
+        pytest.skip("C xform binary not built")
+    return subprocess.run(
+        [str(C_XFORM_BIN), str(xml), str(xform)],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
 @pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
 def test_python_xform_matches_expected_21(case: Path) -> None:
     xml = case / "input.xml"
@@ -252,4 +266,13 @@ def test_cpp_xform_matches_expected_21(case: Path) -> None:
     xform = case / "transform.xform"
     expected = case / "expected.xml"
     out = _run_cpp_xform(xform, xml)
+    assert _normalize_xml(out) == _normalize_xml(expected.read_text(encoding="utf-8"))
+
+
+@pytest.mark.parametrize("case", _cases(), ids=lambda p: p.name)
+def test_c_xform_matches_expected_21(case: Path) -> None:
+    xml = case / "input.xml"
+    xform = case / "transform.xform"
+    expected = case / "expected.xml"
+    out = _run_c_xform(xform, xml)
     assert _normalize_xml(out) == _normalize_xml(expected.read_text(encoding="utf-8"))
