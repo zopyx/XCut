@@ -30,38 +30,42 @@ build-c:
 	cmake --build xform-c/build
 
 build-java:
-	# Auto-detect JAVA_HOME if not set
-	DETECTED_JAVA_HOME=""; \
-	if [ -z "$${JAVA_HOME}" ]; then \
+	# Validate or auto-detect JAVA_HOME (Java 17+ required)
+	VALID_JAVA_HOME=""; \
+	if [ -n "$${JAVA_HOME}" ]; then \
+		v="$$($${JAVA_HOME}/bin/javac -version 2>&1)"; \
+		echo "$${v}" | grep -qE 'javac 1[7-9]\.[0-9]|javac [2-9][0-9]\.[0-9]'; \
+		if [ $$? -eq 0 ]; then VALID_JAVA_HOME="$${JAVA_HOME}"; fi; \
+	fi; \
+	if [ -z "$${VALID_JAVA_HOME}" ]; then \
 		for d in /Library/Java/JavaVirtualMachines/graalvm-ce-java17-*/Contents/Home \
 		         /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \
 		         /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \
 		         /usr/lib/jvm/java-17-* \
 		         /usr/lib/jvm/temurin-17-*; do \
-			if [ -d "$${d}" ]; then DETECTED_JAVA_HOME="$${d}"; break; fi; \
+			if [ -d "$${d}" ]; then \
+				v="$$($${d}/bin/javac -version 2>&1)"; \
+				echo "$${v}" | grep -qE 'javac 1[7-9]\.[0-9]|javac [2-9][0-9]\.[0-9]'; \
+				if [ $$? -eq 0 ]; then VALID_JAVA_HOME="$${d}"; break; fi; \
+			fi; \
 		done; \
 	fi; \
-	if [ -n "$${DETECTED_JAVA_HOME}" ]; then export JAVA_HOME="$${DETECTED_JAVA_HOME}"; fi; \
-	if [ -n "$${JAVA_HOME}" ]; then \
-		"$${JAVA_HOME}/bin/javac" -version >/dev/null 2>&1; \
-		if [ $$? -ne 0 ]; then \
-			echo "Skipping Java build (javac not found in JAVA_HOME=$${JAVA_HOME})"; \
-			exit 0; \
-		fi; \
-	else \
+	if [ -z "$${VALID_JAVA_HOME}" ]; then \
 		if ! command -v javac >/dev/null 2>&1; then \
 			echo "Skipping Java build (javac not available)"; \
 			exit 0; \
 		fi; \
-		javac -version 2>&1 | grep -q 'javac 1[7-9]\|javac [2-9][0-9]'; \
+		v="$$(javac -version 2>&1)"; \
+		echo "$${v}" | grep -qE 'javac 1[7-9]\.[0-9]|javac [2-9][0-9]\.[0-9]'; \
 		if [ $$? -ne 0 ]; then \
-			echo "Skipping Java build (Java 17+ required, found: $$(javac -version 2>&1))"; \
+			echo "Skipping Java build (Java 17+ required, found: $${v})"; \
 			exit 0; \
 		fi; \
+		VALID_JAVA_HOME=""; \
 	fi; \
 	mkdir -p xform-java/build/classes xform-java/bin; \
-	if [ -n "$${JAVA_HOME}" ]; then \
-		"$${JAVA_HOME}/bin/javac" -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
+	if [ -n "$${VALID_JAVA_HOME}" ]; then \
+		"$${VALID_JAVA_HOME}/bin/javac" -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
 	else \
 		javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
 	fi
