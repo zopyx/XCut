@@ -67,6 +67,23 @@ XmlNode* node_new_attribute(const char *name, const char *value) {
     return n;
 }
 
+XmlNode* node_new_comment(const char *value) {
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
+    n->kind = NODE_COMMENT;
+    n->value = strdup(value);
+    n->ref_count = 1;
+    return n;
+}
+
+XmlNode* node_new_pi(const char *name, const char *value) {
+    XmlNode *n = (XmlNode*)calloc(1, sizeof(XmlNode));
+    n->kind = NODE_PI;
+    n->name = strdup(name);
+    n->value = strdup(value);
+    n->ref_count = 1;
+    return n;
+}
+
 void node_add_child(XmlNode *parent, XmlNode *child) {
     if (!parent || !child) return;
     parent->children = (XmlNode**)realloc(parent->children, 
@@ -341,8 +358,17 @@ static void serialize_node(XmlNode *node, StringBuilder *sb) {
         }
         
         case NODE_COMMENT:
+            sb_append_str(sb, "<!--");
+            sb_append_str(sb, node->value ? node->value : "");
+            sb_append_str(sb, "-->");
+            break;
+        
         case NODE_PI:
-            /* Omit comments and PIs in output */
+            sb_append_str(sb, "<?");
+            sb_append_str(sb, node->name ? node->name : "");
+            sb_append(sb, ' ');
+            sb_append_str(sb, node->value ? node->value : "");
+            sb_append_str(sb, "?>");
             break;
         
         case NODE_ATTRIBUTE:

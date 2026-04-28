@@ -3,6 +3,12 @@ package com.zopyx.xform
 class Parser(private val text: String) {
     private val lexer = Lexer(text)
 
+    private val softKeywords = setOf(
+        "true", "false", "null",
+        "string", "number", "boolean", "map",
+        "apply", "text", "comment", "pi", "document"
+    )
+
     fun parseModule(): Module {
         val module = Module()
 
@@ -12,7 +18,7 @@ class Parser(private val text: String) {
             lexer.next()
             lexer.expect(TokenKind.KW, "version")
             val version = lexer.expect(TokenKind.STRING).value
-            if (version != "2.0") {
+            if (version != "2.0" && version != "2.1") {
                 throw XFormException("XFST0005: unsupported version")
             }
             lexer.expect(TokenKind.PUNCT, ";")
@@ -59,7 +65,7 @@ class Parser(private val text: String) {
         val iri = lexer.expect(TokenKind.STRING).value
         val alias = if (lexer.peek().kind == TokenKind.KW && lexer.peek().value == "as") {
             lexer.next()
-            lexer.expect(TokenKind.IDENT).value
+            expectIdentifier()
         } else null
         lexer.expect(TokenKind.PUNCT, ";")
         imports.add(ImportDecl(iri, alias))
@@ -67,7 +73,7 @@ class Parser(private val text: String) {
 
     private fun parseVar(): Pair<String, Expr> {
         lexer.expect(TokenKind.KW, "var")
-        val name = lexer.expect(TokenKind.IDENT).value
+        val name = expectIdentifier()
         lexer.expect(TokenKind.OP, ":=")
         val value = parseExpr()
         lexer.expect(TokenKind.PUNCT, ";")
@@ -94,7 +100,7 @@ class Parser(private val text: String) {
     }
 
     private fun parseParam(): Param {
-        val name = lexer.expect(TokenKind.IDENT).value
+        val name = expectIdentifier()
         val typeRef = if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == ":") {
             lexer.next()
             parseTypeRef()
@@ -109,6 +115,9 @@ class Parser(private val text: String) {
     private fun parseTypeRef(): String {
         val tok = lexer.peek()
         if (tok.kind == TokenKind.IDENT && tok.value in setOf("string", "number", "boolean", "null", "map")) {
+            return lexer.next().value
+        }
+        if (tok.kind == TokenKind.KW && isSoftKeyword(tok.value)) {
             return lexer.next().value
         }
         return parseQName()
@@ -147,7 +156,7 @@ class Parser(private val text: String) {
 
     private fun parseLet(): Expr {
         lexer.expect(TokenKind.KW, "let")
-        val name = lexer.expect(TokenKind.IDENT).value
+        val name = expectIdentifier()
         lexer.expect(TokenKind.OP, ":=")
         val value = parseExpr()
         lexer.expect(TokenKind.KW, "in")
@@ -157,7 +166,7 @@ class Parser(private val text: String) {
 
     private fun parseFor(): Expr {
         lexer.expect(TokenKind.KW, "for")
-        val name = lexer.expect(TokenKind.IDENT).value
+        val name = expectIdentifier()
         lexer.expect(TokenKind.KW, "in")
         val seq = parseExpr()
         val where = if (lexer.peek().kind == TokenKind.KW && lexer.peek().value == "where") {
@@ -301,7 +310,34 @@ class Parser(private val text: String) {
                 lexer.expect(TokenKind.PUNCT, ")")
                 expr
             }
-            tok.kind == TokenKind.IDENT && tok.value == "text" -> {
+            (tok.kind == TokenKind.KW && tok.value == "apply") -> {
+                lexer.next()
+                lexer.expect(TokenKind.PUNCT, "(")
+                val expr = parseExpr()
+                val ruleset = if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == ",") {
+                    lexer.next()
+                    expectIdentifier()
+                } else null
+                lexer.expect(TokenKind.PUNCT, ")")
+                ApplyExpr(expr, ruleset)
+            }
+            (tok.kind == TokenKind.KW && tok.value == "comment") -> {
+                lexer.next()
+                lexer.expect(TokenKind.PUNCT, "{")
+                val expr = parseExpr()
+                lexer.expect(TokenKind.PUNCT, "}")
+                CommentConstructor(expr)
+            }
+            (tok.kind == TokenKind.KW && tok.value == "pi") -> {
+                lexer.next()
+                lexer.expect(TokenKind.PUNCT, "{")
+                val target = parseExpr()
+                lexer.expect(TokenKind.PUNCT, ",")
+                val value = parseExpr()
+                lexer.expect(TokenKind.PUNCT, "}")
+                PIConstructor(target, value)
+            }
+            (tok.kind == TokenKind.IDENT && tok.value == "text") || (tok.kind == TokenKind.KW && tok.value == "text") -> {
                 val savedPos = lexer.pos
                 val savedBuf = lexer.buffer
                 lexer.next()
@@ -314,18 +350,25 @@ class Parser(private val text: String) {
                     lexer.pos = savedPos
                     lexer.buffer = savedBuf
                     val name = lexer.next().value
-                    if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == "(") {
-                        parseFuncCall(name)
-                    } else if (pathContinues()) {
-                        parsePath(PathStart("var", name))
-                    } else {
-                        VarRef(name)
+                    when {
+                        lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == "(" -> parseFuncCall(name)
+                        pathContinues() -> parsePath(PathStart("var", name))
+                        else -> VarRef(name)
                     }
                 }
             }
             tok.kind == TokenKind.OP && tok.value == "<" -> parseConstructor()
             tok.kind == TokenKind.DOT || tok.kind == TokenKind.SLASH -> parsePath(null)
+            tok.kind == TokenKind.AT -> parsePath(null)
             tok.kind == TokenKind.IDENT -> {
+                val name = lexer.next().value
+                when {
+                    lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == "(" -> parseFuncCall(name)
+                    pathContinues() -> parsePath(PathStart("var", name))
+                    else -> VarRef(name)
+                }
+            }
+            tok.kind == TokenKind.KW && isSoftKeyword(tok.value) -> {
                 val name = lexer.next().value
                 when {
                     lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == "(" -> parseFuncCall(name)
@@ -340,15 +383,46 @@ class Parser(private val text: String) {
     private fun parseFuncCall(name: String): Expr {
         lexer.expect(TokenKind.PUNCT, "(")
         val args = mutableListOf<Expr>()
+        val namedArgs = mutableListOf<NamedArg>()
+        var seenNamed = false
         if (!(lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == ")")) {
-            args.add(parseExpr())
+            val argExpr = parseExpr()
+            if (lexer.peek().kind == TokenKind.OP && lexer.peek().value == ":=") {
+                // This must be a named argument like name := expr
+                // But we parsed argExpr as an expression; if it's a VarRef, we can use it as the name
+                val argName = when (argExpr) {
+                    is VarRef -> argExpr.name
+                    else -> throw XFormException("XFST0001: expected identifier for named argument")
+                }
+                lexer.next()
+                val value = parseExpr()
+                namedArgs.add(NamedArg(argName, value))
+                seenNamed = true
+            } else {
+                args.add(argExpr)
+            }
             while (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == ",") {
                 lexer.next()
-                args.add(parseExpr())
+                val nextExpr = parseExpr()
+                if (lexer.peek().kind == TokenKind.OP && lexer.peek().value == ":=") {
+                    val argName = when (nextExpr) {
+                        is VarRef -> nextExpr.name
+                        else -> throw XFormException("XFST0001: expected identifier for named argument")
+                    }
+                    lexer.next()
+                    val value = parseExpr()
+                    namedArgs.add(NamedArg(argName, value))
+                    seenNamed = true
+                } else {
+                    if (seenNamed) {
+                        throw XFormException("XFST0001: positional argument after named argument")
+                    }
+                    args.add(nextExpr)
+                }
             }
         }
         lexer.expect(TokenKind.PUNCT, ")")
-        return FuncCall(name, args)
+        return FuncCall(name, args, namedArgs)
     }
 
     private fun pathContinues(): Boolean {
@@ -368,15 +442,24 @@ class Parser(private val text: String) {
                     "//" -> PathStart("desc_root")
                     else -> PathStart("root")
                 }
+                TokenKind.AT -> PathStart("attr")
                 else -> throw XFormException("invalid path start at ${tok.pos}")
             }
         }
 
         val steps = mutableListOf<PathStep>()
 
-        // Initial step for root/context/var
-        if (actualStart.kind in setOf("root", "context", "var")) {
+        // Initial step for root/context/var/attr
+        if (actualStart.kind in setOf("root", "context", "var", "attr")) {
             when {
+                actualStart.kind == "attr" -> {
+                    if (lexer.peek().kind == TokenKind.IDENT || (lexer.peek().kind == TokenKind.KW && isSoftKeyword(lexer.peek().value))) {
+                        val test = StepTest("name", parseQName())
+                        steps.add(PathStep("attr", test))
+                    } else {
+                        steps.add(PathStep("attr", StepTest("wildcard")))
+                    }
+                }
                 lexer.peek().kind == TokenKind.AT -> {
                     lexer.next()
                     val test = StepTest("name", parseQName())
@@ -387,7 +470,7 @@ class Parser(private val text: String) {
                     val preds = parsePredicates()
                     steps.add(PathStep("child", test, preds))
                 }
-                lexer.peek().kind == TokenKind.IDENT -> {
+                lexer.peek().kind == TokenKind.IDENT || (lexer.peek().kind == TokenKind.KW && isSoftKeyword(lexer.peek().value)) -> {
                     val test = parseStepTest()
                     val preds = parsePredicates()
                     steps.add(PathStep("child", test, preds))
@@ -397,7 +480,8 @@ class Parser(private val text: String) {
 
         // Initial step for desc
         if (actualStart.kind in setOf("desc", "desc_root")) {
-            if (lexer.peek().kind == TokenKind.IDENT || lexer.peek().kind == TokenKind.OP) {
+            if (lexer.peek().kind == TokenKind.IDENT || lexer.peek().kind == TokenKind.OP ||
+                (lexer.peek().kind == TokenKind.KW && isSoftKeyword(lexer.peek().value))) {
                 val test = parseStepTest()
                 val preds = parsePredicates()
                 steps.add(PathStep("desc_or_self", test, preds))
@@ -451,9 +535,9 @@ class Parser(private val text: String) {
                 lexer.next()
                 StepTest("wildcard")
             }
-            lexer.peek().kind == TokenKind.IDENT -> {
+            lexer.peek().kind == TokenKind.IDENT || (lexer.peek().kind == TokenKind.KW && isSoftKeyword(lexer.peek().value)) -> {
                 val name = lexer.peek().value
-                if (name in setOf("text", "node", "comment", "pi")) {
+                if (name in setOf("text", "node", "comment", "pi", "document")) {
                     lexer.next()
                     lexer.expect(TokenKind.PUNCT, "(")
                     lexer.expect(TokenKind.PUNCT, ")")
@@ -476,15 +560,44 @@ class Parser(private val text: String) {
         return preds
     }
 
-    private fun parseQName(): String = lexer.expect(TokenKind.IDENT).value
+    private fun parseQName(): String {
+        val tok = lexer.peek()
+        if (tok.kind == TokenKind.IDENT) {
+            return lexer.next().value
+        }
+        if (tok.kind == TokenKind.KW && isSoftKeyword(tok.value)) {
+            return lexer.next().value
+        }
+        throw XFormException("XFST0006: expected identifier, got ${tok.kind} ${tok.value} at ${tok.pos}")
+    }
+
+    private fun expectIdentifier(): String {
+        val tok = lexer.peek()
+        if (tok.kind == TokenKind.IDENT) {
+            return lexer.next().value
+        }
+        if (tok.kind == TokenKind.KW && isSoftKeyword(tok.value)) {
+            return lexer.next().value
+        }
+        throw XFormException("XFST0006: expected identifier, got ${tok.kind} ${tok.value} at ${tok.pos}")
+    }
+
+    private fun isSoftKeyword(name: String): Boolean = name in softKeywords
 
     private fun parsePattern(): Pattern {
         return when {
             lexer.peek().kind == TokenKind.AT -> {
                 lexer.next()
-                AttributePattern(parseQName())
+                val name = parseQName()
+                if (lexer.peek().kind == TokenKind.OP && lexer.peek().value == "=") {
+                    lexer.next()
+                    val value = lexer.expect(TokenKind.STRING)
+                    AttributePattern(name, Literal(value.value))
+                } else {
+                    AttributePattern(name)
+                }
             }
-            lexer.peek().kind == TokenKind.IDENT && lexer.peek().value in setOf("node", "text", "comment") -> {
+            lexer.peek().kind == TokenKind.IDENT && lexer.peek().value in setOf("node", "text", "comment", "pi", "document") -> {
                 val kind = lexer.next().value
                 lexer.expect(TokenKind.PUNCT, "(")
                 lexer.expect(TokenKind.PUNCT, ")")
@@ -498,17 +611,21 @@ class Parser(private val text: String) {
                 lexer.next()
                 val name = parseQName()
                 lexer.expect(TokenKind.OP, ">")
-                val (variable, child) = when {
+                val (variable, child, children) = when {
                     lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == "{" -> {
                         lexer.next()
-                        val v = lexer.expect(TokenKind.IDENT).value
+                        val v = expectIdentifier()
                         lexer.expect(TokenKind.PUNCT, "}")
-                        v to null
+                        Triple(v, null, emptyList<Pattern>())
                     }
                     lexer.peek().kind == TokenKind.OP && lexer.peek().value == "<" -> {
-                        null to parsePattern()
+                        val chs = mutableListOf<Pattern>()
+                        while (lexer.peek().kind == TokenKind.OP && lexer.peek().value == "<") {
+                            chs.add(parsePattern())
+                        }
+                        Triple(null, null, chs.toList())
                     }
-                    else -> throw XFormException("invalid element pattern content")
+                    else -> Triple(null, null, emptyList<Pattern>())
                 }
                 lexer.expect(TokenKind.OP, "<")
                 lexer.expect(TokenKind.SLASH, "/")
@@ -517,7 +634,7 @@ class Parser(private val text: String) {
                     throw XFormException("mismatched pattern end tag")
                 }
                 lexer.expect(TokenKind.OP, ">")
-                ElementPattern(name, variable, child)
+                ElementPattern(name, variable, child, children)
             }
             else -> throw XFormException("invalid pattern at ${lexer.peek().pos}")
         }
@@ -572,6 +689,26 @@ class Parser(private val text: String) {
                 val expr = parseExpr()
                 lexer.expect(TokenKind.PUNCT, "}")
                 contents.add(TextConstructor(expr))
+                continue
+            }
+            if (text.substring(lexer.pos).startsWith("comment{")) {
+                lexer.pos += 7
+                lexer.clearBuffer()
+                lexer.expect(TokenKind.PUNCT, "{")
+                val expr = parseExpr()
+                lexer.expect(TokenKind.PUNCT, "}")
+                contents.add(CommentConstructor(expr))
+                continue
+            }
+            if (text.substring(lexer.pos).startsWith("pi{")) {
+                lexer.pos += 2
+                lexer.clearBuffer()
+                lexer.expect(TokenKind.PUNCT, "{")
+                val target = parseExpr()
+                lexer.expect(TokenKind.PUNCT, ",")
+                val value = parseExpr()
+                lexer.expect(TokenKind.PUNCT, "}")
+                contents.add(PIConstructor(target, value))
                 continue
             }
             when (text[lexer.pos]) {

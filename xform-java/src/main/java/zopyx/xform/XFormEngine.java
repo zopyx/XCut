@@ -255,7 +255,7 @@ public final class XFormEngine {
     public static final class ForExpr implements Expr { public String name; public Expr seq, where, body; }
     public static final class MatchExpr implements Expr { public Expr target; public List<MatchCase> cases = new ArrayList<>(); public Expr defaultExpr; }
     public static final class MatchCase { public Pattern pattern; public Expr expr; }
-    public static final class FuncCall implements Expr { public String name; public List<Expr> args = new ArrayList<>(); }
+    public static final class FuncCall implements Expr { public String name; public List<Expr> args = new ArrayList<>(); public List<NamedArg> namedArgs = new ArrayList<>(); }
     public static final class UnaryOp implements Expr { public String op; public Expr expr; }
     public static final class BinaryOp implements Expr { public String op; public Expr left, right; }
     public static final class PathExpr implements Expr { public PathStart start; public List<PathStep> steps = new ArrayList<>(); }
@@ -269,9 +269,13 @@ public final class XFormEngine {
     public static final class StepTest { public String kind; public String name; }
 
     public static final class WildcardPattern implements Pattern {}
-    public static final class ElementPattern implements Pattern { public String name; public String var; public Pattern child; }
+    public static final class ElementPattern implements Pattern { public String name; public String var; public Pattern child; public List<Pattern> children = new ArrayList<>(); }
     public static final class TypedPattern implements Pattern { public String kind; }
-    public static final class AttributePattern implements Pattern { public String name; }
+    public static final class AttributePattern implements Pattern { public String name; public Literal value; }
+    public static final class NamedArg { public String name; public Expr expr; }
+    public static final class ApplyExpr implements Expr { public Expr expr; public String ruleset; }
+    public static final class CommentConstructor implements Expr { public Expr expr; }
+    public static final class PIConstructor implements Expr { public Expr target; public Expr value; }
 
     public static final class Param { public String name; public String typeRef; public Expr defaultExpr; }
     public static final class FunctionDef { public List<Param> params = new ArrayList<>(); public Expr body; }
@@ -287,7 +291,8 @@ public final class XFormEngine {
         Token(TokenKind kind, String val, int pos) { this.kind = kind; this.val = val; this.pos = pos; }
     }
 
-    static final Set<String> KEYWORDS = Set.of("xform","version","import","as","ns","def","var","let","in","for","where","return","if","then","else","match","case","default","and","or","not","div","mod","rule");
+    static final Set<String> KEYWORDS = Set.of("xform","version","import","as","ns","def","var","let","in","for","where","return","if","then","else","match","case","default","and","or","not","div","mod","rule","apply","text","comment","pi","true","false","null","string","number","boolean","map");
+    static final Set<String> SOFT_KEYWORDS = Set.of("true","false","null","string","number","boolean","map","apply","text","comment","pi","document");
 
     static final class Lexer {
         final String text;
@@ -397,7 +402,7 @@ public final class XFormEngine {
             if (tok.kind == TokenKind.KW && tok.val.equals("xform")) {
                 lexer.next(); lexer.expect(TokenKind.KW, "version");
                 String version = lexer.expect(TokenKind.STRING, null).val;
-                if (!"2.0".equals(version)) throw new XFormException("XFST0005: unsupported version");
+                if (!"2.0".equals(version) && !"2.1".equals(version)) throw new XFormException("XFST0005: unsupported version");
                 lexer.expect(TokenKind.PUNCT, ";");
             }
             while (true) {
@@ -438,7 +443,7 @@ public final class XFormEngine {
 
         private Object[] parseVar() {
             lexer.expect(TokenKind.KW, "var");
-            String name = lexer.expect(TokenKind.IDENT, null).val;
+            String name = expectIdentifier();
             lexer.expect(TokenKind.OP, ":=");
             Expr value = parseExpr();
             lexer.expect(TokenKind.PUNCT, ";");
@@ -463,7 +468,7 @@ public final class XFormEngine {
 
         private Param parseParam() {
             Param p = new Param();
-            p.name = lexer.expect(TokenKind.IDENT, null).val;
+            p.name = expectIdentifier();
             if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(":")) { lexer.next(); p.typeRef = parseTypeRef(); }
             if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals(":=")) { lexer.next(); p.defaultExpr = parseExpr(); }
             return p;
@@ -472,6 +477,7 @@ public final class XFormEngine {
         private String parseTypeRef() {
             Token tok = lexer.peek();
             if (tok.kind == TokenKind.IDENT && Set.of("string", "number", "boolean", "null", "map").contains(tok.val)) return lexer.next().val;
+            if (tok.kind == TokenKind.KW && isSoftKeyword(tok.val) && Set.of("string", "number", "boolean", "null", "map").contains(tok.val)) return lexer.next().val;
             return parseQName();
         }
 
@@ -497,9 +503,9 @@ public final class XFormEngine {
         }
 
         private Expr parseIf() { lexer.expect(TokenKind.KW, "if"); IfExpr e = new IfExpr(); e.cond = parseExpr(); lexer.expect(TokenKind.KW, "then"); e.thenExpr = parseExpr(); lexer.expect(TokenKind.KW, "else"); e.elseExpr = parseExpr(); return e; }
-        private Expr parseLet() { lexer.expect(TokenKind.KW, "let"); LetExpr e = new LetExpr(); e.name = lexer.expect(TokenKind.IDENT, null).val; lexer.expect(TokenKind.OP, ":="); e.value = parseExpr(); lexer.expect(TokenKind.KW, "in"); e.body = parseExpr(); return e; }
+        private Expr parseLet() { lexer.expect(TokenKind.KW, "let"); LetExpr e = new LetExpr(); e.name = expectIdentifier(); lexer.expect(TokenKind.OP, ":="); e.value = parseExpr(); lexer.expect(TokenKind.KW, "in"); e.body = parseExpr(); return e; }
         private Expr parseFor() {
-            lexer.expect(TokenKind.KW, "for"); ForExpr e = new ForExpr(); e.name = lexer.expect(TokenKind.IDENT, null).val; lexer.expect(TokenKind.KW, "in"); e.seq = parseExpr();
+            lexer.expect(TokenKind.KW, "for"); ForExpr e = new ForExpr(); e.name = expectIdentifier(); lexer.expect(TokenKind.KW, "in"); e.seq = parseExpr();
             if (lexer.peek().kind == TokenKind.KW && lexer.peek().val.equals("where")) { lexer.next(); e.where = parseExpr(); }
             lexer.expect(TokenKind.KW, "return"); e.body = parseExpr(); return e;
         }
@@ -543,7 +549,18 @@ public final class XFormEngine {
             if (tok.kind == TokenKind.NUMBER) { lexer.next(); return new Literal(Double.parseDouble(tok.val)); }
             if (tok.kind == TokenKind.STRING) { lexer.next(); return new Literal(tok.val); }
             if (tok.kind == TokenKind.PUNCT && tok.val.equals("(")) { lexer.next(); Expr e = parseExpr(); lexer.expect(TokenKind.PUNCT, ")"); return e; }
-            if (tok.kind == TokenKind.IDENT && tok.val.equals("text")) {
+            if (tok.kind == TokenKind.KW && tok.val.equals("apply")) {
+                lexer.next(); lexer.expect(TokenKind.PUNCT, "("); ApplyExpr ae = new ApplyExpr(); ae.expr = parseExpr();
+                if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(",")) { lexer.next(); ae.ruleset = expectIdentifier(); }
+                lexer.expect(TokenKind.PUNCT, ")"); return ae;
+            }
+            if (tok.kind == TokenKind.KW && tok.val.equals("comment")) {
+                lexer.next(); lexer.expect(TokenKind.PUNCT, "{"); CommentConstructor cc = new CommentConstructor(); cc.expr = parseExpr(); lexer.expect(TokenKind.PUNCT, "}"); return cc;
+            }
+            if (tok.kind == TokenKind.KW && tok.val.equals("pi")) {
+                lexer.next(); lexer.expect(TokenKind.PUNCT, "{"); PIConstructor pc = new PIConstructor(); pc.target = parseExpr(); lexer.expect(TokenKind.PUNCT, ","); pc.value = parseExpr(); lexer.expect(TokenKind.PUNCT, "}"); return pc;
+            }
+            if ((tok.kind == TokenKind.IDENT && tok.val.equals("text")) || (tok.kind == TokenKind.KW && tok.val.equals("text"))) {
                 int savedPos = lexer.pos; Token savedBuf = lexer.buffer;
                 lexer.next();
                 if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals("{")) {
@@ -552,8 +569,8 @@ public final class XFormEngine {
                 lexer.pos = savedPos; lexer.buffer = savedBuf;
             }
             if (tok.kind == TokenKind.OP && tok.val.equals("<")) return parseConstructor();
-            if (tok.kind == TokenKind.DOT || tok.kind == TokenKind.SLASH) return parsePath(null);
-            if (tok.kind == TokenKind.IDENT) {
+            if (tok.kind == TokenKind.DOT || tok.kind == TokenKind.SLASH || tok.kind == TokenKind.AT) return parsePath(null);
+            if (tok.kind == TokenKind.IDENT || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
                 String name = lexer.next().val;
                 if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals("(")) return parseFuncCall(name);
                 if (pathContinues()) {
@@ -565,8 +582,27 @@ public final class XFormEngine {
         }
         private Expr parseFuncCall(String name) {
             lexer.expect(TokenKind.PUNCT, "("); FuncCall fc = new FuncCall(); fc.name = name;
+            boolean seenNamed = false;
             if (!(lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(")"))) {
-                fc.args.add(parseExpr()); while (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(",")) { lexer.next(); fc.args.add(parseExpr()); }
+                Expr argExpr = parseExpr();
+                if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals(":=")) {
+                    String argName = (argExpr instanceof VarRef vr) ? vr.name : null;
+                    if (argName == null) throw new XFormException("XFST0001: expected identifier for named argument");
+                    lexer.next(); NamedArg na = new NamedArg(); na.name = argName; na.expr = parseExpr(); fc.namedArgs.add(na); seenNamed = true;
+                } else {
+                    fc.args.add(argExpr);
+                }
+                while (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(",")) {
+                    lexer.next(); Expr nextExpr = parseExpr();
+                    if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals(":=")) {
+                        String argName = (nextExpr instanceof VarRef vr) ? vr.name : null;
+                        if (argName == null) throw new XFormException("XFST0001: expected identifier for named argument");
+                        lexer.next(); NamedArg na = new NamedArg(); na.name = argName; na.expr = parseExpr(); fc.namedArgs.add(na); seenNamed = true;
+                    } else {
+                        if (seenNamed) throw new XFormException("XFST0001: positional argument after named argument");
+                        fc.args.add(nextExpr);
+                    }
+                }
             }
             lexer.expect(TokenKind.PUNCT, ")"); return fc;
         }
@@ -577,20 +613,27 @@ public final class XFormEngine {
                 Token tok = lexer.next(); actual = new PathStart();
                 if (tok.kind == TokenKind.DOT) actual.kind = tok.val.equals(".//") ? "desc" : "context";
                 else if (tok.kind == TokenKind.SLASH) actual.kind = tok.val.equals("//") ? "desc_root" : "root";
+                else if (tok.kind == TokenKind.AT) actual.kind = "attr";
                 else throw new XFormException("invalid path start at " + tok.pos);
             }
             List<PathStep> steps = new ArrayList<>();
-            if (Set.of("root", "context", "var").contains(actual.kind)) {
+            if (Set.of("root", "context", "var", "attr").contains(actual.kind)) {
                 Token tok = lexer.peek();
-                if (tok.kind == TokenKind.AT) {
+                if (actual.kind.equals("attr")) {
+                    if (tok.kind == TokenKind.IDENT || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
+                        PathStep s = new PathStep(); s.axis = "attr"; s.test = stepName(parseQName()); steps.add(s);
+                    } else {
+                        PathStep s = new PathStep(); s.axis = "attr"; s.test = new StepTest(); s.test.kind = "wildcard"; steps.add(s);
+                    }
+                } else if (tok.kind == TokenKind.AT) {
                     lexer.next(); PathStep s = new PathStep(); s.axis = "attr"; s.test = stepName(parseQName()); steps.add(s);
-                } else if ((tok.kind == TokenKind.OP && tok.val.equals("*")) || tok.kind == TokenKind.IDENT) {
+                } else if ((tok.kind == TokenKind.OP && tok.val.equals("*")) || tok.kind == TokenKind.IDENT || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
                     PathStep s = new PathStep(); s.axis = "child"; s.test = parseStepTest(); s.predicates = parsePredicates(); steps.add(s);
                 }
             }
             if (actual.kind.equals("desc") || actual.kind.equals("desc_root")) {
                 Token tok = lexer.peek();
-                if (tok.kind == TokenKind.IDENT || tok.kind == TokenKind.OP) {
+                if (tok.kind == TokenKind.IDENT || tok.kind == TokenKind.OP || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
                     PathStep s = new PathStep(); s.axis = "desc_or_self"; s.test = parseStepTest(); s.predicates = parsePredicates(); steps.add(s);
                 }
             }
@@ -621,8 +664,8 @@ public final class XFormEngine {
         private StepTest parseStepTest() {
             Token tok = lexer.peek();
             if (tok.kind == TokenKind.OP && tok.val.equals("*")) { lexer.next(); StepTest t = new StepTest(); t.kind = "wildcard"; return t; }
-            if (tok.kind == TokenKind.IDENT) {
-                if (Set.of("text", "node", "comment", "pi").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); StepTest t = new StepTest(); t.kind = tok.val; return t; }
+            if (tok.kind == TokenKind.IDENT || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
+                if (Set.of("text", "node", "comment", "pi", "document").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); StepTest t = new StepTest(); t.kind = tok.val; return t; }
                 return stepName(parseQName());
             }
             throw new XFormException("invalid step test at " + tok.pos);
@@ -632,17 +675,43 @@ public final class XFormEngine {
             while (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals("[")) { lexer.next(); preds.add(parseExpr()); lexer.expect(TokenKind.PUNCT, "]"); }
             return preds;
         }
-        private String parseQName() { return lexer.expect(TokenKind.IDENT, null).val; }
+        private boolean isSoftKeyword(String name) { return SOFT_KEYWORDS.contains(name); }
+        private String parseQName() {
+            Token tok = lexer.peek();
+            if (tok.kind == TokenKind.IDENT) return lexer.next().val;
+            if (tok.kind == TokenKind.KW && isSoftKeyword(tok.val)) return lexer.next().val;
+            throw new XFormException("XFST0006: expected identifier, got " + tok.kind + " " + tok.val + " at " + tok.pos);
+        }
+        private String expectIdentifier() {
+            Token tok = lexer.peek();
+            if (tok.kind == TokenKind.IDENT) return lexer.next().val;
+            if (tok.kind == TokenKind.KW && isSoftKeyword(tok.val)) return lexer.next().val;
+            throw new XFormException("XFST0006: expected identifier, got " + tok.kind + " " + tok.val + " at " + tok.pos);
+        }
+        private Expr parseLiteral() {
+            Token tok = lexer.peek();
+            if (tok.kind == TokenKind.STRING) { lexer.next(); return new Literal(tok.val); }
+            if (tok.kind == TokenKind.NUMBER) { lexer.next(); return new Literal(Double.parseDouble(tok.val)); }
+            throw new XFormException("expected literal at " + tok.pos);
+        }
+
         private Pattern parsePattern() {
             Token tok = lexer.peek();
-            if (tok.kind == TokenKind.AT) { lexer.next(); AttributePattern p = new AttributePattern(); p.name = parseQName(); return p; }
-            if (tok.kind == TokenKind.IDENT && Set.of("node", "text", "comment").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); TypedPattern p = new TypedPattern(); p.kind = tok.val; return p; }
+            if (tok.kind == TokenKind.AT) {
+                lexer.next(); AttributePattern p = new AttributePattern(); p.name = parseQName();
+                if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals("=")) {
+                    lexer.next(); p.value = (Literal) parseLiteral();
+                }
+                return p;
+            }
+            if (tok.kind == TokenKind.IDENT && Set.of("node", "text", "comment", "pi", "document").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); TypedPattern p = new TypedPattern(); p.kind = tok.val; return p; }
             if (tok.kind == TokenKind.IDENT && tok.val.equals("_")) { lexer.next(); return new WildcardPattern(); }
             if (tok.kind == TokenKind.OP && tok.val.equals("<")) {
                 lexer.next(); ElementPattern p = new ElementPattern(); p.name = parseQName(); lexer.expect(TokenKind.OP, ">");
-                if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals("{")) { lexer.next(); p.var = lexer.expect(TokenKind.IDENT, null).val; lexer.expect(TokenKind.PUNCT, "}"); }
-                else if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals("<")) { p.child = parsePattern(); }
-                else throw new XFormException("invalid element pattern content");
+                if (lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals("{")) { lexer.next(); p.var = expectIdentifier(); lexer.expect(TokenKind.PUNCT, "}"); }
+                else if (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals("<")) {
+                    while (lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals("<")) { p.children.add(parsePattern()); }
+                }
                 lexer.expect(TokenKind.OP, "<"); lexer.expect(TokenKind.SLASH, "/"); String end = parseQName(); if (!end.equals(p.name)) throw new XFormException("mismatched pattern end tag"); lexer.expect(TokenKind.OP, ">"); return p;
             }
             throw new XFormException("invalid pattern at " + tok.pos);
@@ -665,6 +734,12 @@ public final class XFormEngine {
                 }
                 if (lexer.pos + 5 <= text.length() && text.substring(lexer.pos, lexer.pos + 5).equals("text{")) {
                     lexer.pos += 4; lexer.clearBuffer(); lexer.expect(TokenKind.PUNCT, "{"); TextConstructor tc = new TextConstructor(); tc.expr = parseExpr(); lexer.expect(TokenKind.PUNCT, "}"); c.contents.add(tc); continue;
+                }
+                if (lexer.pos + 8 <= text.length() && text.substring(lexer.pos, lexer.pos + 8).equals("comment{")) {
+                    lexer.pos += 7; lexer.clearBuffer(); lexer.expect(TokenKind.PUNCT, "{"); CommentConstructor cc = new CommentConstructor(); cc.expr = parseExpr(); lexer.expect(TokenKind.PUNCT, "}"); c.contents.add(cc); continue;
+                }
+                if (lexer.pos + 3 <= text.length() && text.substring(lexer.pos, lexer.pos + 3).equals("pi{")) {
+                    lexer.pos += 2; lexer.clearBuffer(); lexer.expect(TokenKind.PUNCT, "{"); PIConstructor pc = new PIConstructor(); pc.target = parseExpr(); lexer.expect(TokenKind.PUNCT, ","); pc.value = parseExpr(); lexer.expect(TokenKind.PUNCT, "}"); c.contents.add(pc); continue;
                 }
                 char ch = text.charAt(lexer.pos);
                 if (ch == '<') { lexer.clearBuffer(); c.contents.add(parseConstructor()); continue; }
@@ -759,7 +834,10 @@ public final class XFormEngine {
         if (expr instanceof FuncCall e) {
             List<List<Object>> args = new ArrayList<>();
             for (Expr a : e.args) args.add(evalExpr(a, ctx));
-            return callFunction(e.name, args, ctx);
+            Map<String, List<Object>> namedArgs = new HashMap<>();
+            Map<String, Expr> namedRaw = new HashMap<>();
+            for (NamedArg na : e.namedArgs) { namedArgs.put(na.name, evalExpr(na.expr, ctx)); namedRaw.put(na.name, na.expr); }
+            return callFunction(e.name, args, ctx, namedArgs, namedRaw);
         }
         if (expr instanceof UnaryOp e) {
             List<Object> v = evalExpr(e.expr, ctx);
@@ -774,8 +852,11 @@ public final class XFormEngine {
         if (expr instanceof PathExpr e) return evalPath(e, ctx);
         if (expr instanceof Constructor e) return seq(evalConstructor(e, ctx));
         if (expr instanceof TextConstructor e) { Node n = new Node("text"); n.value = toString(evalExpr(e.expr, ctx)); return seq(n); }
+        if (expr instanceof CommentConstructor e) { Node n = new Node("comment"); n.value = toString(evalExpr(e.expr, ctx)); return seq(n); }
+        if (expr instanceof PIConstructor e) { Node n = new Node("pi"); n.name = toString(evalExpr(e.target, ctx)); n.value = toString(evalExpr(e.value, ctx)); return seq(n); }
         if (expr instanceof Text e) return seq(e.value);
         if (expr instanceof Interp e) return evalExpr(e.expr, ctx);
+        if (expr instanceof ApplyExpr e) return evalApply(e, ctx);
         throw new XFormException("unknown expr");
     }
 
@@ -813,6 +894,15 @@ public final class XFormEngine {
                         PathStep s = new PathStep(); s.axis = "child"; s.test = new StepTest(); s.test.kind = "name"; s.test.name = expr.start.name;
                         steps.add(0, s);
                     }
+                }
+            }
+            case "attr" -> {
+                if (ctx.contextItem != null) {
+                    if (expr.start.name != null) {
+                        PathStep s = new PathStep(); s.axis = "attr"; s.test = new StepTest(); s.test.kind = "name"; s.test.name = expr.start.name;
+                        steps.add(0, s);
+                    }
+                    base.add(ctx.contextItem);
                 }
             }
         }
@@ -872,6 +962,7 @@ public final class XFormEngine {
             case "node" -> true;
             case "comment" -> "comment".equals(node.kind);
             case "pi" -> "pi".equals(node.kind);
+            case "document" -> "document".equals(node.kind);
             case "name" -> test.name != null && Objects.equals(node.name, test.name);
             default -> false;
         };
@@ -879,7 +970,10 @@ public final class XFormEngine {
 
     private static Node evalConstructor(Constructor expr, Context ctx) {
         Node node = new Node("element"); node.name = expr.name;
+        Set<String> seenAttrs = new HashSet<>();
         for (AttrConstructor attr : expr.attrs) {
+            if (seenAttrs.contains(attr.name)) throw new XFormException("XFDY0005");
+            seenAttrs.add(attr.name);
             node.attrs.put(attr.name, toString(evalExpr(attr.expr, ctx)));
             node.attrOrder.add(attr.name);
         }
@@ -889,9 +983,20 @@ public final class XFormEngine {
                 Node c = new Node("text"); c.value = t.value; children.add(c);
                 continue;
             }
+            if (content instanceof CommentConstructor cc) {
+                Node c = new Node("comment"); c.value = toString(evalExpr(cc.expr, ctx)); children.add(c);
+                continue;
+            }
+            if (content instanceof PIConstructor pc) {
+                Node c = new Node("pi"); c.name = toString(evalExpr(pc.target, ctx)); c.value = toString(evalExpr(pc.value, ctx)); children.add(c);
+                continue;
+            }
             List<Object> seq = evalExpr(content, ctx);
             for (Object item : seq) {
-                if (item instanceof Node n) children.add(deepCopy(n, true));
+                if (item instanceof Node n) {
+                    if ("attribute".equals(n.kind)) throw new XFormException("XFDY0005");
+                    children.add(deepCopy(n, true));
+                }
                 else { Node t = new Node("text"); t.value = toString(seq(item)); children.add(t); }
             }
         }
@@ -900,13 +1005,42 @@ public final class XFormEngine {
         return node;
     }
 
+    private static List<Object> evalApply(ApplyExpr expr, Context ctx) {
+        List<Object> seq = evalExpr(expr.expr, ctx);
+        String ruleset = expr.ruleset != null ? expr.ruleset : "main";
+        if (!"main".equals(ruleset) && !ctx.rules.containsKey(ruleset)) throw new XFormException("XFST0007: unknown ruleset '" + ruleset + "'");
+        List<RuleDef> rules = ctx.rules.getOrDefault(ruleset, new ArrayList<>());
+        List<Object> out = new ArrayList<>();
+        for (Object item : seq) {
+            boolean matched = false;
+            for (RuleDef rule : rules) {
+                MatchResult mr = matchPattern(rule.pattern, item);
+                if (mr.matched) {
+                    matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); out.addAll(evalExpr(rule.body, n)); break;
+                }
+            }
+            if (!matched) out.addAll(applyBuiltinIdentity(item));
+        }
+        return out;
+    }
+
+    private static List<Object> applyBuiltinIdentity(Object item) {
+        if (item instanceof Node n) {
+            return switch (n.kind) {
+                case "document", "element", "attribute", "text", "comment", "pi" -> seq(deepCopy(n, true));
+                default -> new ArrayList<>();
+            };
+        }
+        return seq(item);
+    }
+
     static final class FunctionRef { final String name; FunctionRef(String n){name=n;} }
-    @FunctionalInterface interface BuiltinFn { List<Object> apply(List<List<Object>> args, Context ctx); }
+    @FunctionalInterface interface BuiltinFn { List<Object> apply(List<List<Object>> args, Context ctx, Map<String, List<Object>> named, Map<String, Expr> namedRaw); }
     static final Map<String, BuiltinFn> BUILTINS = new HashMap<>();
     static {
-        BUILTINS.put("string", (a,c)-> seq(toString(firstOrEmpty(a))));
-        BUILTINS.put("number", (a,c)-> seq(toNumber(firstOrEmpty(a))));
-        BUILTINS.put("boolean", (a,c)-> seq(toBoolean(firstOrEmpty(a))));
+        BUILTINS.put("string", (a,c,n,r)-> seq(toString(firstOrEmpty(a))));
+        BUILTINS.put("number", (a,c,n,r)-> seq(toNumber(firstOrEmpty(a))));
+        BUILTINS.put("boolean", (a,c,n,r)-> seq(toBoolean(firstOrEmpty(a))));
         BUILTINS.put("typeOf", XFormEngine::fnTypeOf);
         BUILTINS.put("name", XFormEngine::fnName);
         BUILTINS.put("attr", XFormEngine::fnAttr);
@@ -929,23 +1063,44 @@ public final class XFormEngine {
         BUILTINS.put("position", XFormEngine::fnPosition);
         BUILTINS.put("apply", XFormEngine::fnApply);
         BUILTINS.put("sum", XFormEngine::fnSum);
+        BUILTINS.put("contains", XFormEngine::fnContains);
+        BUILTINS.put("startsWith", XFormEngine::fnStartsWith);
+        BUILTINS.put("endsWith", XFormEngine::fnEndsWith);
+        BUILTINS.put("substring", XFormEngine::fnSubstring);
+        BUILTINS.put("normalizeSpace", XFormEngine::fnNormalizeSpace);
+        BUILTINS.put("replace", XFormEngine::fnReplace);
+        BUILTINS.put("keys", XFormEngine::fnKeys);
+        BUILTINS.put("mapSize", XFormEngine::fnMapSize);
+        BUILTINS.put("attributes", XFormEngine::fnAttributes);
     }
 
-    private static List<Object> callFunction(String name, List<List<Object>> args, Context ctx) {
-        if (ctx.functions.containsKey(name)) return callUserFunction(ctx.functions.get(name), args, ctx);
+    private static List<Object> callFunction(String name, List<List<Object>> args, Context ctx, Map<String, List<Object>> namedArgs, Map<String, Expr> namedRaw) {
+        if (ctx.functions.containsKey(name)) return callUserFunction(ctx.functions.get(name), args, ctx, namedArgs, namedRaw);
         BuiltinFn b = BUILTINS.get(name);
         if (b == null) throw new XFormException("XFST0003: unknown function " + name);
-        return b.apply(args, ctx);
+        return b.apply(args, ctx, namedArgs, namedRaw);
     }
 
-    private static List<Object> callUserFunction(FunctionDef fn, List<List<Object>> args, Context ctx) {
+    private static List<Object> callUserFunction(FunctionDef fn, List<List<Object>> args, Context ctx, Map<String, List<Object>> namedArgs, Map<String, Expr> namedRaw) {
         if (args.size() > fn.params.size()) throw new XFormException("XFDY0002: wrong arity");
         Context n = cloneCtx(ctx); n.variables = copyVars(ctx.variables);
-        for (int i = 0; i < args.size(); i++) n.variables.put(fn.params.get(i).name, args.get(i));
-        for (int i = args.size(); i < fn.params.size(); i++) {
-            Param p = fn.params.get(i);
-            if (p.defaultExpr == null) throw new XFormException("XFDY0002: wrong arity");
-            n.variables.put(p.name, evalExpr(p.defaultExpr, ctx));
+        Set<String> bound = new HashSet<>();
+        for (int i = 0; i < args.size(); i++) {
+            if (namedArgs.containsKey(fn.params.get(i).name)) throw new XFormException("XFDY0008: duplicate argument");
+            n.variables.put(fn.params.get(i).name, args.get(i)); bound.add(fn.params.get(i).name);
+        }
+        for (Map.Entry<String, List<Object>> e : namedArgs.entrySet()) {
+            if (bound.contains(e.getKey())) throw new XFormException("XFDY0008: duplicate argument");
+            boolean found = false;
+            for (Param p : fn.params) if (p.name.equals(e.getKey())) { found = true; break; }
+            if (!found) throw new XFormException("XFDY0008: unknown parameter '" + e.getKey() + "'");
+            n.variables.put(e.getKey(), e.getValue()); bound.add(e.getKey());
+        }
+        for (Param p : fn.params) {
+            if (!bound.contains(p.name)) {
+                if (p.defaultExpr == null) throw new XFormException("XFDY0008: missing required parameter");
+                n.variables.put(p.name, evalExpr(p.defaultExpr, ctx)); bound.add(p.name);
+            }
         }
         return evalExpr(fn.body, n);
     }
@@ -997,7 +1152,16 @@ public final class XFormEngine {
         MatchResult r = new MatchResult();
         if (pattern instanceof WildcardPattern) { r.matched = true; return r; }
         if (pattern instanceof AttributePattern p) {
-            r.matched = item instanceof Node n && "attribute".equals(n.kind) && p.name.equals(n.name); return r;
+            if (item instanceof Node n && "attribute".equals(n.kind) && p.name.equals(n.name)) {
+                if (p.value != null) {
+                    r.matched = n.value.equals(p.value.value);
+                } else {
+                    r.matched = true;
+                }
+            } else {
+                r.matched = false;
+            }
+            return r;
         }
         if (pattern instanceof TypedPattern p) {
             if (item == null) { r.matched = false; return r; }
@@ -1015,6 +1179,17 @@ public final class XFormEngine {
                     List<Object> children = new ArrayList<>(n.children);
                     r.bindings.put(p.var, children); return r;
                 }
+                if (!p.children.isEmpty()) {
+                    if (n.children.size() != p.children.size()) {
+                        r.matched = false; return r;
+                    }
+                    for (int i = 0; i < p.children.size(); i++) {
+                        MatchResult cr = matchPattern(p.children.get(i), n.children.get(i));
+                        if (!cr.matched) { r.matched = false; return r; }
+                        r.bindings.putAll(cr.bindings);
+                    }
+                    return r;
+                }
                 if (p.child != null) {
                     for (Node child : n.children) {
                         MatchResult cr = matchPattern(p.child, child);
@@ -1028,7 +1203,7 @@ public final class XFormEngine {
         r.matched = false; return r;
     }
 
-    private static List<Object> fnTypeOf(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnTypeOf(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return seq("null");
         Object item = args.get(0).get(0);
         if (item instanceof Node) return seq("node");
@@ -1038,19 +1213,21 @@ public final class XFormEngine {
         if (item == null) return seq("null");
         return seq("string");
     }
-    private static List<Object> fnName(List<List<Object>> args, Context _ctx) { if (args.isEmpty()||args.get(0).isEmpty()) return seq(""); Object i=args.get(0).get(0); return (i instanceof Node n)?seq(n.name):seq(""); }
-    private static List<Object> fnAttr(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnName(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return seq(""); Object i=args.get(0).get(0); return (i instanceof Node n)?seq(n.name):seq(""); }
+    private static List<Object> fnAttr(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return seq("");
         Object i = args.get(0).get(0);
         if (!(i instanceof Node n) || !"element".equals(n.kind) || args.size() < 2) return seq("");
         String key = toString(args.get(1));
         return seq(n.attrs.getOrDefault(key, ""));
     }
-    private static List<Object> fnText(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnText(List<List<Object>> args, Context _ctx, Map<String, List<Object>> named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return seq("");
         Object i = args.get(0).get(0);
         if (i instanceof Node n) {
-            boolean deep = args.size() <= 1 || toBoolean(args.get(1));
+            boolean deep = true;
+            if (args.size() > 1) deep = toBoolean(args.get(1));
+            else if (named.containsKey("deep")) deep = toBoolean(named.get("deep"));
             if (deep) return seq(n.stringValue());
             if ("element".equals(n.kind) || "document".equals(n.kind)) {
                 StringBuilder s = new StringBuilder(); for (Node c : n.children) if ("text".equals(c.kind)) s.append(c.value); return seq(s.toString());
@@ -1059,72 +1236,81 @@ public final class XFormEngine {
         }
         return seq(toString(args.get(0)));
     }
-    private static List<Object> fnChildren(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnChildren(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>(); return new ArrayList<>(n.children);
     }
-    private static List<Object> fnElements(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnElements(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>();
         if (!("element".equals(n.kind) || "document".equals(n.kind))) return new ArrayList<>();
         String nameTest = args.size() > 1 ? toString(args.get(1)) : ""; List<Object> out = new ArrayList<>();
         for (Node c : n.children) if ("element".equals(c.kind) && (nameTest.isEmpty() || nameTest.equals(c.name))) out.add(c); return out;
     }
-    private static List<Object> fnCopy(List<List<Object>> args, Context _ctx) {
-        if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>(); boolean recurse = args.size() <= 1 || toBoolean(args.get(1)); return seq(deepCopy(n, recurse));
+    private static List<Object> fnCopy(List<List<Object>> args, Context _ctx, Map<String, List<Object>> named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>();
+        boolean recurse = true;
+        if (args.size() > 1) recurse = toBoolean(args.get(1));
+        else if (named.containsKey("recurse")) recurse = toBoolean(named.get("recurse"));
+        return seq(deepCopy(n, recurse));
     }
-    private static List<Object> fnCount(List<List<Object>> args, Context _ctx) { return seq((double)(args.isEmpty()?0:args.get(0).size())); }
-    private static List<Object> fnEmpty(List<List<Object>> args, Context _ctx) { return seq(args.isEmpty() || args.get(0).isEmpty()); }
-    private static List<Object> fnDistinct(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnCount(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { return seq((double)(args.isEmpty()?0:args.get(0).size())); }
+    private static List<Object> fnEmpty(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { return seq(args.isEmpty() || args.get(0).isEmpty()); }
+    private static List<Object> fnDistinct(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()) return new ArrayList<>(); Set<String> seen = new HashSet<>(); List<Object> out = new ArrayList<>();
         for (Object item : args.get(0)) { String k = toString(seq(item)); if (seen.add(k)) out.add(item); }
         return out;
     }
-    private static List<Object> fnSort(List<List<Object>> args, Context ctx) {
+    private static List<Object> fnSort(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()) return new ArrayList<>(); List<Object> out = new ArrayList<>(args.get(0)); String keyFn = "";
         if (args.size() > 1 && !args.get(1).isEmpty() && args.get(1).get(0) instanceof FunctionRef fr) keyFn = fr.name;
         final String finalKeyFn = keyFn;
         out.sort((a,b) -> {
             if (!finalKeyFn.isEmpty()) {
                 FunctionDef fn = ctx.functions.get(finalKeyFn);
-                String ka = toString(callUserFunction(fn, List.of(seq(a)), ctx));
-                String kb = toString(callUserFunction(fn, List.of(seq(b)), ctx));
+                String ka = toString(callUserFunction(fn, List.of(seq(a)), ctx, new HashMap<>(), new HashMap<>()));
+                String kb = toString(callUserFunction(fn, List.of(seq(b)), ctx, new HashMap<>(), new HashMap<>()));
                 return ka.compareTo(kb);
             }
             return toString(seq(a)).compareTo(toString(seq(b)));
         });
         return out;
     }
-    private static List<Object> fnConcat(List<List<Object>> args, Context _ctx) { List<Object> out = new ArrayList<>(); for (List<Object> s : args) out.addAll(s); return out; }
-    private static List<Object> fnHead(List<List<Object>> args, Context _ctx) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return seq(args.get(0).get(0)); }
-    private static List<Object> fnTail(List<List<Object>> args, Context _ctx) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return new ArrayList<>(args.get(0).subList(1, args.get(0).size())); }
-    private static List<Object> fnLast(List<List<Object>> args, Context ctx) {
-        if (args.isEmpty() || args.get(0).isEmpty()) { if (ctx.last == null) return new ArrayList<>(); return seq(ctx.last.doubleValue()); }
+    private static List<Object> fnConcat(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { List<Object> out = new ArrayList<>(); for (List<Object> s : args) out.addAll(s); return out; }
+    private static List<Object> fnHead(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return seq(args.get(0).get(0)); }
+    private static List<Object> fnTail(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return new ArrayList<>(args.get(0).subList(1, args.get(0).size())); }
+    private static List<Object> fnLast(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty() || args.get(0).isEmpty()) { if (ctx.last == null) throw new XFormException("XFDY0006"); return seq(ctx.last.doubleValue()); }
         List<Object> s = args.get(0); return seq(s.get(s.size()-1));
     }
-    private static List<Object> fnIndex(List<List<Object>> args, Context ctx) {
+    private static List<Object> fnIndex(List<List<Object>> args, Context ctx, Map<String, List<Object>> named, Map<String, Expr> namedRaw) {
         if (args.isEmpty()) return new ArrayList<>(); List<Object> seq = args.get(0); String keyFn = "";
         if (args.size() > 1 && !args.get(1).isEmpty() && args.get(1).get(0) instanceof FunctionRef fr) keyFn = fr.name;
+        Expr keyExpr = namedRaw.get("key");
         Map<String,List<Object>> index = new HashMap<>();
         for (Object item : seq) {
             String key = toString(seq(item));
-            if (!keyFn.isEmpty()) key = toString(callUserFunction(ctx.functions.get(keyFn), List.of(seq(item)), ctx));
+            if (!keyFn.isEmpty()) key = toString(callUserFunction(ctx.functions.get(keyFn), List.of(seq(item)), ctx, new HashMap<>(), new HashMap<>()));
+            else if (keyExpr != null) {
+                Context itemCtx = cloneCtx(ctx); itemCtx.contextItem = item; itemCtx.variables = copyVars(ctx.variables);
+                key = toString(evalExpr(keyExpr, itemCtx));
+            }
             index.computeIfAbsent(key, k -> new ArrayList<>()).add(item);
         }
         return seq(index);
     }
     @SuppressWarnings("unchecked")
-    private static List<Object> fnLookup(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnLookup(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.size() < 2 || args.get(0).isEmpty()) return new ArrayList<>();
         Object m = args.get(0).get(0); if (!(m instanceof Map<?,?>)) return new ArrayList<>();
         Map<String,List<Object>> mapping = (Map<String, List<Object>>) m;
         return mapping.getOrDefault(toString(args.get(1)), new ArrayList<>());
     }
-    private static List<Object> fnGroupBy(List<List<Object>> args, Context ctx) {
+    private static List<Object> fnGroupBy(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.size() < 2) return new ArrayList<>(); List<Object> seq = args.get(0); String keyFn = "";
         if (!args.get(1).isEmpty() && args.get(1).get(0) instanceof FunctionRef fr) keyFn = fr.name;
         Map<String,List<Object>> groups = new HashMap<>();
         for (Object item : seq) {
             String key = toString(seq(item));
-            if (!keyFn.isEmpty()) key = toString(callUserFunction(ctx.functions.get(keyFn), List.of(seq(item)), ctx));
+            if (!keyFn.isEmpty()) key = toString(callUserFunction(ctx.functions.get(keyFn), List.of(seq(item)), ctx, new HashMap<>(), new HashMap<>()));
             groups.computeIfAbsent(key, k -> new ArrayList<>()).add(item);
         }
         List<Object> out = new ArrayList<>();
@@ -1133,10 +1319,11 @@ public final class XFormEngine {
         }
         return out;
     }
-    private static List<Object> fnSeq(List<List<Object>> args, Context _ctx) { List<Object> out = new ArrayList<>(); for (List<Object> s : args) out.addAll(s); return out; }
-    private static List<Object> fnPosition(List<List<Object>> _args, Context ctx) { if (ctx.position == null) return new ArrayList<>(); return seq(ctx.position.doubleValue()); }
-    private static List<Object> fnApply(List<List<Object>> args, Context ctx) {
+    private static List<Object> fnSeq(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { List<Object> out = new ArrayList<>(); for (List<Object> s : args) out.addAll(s); return out; }
+    private static List<Object> fnPosition(List<List<Object>> _args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (ctx.position == null) throw new XFormException("XFDY0006"); return seq(ctx.position.doubleValue()); }
+    private static List<Object> fnApply(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()) return new ArrayList<>(); List<Object> seq = args.get(0); String ruleset = (args.size()>1 && !args.get(1).isEmpty()) ? toString(args.get(1)) : "main";
+        if (!"main".equals(ruleset) && !ctx.rules.containsKey(ruleset)) throw new XFormException("XFST0007: unknown ruleset '" + ruleset + "'");
         List<RuleDef> rules = ctx.rules.getOrDefault(ruleset, new ArrayList<>()); List<Object> out = new ArrayList<>();
         for (Object item : seq) {
             boolean matched = false;
@@ -1146,12 +1333,51 @@ public final class XFormEngine {
                     matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); out.addAll(evalExpr(rule.body, n)); break;
                 }
             }
-            if (!matched) throw new XFormException("XFDY0001: no matching rule");
+            if (!matched) out.addAll(applyBuiltinIdentity(item));
         }
         return out;
     }
-    private static List<Object> fnSum(List<List<Object>> args, Context _ctx) {
+    private static List<Object> fnSum(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty()) return seq(0.0); double total = 0.0; for (Object item : args.get(0)) total += toNumber(seq(item)); return seq(total);
+    }
+    private static List<Object> fnContains(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.size() < 2) return seq(false); return seq(toString(args.get(0)).contains(toString(args.get(1))));
+    }
+    private static List<Object> fnStartsWith(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.size() < 2) return seq(false); return seq(toString(args.get(0)).startsWith(toString(args.get(1))));
+    }
+    private static List<Object> fnEndsWith(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.size() < 2) return seq(false); return seq(toString(args.get(0)).endsWith(toString(args.get(1))));
+    }
+    private static List<Object> fnSubstring(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty()) return seq(""); String s = toString(args.get(0)); int start = args.size() > 1 ? (int) toNumber(args.get(1)) : 1; int len = args.size() > 2 ? (int) toNumber(args.get(2)) : s.length(); int from = Math.max(0, Math.min(s.length(), start - 1)); int to = Math.max(0, Math.min(s.length(), from + len)); return seq(s.substring(from, to));
+    }
+    private static List<Object> fnNormalizeSpace(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty()) return seq(""); return seq(toString(args.get(0)).trim().replaceAll("\\s+", " "));
+    }
+    private static List<Object> fnReplace(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.size() < 3) return seq(""); return seq(toString(args.get(0)).replaceAll(toString(args.get(1)), toString(args.get(2))));
+    }
+    @SuppressWarnings("unchecked")
+    private static List<Object> fnKeys(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty() || args.get(0).isEmpty()) return new ArrayList<>();
+        Object m = args.get(0).get(0); if (!(m instanceof Map<?,?>)) return new ArrayList<>();
+        Map<String,List<Object>> map = (Map<String, List<Object>>) m;
+        List<Object> out = new ArrayList<>(map.keySet()); Collections.sort(out, (a,b) -> toString(seq(a)).compareTo(toString(seq(b)))); return out;
+    }
+    @SuppressWarnings("unchecked")
+    private static List<Object> fnMapSize(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty() || args.get(0).isEmpty()) return seq(0.0);
+        Object m = args.get(0).get(0); if (!(m instanceof Map<?,?>)) return seq(0.0);
+        Map<String,List<Object>> map = (Map<String, List<Object>>) m;
+        return seq((double) map.size());
+    }
+    private static List<Object> fnAttributes(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty() || args.get(0).isEmpty()) return new ArrayList<>();
+        Object i = args.get(0).get(0); if (!(i instanceof Node n) || !"element".equals(n.kind)) return new ArrayList<>();
+        List<Object> out = new ArrayList<>();
+        for (Map.Entry<String, String> e : n.attrs.entrySet()) { Node a = new Node("attribute"); a.name = e.getKey(); a.value = e.getValue(); out.add(a); }
+        return out;
     }
 
     private static List<Object> firstOrEmpty(List<List<Object>> args) { return args.isEmpty() ? new ArrayList<>() : args.get(0); }

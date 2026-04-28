@@ -36,9 +36,12 @@ build-java:
 	fi
 	mkdir -p xform-java/build/classes xform-java/bin
 	javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java')
-	printf '%s\n' '#!/usr/bin/env sh' \
-		'exec java -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' \
-		> xform-java/bin/xform
+	@echo '#!/usr/bin/env sh' > xform-java/bin/xform
+	@echo 'if [ -n "$${JAVA_HOME}" ]; then' >> xform-java/bin/xform
+	@echo '  exec "$${JAVA_HOME}/bin/java" -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
+	@echo 'else' >> xform-java/bin/xform
+	@echo '  exec java -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
+	@echo 'fi' >> xform-java/bin/xform
 	chmod +x xform-java/bin/xform
 
 build-kotlin:

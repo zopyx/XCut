@@ -75,6 +75,12 @@ int main(int argc, char* argv[]) {
     std::free(xform_text);
 
     Seq* result = eval_module(mod, doc);
+    if (!result) {
+        std::fprintf(stderr, "Evaluation error\n");
+        module_free(mod);
+        node_unref(doc);
+        return 1;
+    }
     char* output = serialize_items(result);
     std::printf("%s", output);
 

@@ -134,7 +134,18 @@ function evalExpr(expr, ctx) {
     }
     if (expr instanceof ast.FuncCall) {
         const args = expr.args.map((a) => evalExpr(a, ctx));
-        return callFunction(expr.name, args, ctx);
+        const named = {};
+        const namedRaw = {};
+        for (const [name, valExpr] of expr.namedArgs) {
+            named[name] = evalExpr(valExpr, ctx);
+            namedRaw[name] = valExpr;
+        }
+        return callFunction(expr.name, args, ctx, named, namedRaw);
+    }
+    if (expr instanceof ast.ApplyExpr) {
+        const seq = evalExpr(expr.expr, ctx);
+        const ruleset = expr.ruleset || "main";
+        return doApply(seq, ruleset, ctx);
     }
     if (expr instanceof ast.UnaryOp) {
         const val = evalExpr(expr.expr, ctx);
@@ -170,6 +181,14 @@ function evalExpr(expr, ctx) {
     }
     if (expr instanceof ast.TextConstructor) {
         return [new xmlmodel_1.Node({ kind: "text", value: toString(evalExpr(expr.expr, ctx)) })];
+    }
+    if (expr instanceof ast.CommentConstructor) {
+        return [new xmlmodel_1.Node({ kind: "comment", value: toString(evalExpr(expr.expr, ctx)) })];
+    }
+    if (expr instanceof ast.PIConstructor) {
+        const target = toString(evalExpr(expr.target, ctx));
+        const value = toString(evalExpr(expr.value, ctx));
+        return [new xmlmodel_1.Node({ kind: "pi", name: target, value })];
     }
     if (expr instanceof ast.Text) {
         return [expr.value];
@@ -236,6 +255,12 @@ function evalPath(expr, ctx) {
             }
         }
     }
+    else if (expr.start.kind === "attr") {
+        base = ctx.contextItem !== null && ctx.contextItem !== undefined ? [ctx.contextItem] : [];
+        if (expr.start.name) {
+            steps = [new ast.PathStep("attr", new ast.StepTest("name", expr.start.name), []), ...steps];
+        }
+    }
     let current = base;
     for (const step of steps) {
         current = applyStep(current, step, ctx);
@@ -300,7 +325,7 @@ function applyStep(items, step, ctx) {
             }
         }
         else if (step.axis === "child") {
-            candidates = item.children;
+            candidates = item.kind === "element" || item.kind === "document" ? item.children : [];
         }
         let filtered = candidates.filter((c) => matchesStepTest(step.test, c));
         for (const pred of step.predicates) {
@@ -318,23 +343,30 @@ function applyStep(items, step, ctx) {
     return out;
 }
 function matchesStepTest(test, node) {
-    if (test.kind === "wildcard")
-        return node.kind === "element";
-    if (test.kind === "text")
-        return node.kind === "text";
     if (test.kind === "node")
         return true;
+    if (test.kind === "wildcard")
+        return node.kind === "element" || node.kind === "attribute";
+    if (test.kind === "text")
+        return node.kind === "text";
     if (test.kind === "comment")
         return node.kind === "comment";
     if (test.kind === "pi")
         return node.kind === "pi";
+    if (test.kind === "document")
+        return node.kind === "document";
     if (test.kind === "name")
         return node.name === test.name;
     return false;
 }
 function evalConstructor(expr, ctx) {
     const node = new xmlmodel_1.Node({ kind: "element", name: expr.name });
+    const seenAttrs = new Set();
     for (const [name, aexpr] of expr.attrs) {
+        if (seenAttrs.has(name)) {
+            throw new Error("XFDY0005");
+        }
+        seenAttrs.add(name);
         const val = evalExpr(aexpr, ctx);
         node.attrs[name] = toString(val);
     }
@@ -347,6 +379,9 @@ function evalConstructor(expr, ctx) {
         const seq = evalExpr(content, ctx);
         for (const item of seq) {
             if (item instanceof xmlmodel_1.Node) {
+                if (item.kind === "attribute") {
+                    throw new Error("XFDY0005");
+                }
                 children.push((0, xmlmodel_1.deepCopy)(item, true));
             }
             else {
@@ -354,9 +389,19 @@ function evalConstructor(expr, ctx) {
             }
         }
     }
-    for (const child of children)
+    // Merge adjacent text nodes
+    const merged = [];
+    for (const child of children) {
+        if (child.kind === "text" && merged.length > 0 && merged[merged.length - 1].kind === "text") {
+            merged[merged.length - 1].value = (merged[merged.length - 1].value || "") + (child.value || "");
+        }
+        else {
+            merged.push(child);
+        }
+    }
+    for (const child of merged)
         child.parent = node;
-    node.children = children;
+    node.children = merged;
     return node;
 }
 class FunctionRef {
@@ -365,31 +410,46 @@ class FunctionRef {
     }
 }
 exports.FunctionRef = FunctionRef;
-function callFunction(name, args, ctx) {
+function callFunction(name, args, ctx, namedArgs = {}, namedRaw = {}) {
     if (name in ctx.functions) {
         const func = ctx.functions[name];
         const params = func.params;
-        if (args.length > params.length)
-            throw new Error("XFDY0002: wrong arity");
+        if (args.length > params.length) {
+            throw new Error("XFDY0008: too many arguments");
+        }
         const newVars = { ...ctx.variables };
+        const bound = new Set();
         for (let i = 0; i < args.length; i += 1) {
             newVars[params[i].name] = args[i];
+            bound.add(params[i].name);
         }
-        if (args.length < params.length) {
-            for (let i = args.length; i < params.length; i += 1) {
-                const param = params[i];
-                if (!param.defaultExpr)
-                    throw new Error("XFDY0002: wrong arity");
-                newVars[param.name] = evalExpr(param.defaultExpr, ctx);
+        for (const [paramName, value] of Object.entries(namedArgs)) {
+            if (bound.has(paramName)) {
+                throw new Error("XFDY0008: duplicate argument");
             }
+            const matching = params.filter((p) => p.name === paramName);
+            if (matching.length === 0) {
+                throw new Error("XFDY0008: unknown parameter");
+            }
+            newVars[paramName] = value;
+            bound.add(paramName);
         }
         const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last);
+        for (const param of params) {
+            if (!bound.has(param.name)) {
+                if (!param.defaultExpr) {
+                    throw new Error("XFDY0008: missing required parameter");
+                }
+                newVars[param.name] = evalExpr(param.defaultExpr, newCtx);
+                bound.add(param.name);
+            }
+        }
         return evalExpr(func.body, newCtx);
     }
     const fn = BUILTINS[name];
     if (!fn)
         throw new Error(`XFST0003: unknown function ${name}`);
-    return fn(args, ctx);
+    return fn(args, ctx, namedArgs, namedRaw);
 }
 function toBoolean(seq) {
     if (!seq || seq.length === 0)
@@ -413,7 +473,9 @@ function toString(seq) {
     if (typeof item === "boolean")
         return item ? "true" : "false";
     if (typeof item === "number") {
-        return Number.isInteger(item) ? String(item) : String(item);
+        if (Number.isInteger(item))
+            return String(item);
+        return String(item);
     }
     return String(item);
 }
@@ -437,8 +499,15 @@ function matchPattern(pattern, item) {
     if (pattern instanceof ast.WildcardPattern)
         return [true, {}];
     if (pattern instanceof ast.AttributePattern) {
-        if (item instanceof xmlmodel_1.Node && item.kind === "attribute" && item.name === pattern.name)
+        if (item instanceof xmlmodel_1.Node && item.kind === "attribute" && item.name === pattern.name) {
+            if (pattern.value !== null) {
+                if (item.value === pattern.value.value) {
+                    return [true, {}];
+                }
+                return [false, {}];
+            }
             return [true, {}];
+        }
         return [false, {}];
     }
     if (pattern instanceof ast.TypedPattern) {
@@ -450,30 +519,100 @@ function matchPattern(pattern, item) {
             return [item instanceof xmlmodel_1.Node && item.kind === "text", {}];
         if (pattern.kind === "comment")
             return [item instanceof xmlmodel_1.Node && item.kind === "comment", {}];
+        if (pattern.kind === "pi")
+            return [item instanceof xmlmodel_1.Node && item.kind === "pi", {}];
+        if (pattern.kind === "document")
+            return [item instanceof xmlmodel_1.Node && item.kind === "document", {}];
+        return [false, {}];
+    }
+    if (pattern instanceof ast.LiteralPattern) {
+        if (item instanceof xmlmodel_1.Node && item.kind === "text" && item.value === pattern.value) {
+            return [true, {}];
+        }
         return [false, {}];
     }
     if (pattern instanceof ast.ElementPattern) {
         if (item instanceof xmlmodel_1.Node && item.kind === "element" && item.name === pattern.name) {
             const bindings = {};
-            if (pattern.varName) {
+            // Check attribute constraints
+            for (const [attrName, attrValue] of pattern.attrs) {
+                if (!(attrName in item.attrs)) {
+                    return [false, {}];
+                }
+                if (attrValue !== null) {
+                    if (item.attrs[attrName] !== attrValue.value) {
+                        return [false, {}];
+                    }
+                }
+            }
+            if (pattern.varName !== null) {
                 bindings[pattern.varName] = [...item.children];
                 return [true, bindings];
             }
-            if (pattern.child) {
-                for (const child of item.children) {
-                    const [matched, childBindings] = matchPattern(pattern.child, child);
-                    if (matched) {
-                        Object.assign(bindings, childBindings);
-                        return [true, bindings];
-                    }
+            if (pattern.children.length > 0) {
+                if (item.children.length !== pattern.children.length) {
+                    return [false, {}];
                 }
-                return [false, {}];
+                for (let i = 0; i < pattern.children.length; i += 1) {
+                    const [matched, childBindings] = matchPattern(pattern.children[i], item.children[i]);
+                    if (!matched) {
+                        return [false, {}];
+                    }
+                    Object.assign(bindings, childBindings);
+                }
+                return [true, bindings];
             }
             return [true, {}];
         }
         return [false, {}];
     }
     return [false, {}];
+}
+function doApply(seq, ruleset, ctx) {
+    var _a;
+    if (ruleset !== "main" && !(ruleset in ctx.rules)) {
+        throw new Error("XFST0007");
+    }
+    const rules = (_a = ctx.rules[ruleset]) !== null && _a !== void 0 ? _a : [];
+    const out = [];
+    for (const item of seq) {
+        let matched = false;
+        for (const rule of rules) {
+            const [ok, bindings] = matchPattern(rule.pattern, item);
+            if (ok) {
+                matched = true;
+                const newVars = { ...ctx.variables, ...bindings };
+                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)));
+                break;
+            }
+        }
+        if (!matched) {
+            out.push(...applyBuiltin(item, ruleset, ctx));
+        }
+    }
+    return out;
+}
+function applyBuiltin(item, ruleset, ctx) {
+    if (!(item instanceof xmlmodel_1.Node))
+        return [];
+    if (item.kind === "document") {
+        return doApply([...item.children], ruleset, ctx);
+    }
+    if (item.kind === "element") {
+        const newEl = new xmlmodel_1.Node({ kind: "element", name: item.name, attrs: { ...item.attrs } });
+        const children = doApply([...item.children], ruleset, ctx);
+        for (const c of children) {
+            if (c instanceof xmlmodel_1.Node) {
+                c.parent = newEl;
+            }
+        }
+        newEl.children = children.filter((c) => c instanceof xmlmodel_1.Node);
+        return [newEl];
+    }
+    if (item.kind === "attribute" || item.kind === "text" || item.kind === "comment" || item.kind === "pi") {
+        return [(0, xmlmodel_1.deepCopy)(item, true)];
+    }
+    return [];
 }
 function fnString(args) {
     var _a;
@@ -524,16 +663,21 @@ function fnAttr(args) {
     const key = toString(args[1]);
     return [(_a = node.attrs[key]) !== null && _a !== void 0 ? _a : ""];
 }
-function fnText(args) {
+function fnText(args, ctx, named) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [""];
     const node = args[0][0];
     if (node instanceof xmlmodel_1.Node) {
         let deep = true;
-        if (args.length > 1)
+        if (args.length > 1) {
             deep = toBoolean(args[1]);
-        if (deep)
+        }
+        else if (named && "deep" in named) {
+            deep = toBoolean(named["deep"]);
+        }
+        if (deep) {
             return [node.stringValue()];
+        }
         if (node.kind === "element" || node.kind === "document") {
             const direct = node.children
                 .filter((c) => c.kind === "text")
@@ -565,15 +709,27 @@ function fnElements(args) {
         out = out.filter((c) => c.name === nameTest);
     return out;
 }
-function fnCopy(args) {
+function fnAttributes(args) {
+    if (!args || args.length === 0 || args[0].length === 0)
+        return [];
+    const node = args[0][0];
+    if (!(node instanceof xmlmodel_1.Node) || node.kind !== "element")
+        return [];
+    return Object.entries(node.attrs).map(([k, v]) => new xmlmodel_1.Node({ kind: "attribute", name: k, value: v }));
+}
+function fnCopy(args, ctx, named) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [];
     const node = args[0][0];
     if (!(node instanceof xmlmodel_1.Node))
         return [];
     let recurse = true;
-    if (args.length > 1)
+    if (args.length > 1) {
         recurse = toBoolean(args[1]);
+    }
+    else if (named && "recurse" in named) {
+        recurse = toBoolean(named["recurse"]);
+    }
     return [(0, xmlmodel_1.deepCopy)(node, recurse)];
 }
 function fnCount(args) {
@@ -631,8 +787,9 @@ function fnTail(args) {
 }
 function fnLast(args, ctx) {
     if (!args || args.length === 0 || args[0].length === 0) {
-        if (ctx.last === null)
-            return [];
+        if (ctx.last === null) {
+            throw new Error("XFDY0006");
+        }
         return [ctx.last];
     }
     const seq = args[0];
@@ -640,17 +797,37 @@ function fnLast(args, ctx) {
         return [];
     return [seq[seq.length - 1]];
 }
-function fnIndex(args, ctx) {
+function fnIndex(args, ctx, named, namedRaw) {
     if (!args || args.length === 0)
         return [];
     const seq = args[0];
     let keyFn = null;
+    let keyExpr = null;
     if (args.length > 1 && args[1] && args[1][0] instanceof FunctionRef) {
         keyFn = args[1][0].name;
     }
+    if (named && "key" in named) {
+        const candidate = named["key"];
+        if (candidate && candidate[0] instanceof FunctionRef) {
+            keyFn = candidate[0].name;
+        }
+        else if (namedRaw && "key" in namedRaw) {
+            keyExpr = namedRaw["key"];
+        }
+    }
     const index = {};
     for (const item of seq) {
-        const key = keyFn ? toString(callFunction(keyFn, [[item]], ctx)) : toString([item]);
+        let key;
+        if (keyFn) {
+            key = toString(callFunction(keyFn, [[item]], ctx));
+        }
+        else if (keyExpr !== null) {
+            const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last);
+            key = toString(evalExpr(keyExpr, itemCtx));
+        }
+        else {
+            key = toString([item]);
+        }
         if (!index[key])
             index[key] = [];
         index[key].push(item);
@@ -693,12 +870,12 @@ function fnSeq(args) {
     return out;
 }
 function fnPosition(_, ctx) {
-    if (ctx.position === null)
-        return [];
+    if (ctx.position === null) {
+        throw new Error("XFDY0006");
+    }
     return [ctx.position];
 }
 function fnApply(args, ctx) {
-    var _a;
     if (!args || args.length === 0)
         return [];
     const seq = args[0];
@@ -706,23 +883,7 @@ function fnApply(args, ctx) {
     if (args.length > 1 && args[1] && args[1].length > 0) {
         ruleset = toString(args[1]);
     }
-    const rules = (_a = ctx.rules[ruleset]) !== null && _a !== void 0 ? _a : [];
-    const out = [];
-    for (const item of seq) {
-        let matched = false;
-        for (const rule of rules) {
-            const [ok, bindings] = matchPattern(rule.pattern, item);
-            if (ok) {
-                matched = true;
-                const newVars = { ...ctx.variables, ...bindings };
-                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)));
-                break;
-            }
-        }
-        if (!matched)
-            throw new Error("XFDY0001: no matching rule");
-    }
-    return out;
+    return doApply(seq, ruleset, ctx);
 }
 function fnSum(args) {
     if (!args || args.length === 0)
@@ -732,6 +893,64 @@ function fnSum(args) {
         total += toNumber([item]);
     return [total];
 }
+// String helpers
+function fnContains(args) {
+    if (args.length < 2)
+        return [false];
+    return [toString(args[0]).indexOf(toString(args[1])) >= 0];
+}
+function fnStartsWith(args) {
+    if (args.length < 2)
+        return [false];
+    return [toString(args[0]).startsWith(toString(args[1]))];
+}
+function fnEndsWith(args) {
+    if (args.length < 2)
+        return [false];
+    return [toString(args[0]).endsWith(toString(args[1]))];
+}
+function fnSubstring(args) {
+    var _a;
+    const s = toString((_a = args[0]) !== null && _a !== void 0 ? _a : []);
+    if (args.length < 2)
+        return [""];
+    const start = Math.floor(toNumber(args[1]));
+    if (args.length > 2) {
+        const length = Math.floor(toNumber(args[2]));
+        return [s.substring(start - 1, start - 1 + length)];
+    }
+    return [s.substring(start - 1)];
+}
+function fnNormalizeSpace(args) {
+    var _a;
+    const s = toString((_a = args[0]) !== null && _a !== void 0 ? _a : []);
+    return [s.trim().replace(/\s+/g, " ")];
+}
+function fnReplace(args) {
+    if (args.length < 3)
+        return [""];
+    const s = toString(args[0]);
+    const pattern = toString(args[1]);
+    const replacement = toString(args[2]);
+    return [s.split(pattern).join(replacement)];
+}
+// Map helpers
+function fnKeys(args) {
+    if (!args || args.length === 0 || args[0].length === 0)
+        return [];
+    const mapping = args[0][0];
+    if (!mapping || typeof mapping !== "object" || Array.isArray(mapping))
+        return [];
+    return Object.keys(mapping);
+}
+function fnMapSize(args) {
+    if (!args || args.length === 0 || args[0].length === 0)
+        return [0.0];
+    const mapping = args[0][0];
+    if (!mapping || typeof mapping !== "object" || Array.isArray(mapping))
+        return [0.0];
+    return [Object.keys(mapping).length];
+}
 const BUILTINS = {
     string: (args) => fnString(args),
     number: (args) => fnNumber(args),
@@ -739,16 +958,17 @@ const BUILTINS = {
     typeOf: (args) => fnTypeOf(args),
     name: (args) => fnName(args),
     attr: (args) => fnAttr(args),
-    text: (args) => fnText(args),
+    text: (args, ctx, named) => fnText(args, ctx, named),
     children: (args) => fnChildren(args),
     elements: (args) => fnElements(args),
-    copy: (args) => fnCopy(args),
+    attributes: (args) => fnAttributes(args),
+    copy: (args, ctx, named) => fnCopy(args, ctx, named),
     count: (args) => fnCount(args),
     empty: (args) => fnEmpty(args),
     distinct: (args) => fnDistinct(args),
     sort: (args, ctx) => fnSort(args, ctx),
     concat: (args) => fnConcat(args),
-    index: (args, ctx) => fnIndex(args, ctx),
+    index: (args, ctx, named, namedRaw) => fnIndex(args, ctx, named, namedRaw),
     lookup: (args) => fnLookup(args),
     groupBy: (args, ctx) => fnGroupBy(args, ctx),
     seq: (args) => fnSeq(args),
@@ -758,6 +978,14 @@ const BUILTINS = {
     last: (args, ctx) => fnLast(args, ctx),
     position: (args, ctx) => fnPosition(args, ctx),
     apply: (args, ctx) => fnApply(args, ctx),
+    contains: (args) => fnContains(args),
+    startsWith: (args) => fnStartsWith(args),
+    endsWith: (args) => fnEndsWith(args),
+    substring: (args) => fnSubstring(args),
+    normalizeSpace: (args) => fnNormalizeSpace(args),
+    replace: (args) => fnReplace(args),
+    keys: (args) => fnKeys(args),
+    mapSize: (args) => fnMapSize(args),
 };
 function serializeItem(item) {
     if (item instanceof xmlmodel_1.Node)

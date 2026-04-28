@@ -54,6 +54,23 @@ static int peek_is(Parser *p, TokenKind kind, const char *value) {
     return 1;
 }
 
+static int is_soft_keyword(const char *s) {
+    return strcmp(s, "apply") == 0 || strcmp(s, "text") == 0 ||
+           strcmp(s, "comment") == 0 || strcmp(s, "pi") == 0 ||
+           strcmp(s, "true") == 0 || strcmp(s, "false") == 0 ||
+           strcmp(s, "null") == 0 || strcmp(s, "string") == 0 ||
+           strcmp(s, "number") == 0 || strcmp(s, "boolean") == 0 ||
+           strcmp(s, "map") == 0;
+}
+
+static int peek_is_ident(Parser *p) {
+    Token *tok = lexer_peek(p->lexer);
+    if (!tok) return 0;
+    if (tok->kind == TK_IDENT) return 1;
+    if (tok->kind == TK_KW && is_soft_keyword(tok->value)) return 1;
+    return 0;
+}
+
 static int accept(Parser *p, TokenKind kind, const char *value) {
     if (peek_is(p, kind, value)) {
         Token *tok = lexer_next(p->lexer);
@@ -84,6 +101,11 @@ static char* expect_ident(Parser *p) {
     if (!tok || (tok->kind != TK_IDENT && tok->kind != TK_KW)) {
         set_error("Expected identifier");
         if (tok) token_free(tok);
+        return NULL;
+    }
+    if (tok->kind == TK_KW && !is_soft_keyword(tok->value)) {
+        set_error("XFST0006: reserved word used as identifier");
+        token_free(tok);
         return NULL;
     }
     char *result = tok->value;
@@ -318,6 +340,66 @@ static Expr* parse_match(Parser *p) {
 
 static Expr* parse_or(Parser *p);
 
+static Expr* parse_func_call(Parser *p, char *name) {
+    accept(p, TK_PUNCT, "(");
+    FuncCall *fc = (FuncCall*)calloc(1, sizeof(FuncCall));
+    fc->name = name;
+    int seen_named = 0;
+    
+    if (!peek_is(p, TK_PUNCT, ")")) {
+        while (1) {
+            Expr *arg = parse_expr_internal(p);
+            if (accept(p, TK_OP, ":=")) {
+                if (!arg || arg->kind != EXPR_VAR_REF) {
+                    set_error("XFST0001: expected identifier before :=");
+                    expr_free(arg);
+                    for (size_t i = 0; i < fc->arg_count; i++) expr_free(fc->args[i]);
+                    free(fc->args);
+                    for (size_t i = 0; i < fc->named_arg_count; i++) {
+                        free(fc->named_args[i].name);
+                        expr_free(fc->named_args[i].expr);
+                    }
+                    free(fc->named_args);
+                    free(fc->name);
+                    free(fc);
+                    return NULL;
+                }
+                NamedArg na;
+                na.name = arg->data.var_ref;
+                arg->data.var_ref = NULL;
+                expr_free(arg);
+                na.expr = parse_expr_internal(p);
+                fc->named_args = (NamedArg*)realloc(fc->named_args, (fc->named_arg_count + 1) * sizeof(NamedArg));
+                fc->named_args[fc->named_arg_count++] = na;
+                seen_named = 1;
+            } else {
+                if (seen_named) {
+                    set_error("XFST0001: positional argument after named argument");
+                    expr_free(arg);
+                    for (size_t i = 0; i < fc->arg_count; i++) expr_free(fc->args[i]);
+                    free(fc->args);
+                    for (size_t i = 0; i < fc->named_arg_count; i++) {
+                        free(fc->named_args[i].name);
+                        expr_free(fc->named_args[i].expr);
+                    }
+                    free(fc->named_args);
+                    free(fc->name);
+                    free(fc);
+                    return NULL;
+                }
+                fc->args = (Expr**)realloc(fc->args, (fc->arg_count + 1) * sizeof(Expr*));
+                fc->args[fc->arg_count++] = arg;
+            }
+            if (!accept(p, TK_PUNCT, ",")) break;
+        }
+    }
+    expect(p, TK_PUNCT, ")");
+    
+    Expr *e = expr_new(EXPR_FUNC_CALL);
+    e->data.func_call = fc;
+    return e;
+}
+
 static Expr* parse_primary(Parser *p) {
     if (peek_is(p, TK_NUM, NULL)) {
         Token *tok = lexer_next(p->lexer);
@@ -359,8 +441,25 @@ static Expr* parse_primary(Parser *p) {
         return parse_match(p);
     }
     
+    /* apply(expr) or apply(expr, ruleset) */
+    if (peek_is(p, TK_KW, "apply")) {
+        accept(p, TK_KW, "apply");
+        expect(p, TK_PUNCT, "(");
+        Expr *expr = parse_expr_internal(p);
+        char *ruleset = NULL;
+        if (accept(p, TK_PUNCT, ",")) {
+            ruleset = expect_ident(p);
+        }
+        expect(p, TK_PUNCT, ")");
+        Expr *e = expr_new(EXPR_APPLY);
+        e->data.apply_expr = (ApplyExpr*)malloc(sizeof(ApplyExpr));
+        e->data.apply_expr->expr = expr;
+        e->data.apply_expr->ruleset = ruleset;
+        return e;
+    }
+    
     /* text{...} constructor */
-    if (peek_is(p, TK_IDENT, "text")) {
+    if (peek_is(p, TK_IDENT, "text") || peek_is(p, TK_KW, "text")) {
         size_t saved_pos = p->lexer->pos;
         Token *saved_buf = p->lexer->buffer;
         if (p->lexer->buffer) {
@@ -383,38 +482,74 @@ static Expr* parse_primary(Parser *p) {
         /* Fall through to identifier handling */
     }
     
+    /* comment{...} constructor */
+    if (peek_is(p, TK_KW, "comment")) {
+        size_t saved_pos = p->lexer->pos;
+        Token *saved_buf = p->lexer->buffer;
+        if (p->lexer->buffer) {
+            p->lexer->buffer = NULL;
+        }
+        
+        Token *tok = lexer_next(p->lexer);
+        if (peek_is(p, TK_PUNCT, "{")) {
+            token_free(tok);
+            accept(p, TK_PUNCT, "{");
+            Expr *inner = parse_expr_internal(p);
+            expect(p, TK_PUNCT, "}");
+            Expr *e = expr_new(EXPR_COMMENT_CONSTRUCTOR);
+            e->data.comment_constructor = (CommentConstructor*)malloc(sizeof(CommentConstructor));
+            e->data.comment_constructor->expr = inner;
+            return e;
+        }
+        /* Restore */
+        p->lexer->pos = saved_pos;
+        p->lexer->buffer = saved_buf;
+        /* Fall through to identifier handling */
+    }
+    
+    /* pi{target, value} constructor */
+    if (peek_is(p, TK_KW, "pi")) {
+        size_t saved_pos = p->lexer->pos;
+        Token *saved_buf = p->lexer->buffer;
+        if (p->lexer->buffer) {
+            p->lexer->buffer = NULL;
+        }
+        
+        Token *tok = lexer_next(p->lexer);
+        if (peek_is(p, TK_PUNCT, "{")) {
+            token_free(tok);
+            accept(p, TK_PUNCT, "{");
+            Expr *target = parse_expr_internal(p);
+            expect(p, TK_PUNCT, ",");
+            Expr *value = parse_expr_internal(p);
+            expect(p, TK_PUNCT, "}");
+            Expr *e = expr_new(EXPR_PI_CONSTRUCTOR);
+            e->data.pi_constructor = (PIConstructor*)malloc(sizeof(PIConstructor));
+            e->data.pi_constructor->target = target;
+            e->data.pi_constructor->value = value;
+            return e;
+        }
+        /* Restore */
+        p->lexer->pos = saved_pos;
+        p->lexer->buffer = saved_buf;
+        /* Fall through to identifier handling */
+    }
+    
     /* Element constructor */
     if (peek_is(p, TK_OP, "<")) {
         return parse_constructor(p);
     }
     
-    /* Path starting with . or / */
-    if (peek_is(p, TK_DOT, NULL) || peek_is(p, TK_SLASH, NULL)) {
+    /* Path starting with . or / or @ */
+    if (peek_is(p, TK_DOT, NULL) || peek_is(p, TK_SLASH, NULL) || peek_is(p, TK_AT, NULL)) {
         return parse_path(p, NULL);
     }
     
-    /* Identifier: variable, function call, or path start */
-    if (peek_is(p, TK_IDENT, NULL)) {
+    /* Identifier or soft keyword: variable, function call, or path start */
+    if (peek_is_ident(p)) {
         char *name = expect_ident(p);
         if (peek_is(p, TK_PUNCT, "(")) {
-            /* Function call */
-            accept(p, TK_PUNCT, "(");
-            FuncCall *fc = (FuncCall*)calloc(1, sizeof(FuncCall));
-            fc->name = name;
-            
-            if (!peek_is(p, TK_PUNCT, ")")) {
-                fc->args = (Expr**)realloc(fc->args, (fc->arg_count + 1) * sizeof(Expr*));
-                fc->args[fc->arg_count++] = parse_expr_internal(p);
-                while (accept(p, TK_PUNCT, ",")) {
-                    fc->args = (Expr**)realloc(fc->args, (fc->arg_count + 1) * sizeof(Expr*));
-                    fc->args[fc->arg_count++] = parse_expr_internal(p);
-                }
-            }
-            expect(p, TK_PUNCT, ")");
-            
-            Expr *e = expr_new(EXPR_FUNC_CALL);
-            e->data.func_call = fc;
-            return e;
+            return parse_func_call(p, name);
         }
         
         /* Check if path continues */
@@ -439,19 +574,20 @@ static StepTest parse_step_test(Parser *p) {
         return step_test_wildcard();
     }
     
-    if (peek_is(p, TK_IDENT, NULL)) {
+    if (peek_is_ident(p)) {
         char *name = expect_ident(p);
         if (strcmp(name, "text") == 0 || strcmp(name, "node") == 0 ||
-            strcmp(name, "comment") == 0 || strcmp(name, "pi") == 0) {
+            strcmp(name, "comment") == 0 || strcmp(name, "pi") == 0 ||
+            strcmp(name, "document") == 0) {
             accept(p, TK_PUNCT, "(");
             expect(p, TK_PUNCT, ")");
             StepTest st;
+            st.name = NULL;
             if (strcmp(name, "text") == 0) st = step_test_text();
             else if (strcmp(name, "node") == 0) st = step_test_node();
-            else {
-                st.kind = strcmp(name, "comment") == 0 ? TEST_COMMENT : TEST_PI;
-                st.name = NULL;
-            }
+            else if (strcmp(name, "comment") == 0) st.kind = TEST_COMMENT;
+            else if (strcmp(name, "pi") == 0) st.kind = TEST_PI;
+            else if (strcmp(name, "document") == 0) st.kind = TEST_DOCUMENT;
             free(name);
             return st;
         }
@@ -494,13 +630,15 @@ static Expr* parse_path(Parser *p, PathStart *start) {
             } else {
                 pe->start.kind = PS_ROOT;
             }
+        } else if (tok->kind == TK_AT) {
+            pe->start.kind = PS_ATTR;
         }
         token_free(tok);
     }
     
     /* Handle special starts */
     if (pe->start.kind == PS_DESC || pe->start.kind == PS_DESC_ROOT) {
-        if (peek_is(p, TK_IDENT, NULL) || peek_is(p, TK_OP, "*")) {
+        if (peek_is_ident(p) || peek_is(p, TK_OP, "*")) {
             PathStep step = {};
             step.axis = AXIS_DESC_OR_SELF;
             step.test = parse_step_test(p);
@@ -521,11 +659,23 @@ static Expr* parse_path(Parser *p, PathStart *start) {
             free(name);
             pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
             pe->steps[pe->step_count++] = step;
-        } else if (peek_is(p, TK_IDENT, NULL) || peek_is(p, TK_OP, "*")) {
+        } else if (peek_is_ident(p) || peek_is(p, TK_OP, "*")) {
             PathStep step = {};
             step.axis = AXIS_CHILD;
             step.test = parse_step_test(p);
             step.predicates = parse_predicates(p, &step.predicate_count);
+            pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
+            pe->steps[pe->step_count++] = step;
+        }
+    }
+    
+    if (pe->start.kind == PS_ATTR) {
+        if (peek_is_ident(p)) {
+            char *name = expect_ident(p);
+            PathStep step = {};
+            step.axis = AXIS_ATTR;
+            step.test = step_test_named(name);
+            free(name);
             pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
             pe->steps[pe->step_count++] = step;
         }
@@ -604,14 +754,35 @@ static Pattern* parse_pattern(Parser *p) {
     if (accept(p, TK_AT, NULL)) {
         char *name = expect_ident(p);
         Pattern *pat = pattern_new(PAT_ATTRIBUTE);
-        pat->data.attribute = name;
+        pat->data.attribute = (AttributePattern*)calloc(1, sizeof(AttributePattern));
+        pat->data.attribute->name = name;
+        if (accept(p, TK_OP, "=")) {
+            if (peek_is(p, TK_STR, NULL)) {
+                Token *tok = lexer_next(p->lexer);
+                pat->data.attribute->value = (LiteralValue*)malloc(sizeof(LiteralValue));
+                pat->data.attribute->value->kind = LIT_STR;
+                pat->data.attribute->value->value.str = strdup(tok->value);
+                token_free(tok);
+            } else if (peek_is(p, TK_NUM, NULL)) {
+                Token *tok = lexer_next(p->lexer);
+                pat->data.attribute->value = (LiteralValue*)malloc(sizeof(LiteralValue));
+                pat->data.attribute->value->kind = LIT_NUM;
+                pat->data.attribute->value->value.num = strtod(tok->value, NULL);
+                token_free(tok);
+            } else {
+                set_error("Expected literal after = in attribute pattern");
+                pattern_free(pat);
+                return NULL;
+            }
+        }
         return pat;
     }
     
-    if (peek_is(p, TK_IDENT, NULL)) {
+    if (peek_is_ident(p)) {
         char *name = expect_ident(p);
         if (strcmp(name, "node") == 0 || strcmp(name, "text") == 0 || 
-            strcmp(name, "comment") == 0) {
+            strcmp(name, "comment") == 0 || strcmp(name, "pi") == 0 ||
+            strcmp(name, "document") == 0) {
             accept(p, TK_PUNCT, "(");
             expect(p, TK_PUNCT, ")");
             Pattern *pat = pattern_new(PAT_TYPED);
@@ -645,7 +816,11 @@ static Pattern* parse_pattern(Parser *p) {
             pat->data.element->var = expect_ident(p);
             expect(p, TK_PUNCT, "}");
         } else if (peek_is(p, TK_OP, "<")) {
-            pat->data.element->child = parse_pattern(p);
+            while (peek_is(p, TK_OP, "<")) {
+                Pattern *child = parse_pattern(p);
+                pat->data.element->children = (Pattern**)realloc(pat->data.element->children, (pat->data.element->child_count + 1) * sizeof(Pattern*));
+                pat->data.element->children[pat->data.element->child_count++] = child;
+            }
         }
         
         expect(p, TK_OP, "<");
@@ -912,6 +1087,41 @@ static Expr* parse_constructor(Parser *p) {
             continue;
         }
         
+        /* comment{ constructor */
+        if (p->lexer->pos + 8 <= p->lexer->len &&
+            strncmp(p->lexer->text + p->lexer->pos, "comment{", 8) == 0) {
+            p->lexer->pos += 7;
+            p->lexer->buffer = NULL;
+            expect(p, TK_PUNCT, "{");
+            Expr *inner = parse_expr_internal(p);
+            expect(p, TK_PUNCT, "}");
+            Expr *e = expr_new(EXPR_COMMENT_CONSTRUCTOR);
+            e->data.comment_constructor = (CommentConstructor*)malloc(sizeof(CommentConstructor));
+            e->data.comment_constructor->expr = inner;
+            c->contents = (Expr**)realloc(c->contents, (c->content_count + 1) * sizeof(Expr*));
+            c->contents[c->content_count++] = e;
+            continue;
+        }
+        
+        /* pi{ constructor */
+        if (p->lexer->pos + 3 <= p->lexer->len &&
+            strncmp(p->lexer->text + p->lexer->pos, "pi{", 3) == 0) {
+            p->lexer->pos += 2;
+            p->lexer->buffer = NULL;
+            expect(p, TK_PUNCT, "{");
+            Expr *target = parse_expr_internal(p);
+            expect(p, TK_PUNCT, ",");
+            Expr *value = parse_expr_internal(p);
+            expect(p, TK_PUNCT, "}");
+            Expr *e = expr_new(EXPR_PI_CONSTRUCTOR);
+            e->data.pi_constructor = (PIConstructor*)malloc(sizeof(PIConstructor));
+            e->data.pi_constructor->target = target;
+            e->data.pi_constructor->value = value;
+            c->contents = (Expr**)realloc(c->contents, (c->content_count + 1) * sizeof(Expr*));
+            c->contents[c->content_count++] = e;
+            continue;
+        }
+        
         /* Nested element */
         if (p->lexer->pos < p->lexer->len &&
             p->lexer->text[p->lexer->pos] == '<') {
@@ -1011,7 +1221,7 @@ Module* parser_parse_module(Parser *p) {
         accept(p, TK_KW, "xform");
         expect(p, TK_KW, "version");
         Token *ver = lexer_next(p->lexer);
-        if (ver && strcmp(ver->value, "2.0") != 0) {
+        if (ver && strcmp(ver->value, "2.0") != 0 && strcmp(ver->value, "2.1") != 0) {
             set_error("XFST0005: unsupported version");
             token_free(ver);
             module_free(mod);

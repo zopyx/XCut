@@ -36,6 +36,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parser = void 0;
 const ast = __importStar(require("./ast"));
 const lexer_1 = require("./lexer");
+const SOFT_KEYWORDS = new Set([
+    "true", "false", "null", "string", "number", "boolean", "map",
+    "apply", "text", "comment", "pi",
+]);
 class Parser {
     constructor(text) {
         this.text = text;
@@ -52,7 +56,7 @@ class Parser {
             this.lexer.next();
             this.lexer.expect("KW", "version");
             const version = this.lexer.expect("STRING").value;
-            if (version !== "2.0") {
+            if (version !== "2.0" && version !== "2.1") {
                 throw new Error("XFST0005: unsupported version");
             }
             this.lexer.expect("PUNCT", ";");
@@ -112,14 +116,14 @@ class Parser {
         let alias = null;
         if (this.lexer.peek().kind === "KW" && this.lexer.peek().value === "as") {
             this.lexer.next();
-            alias = this.lexer.expect("IDENT").value;
+            alias = this.expectIdentifier();
         }
         this.lexer.expect("PUNCT", ";");
         imports.push([iri, alias]);
     }
     parseVar() {
         this.lexer.expect("KW", "var");
-        const name = this.lexer.expect("IDENT").value;
+        const name = this.expectIdentifier();
         this.lexer.expect("OP", ":=");
         const value = this.parseExpr();
         this.lexer.expect("PUNCT", ";");
@@ -144,7 +148,7 @@ class Parser {
         functions[name] = new ast.FunctionDef(params, body);
     }
     parseParam() {
-        const name = this.lexer.expect("IDENT").value;
+        const name = this.expectIdentifier();
         let typeRef = null;
         let defaultExpr = null;
         if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ":") {
@@ -200,7 +204,7 @@ class Parser {
     }
     parseLet() {
         this.lexer.expect("KW", "let");
-        const name = this.lexer.expect("IDENT").value;
+        const name = this.expectIdentifier();
         this.lexer.expect("OP", ":=");
         const value = this.parseExpr();
         this.lexer.expect("KW", "in");
@@ -209,7 +213,7 @@ class Parser {
     }
     parseFor() {
         this.lexer.expect("KW", "for");
-        const name = this.lexer.expect("IDENT").value;
+        const name = this.expectIdentifier();
         this.lexer.expect("KW", "in");
         const seq = this.parseExpr();
         let where = null;
@@ -344,7 +348,19 @@ class Parser {
             this.lexer.expect("PUNCT", ")");
             return expr;
         }
-        if (tok.kind === "IDENT" && tok.value === "text") {
+        if (tok.kind === "KW" && tok.value === "apply") {
+            this.lexer.next();
+            this.lexer.expect("PUNCT", "(");
+            const expr = this.parseExpr();
+            let ruleset = null;
+            if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ",") {
+                this.lexer.next();
+                ruleset = this.expectIdentifier();
+            }
+            this.lexer.expect("PUNCT", ")");
+            return new ast.ApplyExpr(expr, ruleset);
+        }
+        if (tok.kind === "KW" && tok.value === "text") {
             const savedPos = this.lexer.pos;
             const savedTok = this.lexer.buffer;
             this.lexer.next();
@@ -357,13 +373,44 @@ class Parser {
             this.lexer.pos = savedPos;
             this.lexer.buffer = savedTok;
         }
+        if (tok.kind === "KW" && tok.value === "comment") {
+            const savedPos = this.lexer.pos;
+            const savedTok = this.lexer.buffer;
+            this.lexer.next();
+            if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === "{") {
+                this.lexer.next();
+                const expr = this.parseExpr();
+                this.lexer.expect("PUNCT", "}");
+                return new ast.CommentConstructor(expr);
+            }
+            this.lexer.pos = savedPos;
+            this.lexer.buffer = savedTok;
+        }
+        if (tok.kind === "KW" && tok.value === "pi") {
+            const savedPos = this.lexer.pos;
+            const savedTok = this.lexer.buffer;
+            this.lexer.next();
+            if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === "{") {
+                this.lexer.next();
+                const target = this.parseExpr();
+                this.lexer.expect("PUNCT", ",");
+                const value = this.parseExpr();
+                this.lexer.expect("PUNCT", "}");
+                return new ast.PIConstructor(target, value);
+            }
+            this.lexer.pos = savedPos;
+            this.lexer.buffer = savedTok;
+        }
         if (tok.kind === "OP" && tok.value === "<") {
             return this.parseConstructor();
         }
         if (tok.kind === "DOT" || tok.kind === "SLASH") {
             return this.parsePath();
         }
-        if (tok.kind === "IDENT") {
+        if (tok.kind === "AT") {
+            return this.parsePath();
+        }
+        if (tok.kind === "IDENT" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
             const name = this.lexer.next().value;
             if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === "(") {
                 return this.parseFuncCall(name);
@@ -378,15 +425,36 @@ class Parser {
     parseFuncCall(name) {
         this.lexer.expect("PUNCT", "(");
         const args = [];
+        const namedArgs = [];
+        let seenNamed = false;
         if (!(this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ")")) {
-            args.push(this.parseExpr());
-            while (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ",") {
-                this.lexer.next();
-                args.push(this.parseExpr());
+            while (true) {
+                const argExpr = this.parseExpr();
+                if (this.lexer.peek().kind === "OP" && this.lexer.peek().value === ":=") {
+                    this.lexer.next();
+                    // Named argument: argExpr should be VarRef
+                    if (!(argExpr instanceof ast.VarRef)) {
+                        throw new Error("XFST0001: expected identifier before :=");
+                    }
+                    const namedValue = this.parseExpr();
+                    namedArgs.push([argExpr.name, namedValue]);
+                    seenNamed = true;
+                }
+                else {
+                    if (seenNamed) {
+                        throw new Error("XFST0001: positional argument after named argument");
+                    }
+                    args.push(argExpr);
+                }
+                if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ",") {
+                    this.lexer.next();
+                    continue;
+                }
+                break;
             }
         }
         this.lexer.expect("PUNCT", ")");
-        return new ast.FuncCall(name, args);
+        return new ast.FuncCall(name, args, namedArgs);
     }
     pathContinues() {
         const tok = this.lexer.peek();
@@ -401,6 +469,9 @@ class Parser {
             }
             else if (tok.kind === "SLASH") {
                 actualStart = tok.value === "//" ? new ast.PathStart("desc_root") : new ast.PathStart("root");
+            }
+            else if (tok.kind === "AT") {
+                actualStart = new ast.PathStart("attr");
             }
             else {
                 throw new Error(`Invalid path start at ${tok.pos}`);
@@ -419,7 +490,7 @@ class Parser {
                 const preds = this.parsePredicates();
                 steps.push(new ast.PathStep("child", test, preds));
             }
-            else if (tok.kind === "IDENT") {
+            else if (tok.kind === "IDENT" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
                 const test = this.parseStepTest();
                 const preds = this.parsePredicates();
                 steps.push(new ast.PathStep("child", test, preds));
@@ -427,10 +498,17 @@ class Parser {
         }
         if (["desc", "desc_root"].includes(actualStart.kind)) {
             const tok = this.lexer.peek();
-            if (tok.kind === "IDENT" || tok.kind === "OP") {
+            if (tok.kind === "IDENT" || tok.kind === "OP" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
                 const test = this.parseStepTest();
                 const preds = this.parsePredicates();
                 steps.push(new ast.PathStep("desc_or_self", test, preds));
+            }
+        }
+        if (actualStart.kind === "attr") {
+            const tok = this.lexer.peek();
+            if (tok.kind === "IDENT" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
+                const test = new ast.StepTest("name", this.parseQName());
+                steps.push(new ast.PathStep("attr", test, []));
             }
         }
         while (true) {
@@ -487,8 +565,8 @@ class Parser {
             this.lexer.next();
             return new ast.StepTest("wildcard");
         }
-        if (tok.kind === "IDENT") {
-            if (["text", "node", "comment", "pi"].includes(tok.value)) {
+        if (tok.kind === "IDENT" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
+            if (["text", "node", "comment", "pi", "document"].includes(tok.value)) {
                 this.lexer.next();
                 this.lexer.expect("PUNCT", "(");
                 this.lexer.expect("PUNCT", ")");
@@ -509,16 +587,36 @@ class Parser {
         return preds;
     }
     parseQName() {
-        return this.lexer.expect("IDENT").value;
+        return this.expectIdentifier();
+    }
+    parseLiteral() {
+        const tok = this.lexer.peek();
+        if (tok.kind === "STRING") {
+            this.lexer.next();
+            return new ast.Literal(tok.value);
+        }
+        if (tok.kind === "NUMBER") {
+            this.lexer.next();
+            return new ast.Literal(parseFloat(tok.value));
+        }
+        throw new Error(`Expected literal at ${tok.pos}`);
     }
     parsePattern() {
         const tok = this.lexer.peek();
         if (tok.kind === "AT") {
             this.lexer.next();
-            const name = this.parseQName();
+            const name = this.expectIdentifier();
+            if (this.lexer.peek().kind === "OP" && this.lexer.peek().value === "=") {
+                this.lexer.next();
+                const val = this.parseLiteral();
+                return new ast.AttributePattern(name, val);
+            }
             return new ast.AttributePattern(name);
         }
-        if (tok.kind === "IDENT" && ["node", "text", "comment"].includes(tok.value)) {
+        if (tok.kind === "STRING") {
+            return new ast.LiteralPattern(this.lexer.next().value);
+        }
+        if (tok.kind === "IDENT" && ["node", "text", "comment", "pi", "document"].includes(tok.value)) {
             this.lexer.next();
             this.lexer.expect("PUNCT", "(");
             this.lexer.expect("PUNCT", ")");
@@ -530,17 +628,30 @@ class Parser {
         }
         if (tok.kind === "OP" && tok.value === "<") {
             this.lexer.next();
-            const name = this.parseQName();
+            const name = this.expectIdentifier();
+            const attrs = [];
+            while (this.lexer.peek().kind === "AT") {
+                this.lexer.next();
+                const attrName = this.expectIdentifier();
+                let attrVal = null;
+                if (this.lexer.peek().kind === "OP" && this.lexer.peek().value === "=") {
+                    this.lexer.next();
+                    attrVal = this.parseLiteral();
+                }
+                attrs.push([attrName, attrVal]);
+            }
             this.lexer.expect("OP", ">");
             let varName = null;
-            let child = null;
+            let children = [];
             if (this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === "{") {
                 this.lexer.next();
-                varName = this.lexer.expect("IDENT").value;
+                varName = this.expectIdentifier();
                 this.lexer.expect("PUNCT", "}");
             }
             else if (this.lexer.peek().kind === "OP" && this.lexer.peek().value === "<") {
-                child = this.parsePattern();
+                while (this.lexer.peek().kind === "OP" && this.lexer.peek().value === "<") {
+                    children.push(this.parsePattern());
+                }
             }
             else {
                 throw new Error("Invalid element pattern content");
@@ -552,7 +663,7 @@ class Parser {
                 throw new Error("Mismatched pattern end tag");
             }
             this.lexer.expect("OP", ">");
-            return new ast.ElementPattern(name, varName, child);
+            return new ast.ElementPattern(name, varName, null, attrs, children);
         }
         throw new Error(`Invalid pattern at ${tok.pos}`);
     }
@@ -600,6 +711,26 @@ class Parser {
                 const expr = this.parseExpr();
                 this.lexer.expect("PUNCT", "}");
                 contents.push(new ast.TextConstructor(expr));
+                continue;
+            }
+            if (this.text.startsWith("comment{", this.lexer.pos)) {
+                this.lexer.pos += 7;
+                this.lexer.clearBuffer();
+                this.lexer.expect("PUNCT", "{");
+                const expr = this.parseExpr();
+                this.lexer.expect("PUNCT", "}");
+                contents.push(new ast.CommentConstructor(expr));
+                continue;
+            }
+            if (this.text.startsWith("pi{", this.lexer.pos)) {
+                this.lexer.pos += 2;
+                this.lexer.clearBuffer();
+                this.lexer.expect("PUNCT", "{");
+                const target = this.parseExpr();
+                this.lexer.expect("PUNCT", ",");
+                const value = this.parseExpr();
+                this.lexer.expect("PUNCT", "}");
+                contents.push(new ast.PIConstructor(target, value));
                 continue;
             }
             const ch = this.text[this.lexer.pos];
@@ -654,6 +785,16 @@ class Parser {
             throw new Error("Unterminated end tag");
         }
         return [name, pos + 1];
+    }
+    expectIdentifier() {
+        const tok = this.lexer.peek();
+        if (tok.kind === "IDENT") {
+            return this.lexer.next().value;
+        }
+        if (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value)) {
+            return this.lexer.next().value;
+        }
+        throw new Error(`XFST0006: expected identifier, got ${tok.kind} ${tok.value} at ${tok.pos}`);
     }
 }
 exports.Parser = Parser;

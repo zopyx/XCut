@@ -4,2183 +4,6 @@ events:
   -
     kind: "find-v1"
     backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_UNAME"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "uname"
-    candidate_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/uname"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/uname"
-      - "/home/linuxbrew/.linuxbrew/bin/uname"
-      - "/home/linuxbrew/.linuxbrew/sbin/uname"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/uname"
-      - "/home/ajung/.local/bin/uname"
-      - "/home/ajung/bin/uname"
-    found: "/usr/bin/uname"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "message-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      The system is: Linux - 6.8.0-100-generic - x86_64
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeUnixFindMake.cmake:5 (find_program)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_MAKE_PROGRAM"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "gmake"
-      - "make"
-      - "smake"
-    candidate_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/gmake"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/gmake"
-      - "/home/linuxbrew/.linuxbrew/bin/gmake"
-      - "/home/linuxbrew/.linuxbrew/sbin/gmake"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/gmake"
-      - "/home/ajung/.local/bin/gmake"
-      - "/home/ajung/bin/gmake"
-    found: "/usr/bin/gmake"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompiler.cmake:73 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:69 (_cmake_find_compiler)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_CXX_COMPILER"
-    description: "CXX compiler"
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "c++"
-      - "CC"
-      - "g++"
-      - "aCC"
-      - "cl"
-      - "bcc"
-      - "xlC"
-      - "icpx"
-      - "icx"
-      - "clang++"
-    candidate_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/c++"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/c++"
-      - "/home/linuxbrew/.linuxbrew/bin/c++"
-      - "/home/linuxbrew/.linuxbrew/sbin/c++"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/c++"
-      - "/home/ajung/.local/bin/c++"
-      - "/home/ajung/bin/c++"
-    found: "/usr/bin/c++"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "file"
-    variable: "src_in"
-    description: "Path to a file."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "CMakeCXXCompilerId.cpp.in"
-    candidate_directories:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/"
-    found: "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "message-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
-      Compiler: /usr/bin/c++ 
-      Build flags: 
-      Id flags:  
-      
-      The output was:
-      0
-      
-      
-      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
-      
-      The CXX compiler identification is GNU, found in:
-        /home/ajung/src/xcut/xform-cpp/build/CMakeFiles/4.2.3/CompilerIdCXX/a.out
-      
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_AR"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "ar"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/ar"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_RANLIB"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "ranlib"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/ranlib"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_STRIP"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "strip"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/strip"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_LINKER"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "ld"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/ld"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_NM"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "nm"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/nm"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_OBJDUMP"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "objdump"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/objdump"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_OBJCOPY"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "objcopy"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/objcopy"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_READELF"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "readelf"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/readelf"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_DLLTOOL"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "dlltool"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/usr/bin/dlltool"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/dlltool"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/dlltool"
-      - "/home/linuxbrew/.linuxbrew/bin/dlltool"
-      - "/home/linuxbrew/.linuxbrew/sbin/dlltool"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/dlltool"
-      - "/home/ajung/.local/bin/dlltool"
-      - "/home/ajung/bin/dlltool"
-      - "/usr/local/sbin/dlltool"
-      - "/usr/local/bin/dlltool"
-      - "/opt/openai/bin/dlltool"
-      - "/opt/weasyprint/bin/dlltool"
-      - "/usr/AHFormatterV74/dlltool"
-      - "/opt/PDFreactor/clients/cli/dlltool"
-      - "/opt/Postman/dlltool"
-      - "/opt/FileZilla3/bin/dlltool"
-      - "/home/ajung/.bun/bin/dlltool"
-      - "/opt/pycharm-2024.3/bin/dlltool"
-      - "/home/ajung/.cargo/bin/dlltool"
-      - "/usr/sbin/dlltool"
-      - "/sbin/dlltool"
-      - "/bin/dlltool"
-      - "/usr/games/dlltool"
-      - "/usr/local/games/dlltool"
-      - "/snap/bin/dlltool"
-    found: false
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_ADDR2LINE"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "addr2line"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    found: "/usr/bin/addr2line"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeFindBinUtils.cmake:243 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_TAPI"
-    description: "Path to a program."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "tapi"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/usr/bin/tapi"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/tapi"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/tapi"
-      - "/home/linuxbrew/.linuxbrew/bin/tapi"
-      - "/home/linuxbrew/.linuxbrew/sbin/tapi"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/tapi"
-      - "/home/ajung/.local/bin/tapi"
-      - "/home/ajung/bin/tapi"
-      - "/usr/local/sbin/tapi"
-      - "/usr/local/bin/tapi"
-      - "/opt/openai/bin/tapi"
-      - "/opt/weasyprint/bin/tapi"
-      - "/usr/AHFormatterV74/tapi"
-      - "/opt/PDFreactor/clients/cli/tapi"
-      - "/opt/Postman/tapi"
-      - "/opt/FileZilla3/bin/tapi"
-      - "/home/ajung/.bun/bin/tapi"
-      - "/opt/pycharm-2024.3/bin/tapi"
-      - "/home/ajung/.cargo/bin/tapi"
-      - "/usr/sbin/tapi"
-      - "/sbin/tapi"
-      - "/bin/tapi"
-      - "/usr/games/tapi"
-      - "/usr/local/games/tapi"
-      - "/snap/bin/tapi"
-    found: false
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/Compiler/GNU-FindBinUtils.cmake:18 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_CXX_COMPILER_AR"
-    description: "A wrapper around 'ar' adding the appropriate '--plugin' option for the GCC compiler"
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "gcc-ar-13.3"
-      - "gcc-ar-13"
-      - "gcc-ar13"
-      - "gcc-ar"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/usr/bin/gcc-ar-13.3"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/gcc-ar-13.3"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/gcc-ar-13.3"
-      - "/home/linuxbrew/.linuxbrew/bin/gcc-ar-13.3"
-      - "/home/linuxbrew/.linuxbrew/sbin/gcc-ar-13.3"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/gcc-ar-13.3"
-      - "/home/ajung/.local/bin/gcc-ar-13.3"
-      - "/home/ajung/bin/gcc-ar-13.3"
-      - "/usr/local/sbin/gcc-ar-13.3"
-      - "/usr/local/bin/gcc-ar-13.3"
-      - "/opt/openai/bin/gcc-ar-13.3"
-      - "/opt/weasyprint/bin/gcc-ar-13.3"
-      - "/usr/AHFormatterV74/gcc-ar-13.3"
-      - "/opt/PDFreactor/clients/cli/gcc-ar-13.3"
-      - "/opt/Postman/gcc-ar-13.3"
-      - "/opt/FileZilla3/bin/gcc-ar-13.3"
-      - "/home/ajung/.bun/bin/gcc-ar-13.3"
-      - "/opt/pycharm-2024.3/bin/gcc-ar-13.3"
-      - "/home/ajung/.cargo/bin/gcc-ar-13.3"
-      - "/usr/sbin/gcc-ar-13.3"
-      - "/sbin/gcc-ar-13.3"
-      - "/bin/gcc-ar-13.3"
-      - "/usr/games/gcc-ar-13.3"
-      - "/usr/local/games/gcc-ar-13.3"
-      - "/snap/bin/gcc-ar-13.3"
-    found: "/usr/bin/gcc-ar-13"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/Compiler/GNU-FindBinUtils.cmake:30 (find_program)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:207 (include)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "program"
-    variable: "CMAKE_CXX_COMPILER_RANLIB"
-    description: "A wrapper around 'ranlib' adding the appropriate '--plugin' option for the GCC compiler"
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: false
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "gcc-ranlib-13.3"
-      - "gcc-ranlib-13"
-      - "gcc-ranlib13"
-      - "gcc-ranlib"
-    candidate_directories:
-      - "/usr/bin/"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-    searched_directories:
-      - "/usr/bin/gcc-ranlib-13.3"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/gcc-ranlib-13.3"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/gcc-ranlib-13.3"
-      - "/home/linuxbrew/.linuxbrew/bin/gcc-ranlib-13.3"
-      - "/home/linuxbrew/.linuxbrew/sbin/gcc-ranlib-13.3"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/gcc-ranlib-13.3"
-      - "/home/ajung/.local/bin/gcc-ranlib-13.3"
-      - "/home/ajung/bin/gcc-ranlib-13.3"
-      - "/usr/local/sbin/gcc-ranlib-13.3"
-      - "/usr/local/bin/gcc-ranlib-13.3"
-      - "/opt/openai/bin/gcc-ranlib-13.3"
-      - "/opt/weasyprint/bin/gcc-ranlib-13.3"
-      - "/usr/AHFormatterV74/gcc-ranlib-13.3"
-      - "/opt/PDFreactor/clients/cli/gcc-ranlib-13.3"
-      - "/opt/Postman/gcc-ranlib-13.3"
-      - "/opt/FileZilla3/bin/gcc-ranlib-13.3"
-      - "/home/ajung/.bun/bin/gcc-ranlib-13.3"
-      - "/opt/pycharm-2024.3/bin/gcc-ranlib-13.3"
-      - "/home/ajung/.cargo/bin/gcc-ranlib-13.3"
-      - "/usr/sbin/gcc-ranlib-13.3"
-      - "/sbin/gcc-ranlib-13.3"
-      - "/bin/gcc-ranlib-13.3"
-      - "/usr/games/gcc-ranlib-13.3"
-      - "/usr/local/games/gcc-ranlib-13.3"
-      - "/snap/bin/gcc-ranlib-13.3"
-    found: "/usr/bin/gcc-ranlib-13"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-  -
-    kind: "try_compile-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    checks:
-      - "Detecting CXX compiler ABI info"
-    directories:
-      source: "/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0"
-      binary: "/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0"
-    cmakeVariables:
-      CMAKE_CXX_FLAGS: ""
-      CMAKE_CXX_FLAGS_DEBUG: "-g"
-      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
-      CMAKE_EXE_LINKER_FLAGS: ""
-    buildResult:
-      variable: "CMAKE_CXX_ABI_COMPILED"
-      cached: true
-      stdout: |
-        Change Dir: '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0'
-        
-        Run Build Command(s): /home/linuxbrew/.linuxbrew/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_d5cb6/fast
-        gmake[1]: Entering directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0'
-        /usr/bin/gmake  -f CMakeFiles/cmTC_d5cb6.dir/build.make CMakeFiles/cmTC_d5cb6.dir/build
-        gmake[2]: Entering directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0'
-        Building CXX object CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -v -o CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -c /home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-        Using built-in specs.
-        COLLECT_GCC=/usr/bin/c++
-        OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
-        OFFLOAD_TARGET_DEFAULT=1
-        Target: x86_64-linux-gnu
-        Configured with: ../src/configure -v --with-pkgversion='Ubuntu 13.3.0-6ubuntu2~24.04.1' --with-bugurl=file:///usr/share/doc/gcc-13/README.Bugs --enable-languages=c,ada,c++,go,d,fortran,objc,obj-c++,m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-13 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/libexec --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-libstdcxx-backtrace --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --enable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-nvptx/usr,amdgcn-amdhsa=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-gcn/usr --enable-offload-defaulted --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --with-build-config=bootstrap-lto-lean --enable-link-serialization=2
-        Thread model: posix
-        Supported LTO compression algorithms: zlib zstd
-        gcc version 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/'
-         /usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_d5cb6.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccWqE0rV.s
-        GNU C++17 (Ubuntu 13.3.0-6ubuntu2~24.04.1) version 13.3.0 (x86_64-linux-gnu)
-        	compiled by GNU C version 13.3.0, GMP version 6.3.0, MPFR version 4.2.1, MPC version 1.3.1, isl version isl-0.26-GMP
-        
-        GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
-        ignoring duplicate directory "/usr/include/x86_64-linux-gnu/c++/13"
-        ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"
-        ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/include-fixed/x86_64-linux-gnu"
-        ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/include-fixed"
-        ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/../../../../x86_64-linux-gnu/include"
-        #include "..." search starts here:
-        #include <...> search starts here:
-         /usr/include/c++/13
-         /usr/include/x86_64-linux-gnu/c++/13
-         /usr/include/c++/13/backward
-         /usr/lib/gcc/x86_64-linux-gnu/13/include
-         /usr/local/include
-         /usr/include/x86_64-linux-gnu
-         /usr/include
-        End of search list.
-        Compiler executable checksum: 7896445e4990772fdae9dc0659a99266
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/'
-         as -v --64 -o CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccWqE0rV.s
-        GNU assembler version 2.42 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.42
-        COMPILER_PATH=/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/
-        LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.'
-        Linking CXX executable cmTC_d5cb6
-        /home/linuxbrew/.linuxbrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d5cb6.dir/link.txt --verbose=1
-        Using built-in specs.
-        COLLECT_GCC=/usr/bin/c++
-        COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper
-        OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa
-        OFFLOAD_TARGET_DEFAULT=1
-        Target: x86_64-linux-gnu
-        Configured with: ../src/configure -v --with-pkgversion='Ubuntu 13.3.0-6ubuntu2~24.04.1' --with-bugurl=file:///usr/share/doc/gcc-13/README.Bugs --enable-languages=c,ada,c++,go,d,fortran,objc,obj-c++,m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-13 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/libexec --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-libstdcxx-backtrace --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --enable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-nvptx/usr,amdgcn-amdhsa=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-gcn/usr --enable-offload-defaulted --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --with-build-config=bootstrap-lto-lean --enable-link-serialization=2
-        Thread model: posix
-        Supported LTO compression algorithms: zlib zstd
-        gcc version 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 
-        COMPILER_PATH=/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/
-        LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../:/lib/:/usr/lib/
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_d5cb6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_d5cb6.'
-         /usr/libexec/gcc/x86_64-linux-gnu/13/collect2 -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUl29aH.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_d5cb6 /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. -v CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o
-        collect2 version 13.3.0
-        /usr/bin/ld -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUl29aH.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_d5cb6 /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. -v CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o
-        GNU ld (GNU Binutils for Ubuntu) 2.42
-        COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_d5cb6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_d5cb6.'
-        /usr/bin/c++  -v -Wl,-v CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_d5cb6
-        gmake[2]: Leaving directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0'
-        gmake[1]: Leaving directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0'
-        
-      exitCode: 0
-  -
-    kind: "message-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:217 (message)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Parsed CXX implicit include dir info: rv=done
-        found start of include info
-        found start of implicit include info
-          add: [/usr/include/c++/13]
-          add: [/usr/include/x86_64-linux-gnu/c++/13]
-          add: [/usr/include/c++/13/backward]
-          add: [/usr/lib/gcc/x86_64-linux-gnu/13/include]
-          add: [/usr/local/include]
-          add: [/usr/include/x86_64-linux-gnu]
-          add: [/usr/include]
-        end of search list found
-        collapse include dir [/usr/include/c++/13] ==> [/usr/include/c++/13]
-        collapse include dir [/usr/include/x86_64-linux-gnu/c++/13] ==> [/usr/include/x86_64-linux-gnu/c++/13]
-        collapse include dir [/usr/include/c++/13/backward] ==> [/usr/include/c++/13/backward]
-        collapse include dir [/usr/lib/gcc/x86_64-linux-gnu/13/include] ==> [/usr/lib/gcc/x86_64-linux-gnu/13/include]
-        collapse include dir [/usr/local/include] ==> [/usr/local/include]
-        collapse include dir [/usr/include/x86_64-linux-gnu] ==> [/usr/include/x86_64-linux-gnu]
-        collapse include dir [/usr/include] ==> [/usr/include]
-        implicit include dirs: [/usr/include/c++/13;/usr/include/x86_64-linux-gnu/c++/13;/usr/include/c++/13/backward;/usr/lib/gcc/x86_64-linux-gnu/13/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include]
-      
-      
-  -
-    kind: "message-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:253 (message)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Parsed CXX implicit link information:
-        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
-        linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0']
-        ignore line: []
-        ignore line: [Run Build Command(s): /home/linuxbrew/.linuxbrew/bin/cmake -E env VERBOSE=1 /usr/bin/gmake -f Makefile cmTC_d5cb6/fast]
-        ignore line: [gmake[1]: Entering directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0']
-        ignore line: [/usr/bin/gmake  -f CMakeFiles/cmTC_d5cb6.dir/build.make CMakeFiles/cmTC_d5cb6.dir/build]
-        ignore line: [gmake[2]: Entering directory '/home/ajung/src/xcut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-c3U3S0']
-        ignore line: [Building CXX object CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -v -o CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -c /home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-        ignore line: [Using built-in specs.]
-        ignore line: [COLLECT_GCC=/usr/bin/c++]
-        ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
-        ignore line: [OFFLOAD_TARGET_DEFAULT=1]
-        ignore line: [Target: x86_64-linux-gnu]
-        ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 13.3.0-6ubuntu2~24.04.1' --with-bugurl=file:///usr/share/doc/gcc-13/README.Bugs --enable-languages=c ada c++ go d fortran objc obj-c++ m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-13 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/libexec --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-libstdcxx-backtrace --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --enable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32 m64 mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-nvptx/usr amdgcn-amdhsa=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-gcn/usr --enable-offload-defaulted --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --with-build-config=bootstrap-lto-lean --enable-link-serialization=2]
-        ignore line: [Thread model: posix]
-        ignore line: [Supported LTO compression algorithms: zlib zstd]
-        ignore line: [gcc version 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) ]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/']
-        ignore line: [ /usr/libexec/gcc/x86_64-linux-gnu/13/cc1plus -quiet -v -imultiarch x86_64-linux-gnu -D_GNU_SOURCE /home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpdir CMakeFiles/cmTC_d5cb6.dir/ -dumpbase CMakeCXXCompilerABI.cpp.cpp -dumpbase-ext .cpp -mtune=generic -march=x86-64 -version -fasynchronous-unwind-tables -fstack-protector-strong -Wformat -Wformat-security -fstack-clash-protection -fcf-protection -o /tmp/ccWqE0rV.s]
-        ignore line: [GNU C++17 (Ubuntu 13.3.0-6ubuntu2~24.04.1) version 13.3.0 (x86_64-linux-gnu)]
-        ignore line: [	compiled by GNU C version 13.3.0  GMP version 6.3.0  MPFR version 4.2.1  MPC version 1.3.1  isl version isl-0.26-GMP]
-        ignore line: []
-        ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
-        ignore line: [ignoring duplicate directory "/usr/include/x86_64-linux-gnu/c++/13"]
-        ignore line: [ignoring nonexistent directory "/usr/local/include/x86_64-linux-gnu"]
-        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/include-fixed/x86_64-linux-gnu"]
-        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/include-fixed"]
-        ignore line: [ignoring nonexistent directory "/usr/lib/gcc/x86_64-linux-gnu/13/../../../../x86_64-linux-gnu/include"]
-        ignore line: [#include "..." search starts here:]
-        ignore line: [#include <...> search starts here:]
-        ignore line: [ /usr/include/c++/13]
-        ignore line: [ /usr/include/x86_64-linux-gnu/c++/13]
-        ignore line: [ /usr/include/c++/13/backward]
-        ignore line: [ /usr/lib/gcc/x86_64-linux-gnu/13/include]
-        ignore line: [ /usr/local/include]
-        ignore line: [ /usr/include/x86_64-linux-gnu]
-        ignore line: [ /usr/include]
-        ignore line: [End of search list.]
-        ignore line: [Compiler executable checksum: 7896445e4990772fdae9dc0659a99266]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/']
-        ignore line: [ as -v --64 -o CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccWqE0rV.s]
-        ignore line: [GNU assembler version 2.42 (x86_64-linux-gnu) using BFD version (GNU Binutils for Ubuntu) 2.42]
-        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/]
-        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.']
-        ignore line: [Linking CXX executable cmTC_d5cb6]
-        ignore line: [/home/linuxbrew/.linuxbrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d5cb6.dir/link.txt --verbose=1]
-        ignore line: [Using built-in specs.]
-        ignore line: [COLLECT_GCC=/usr/bin/c++]
-        ignore line: [COLLECT_LTO_WRAPPER=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper]
-        ignore line: [OFFLOAD_TARGET_NAMES=nvptx-none:amdgcn-amdhsa]
-        ignore line: [OFFLOAD_TARGET_DEFAULT=1]
-        ignore line: [Target: x86_64-linux-gnu]
-        ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 13.3.0-6ubuntu2~24.04.1' --with-bugurl=file:///usr/share/doc/gcc-13/README.Bugs --enable-languages=c ada c++ go d fortran objc obj-c++ m2 --prefix=/usr --with-gcc-major-version-only --program-suffix=-13 --program-prefix=x86_64-linux-gnu- --enable-shared --enable-linker-build-id --libexecdir=/usr/libexec --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --enable-bootstrap --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-libstdcxx-backtrace --enable-gnu-unique-object --disable-vtable-verify --enable-plugin --enable-default-pie --with-system-zlib --enable-libphobos-checking=release --with-target-system-zlib=auto --enable-objc-gc=auto --enable-multiarch --disable-werror --enable-cet --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32 m64 mx32 --enable-multilib --with-tune=generic --enable-offload-targets=nvptx-none=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-nvptx/usr amdgcn-amdhsa=/build/gcc-13-EldibY/gcc-13-13.3.0/debian/tmp-gcn/usr --enable-offload-defaulted --without-cuda-driver --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu --with-build-config=bootstrap-lto-lean --enable-link-serialization=2]
-        ignore line: [Thread model: posix]
-        ignore line: [Supported LTO compression algorithms: zlib zstd]
-        ignore line: [gcc version 13.3.0 (Ubuntu 13.3.0-6ubuntu2~24.04.1) ]
-        ignore line: [COMPILER_PATH=/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/13/:/usr/libexec/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/]
-        ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/13/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/13/../../../:/lib/:/usr/lib/]
-        ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_d5cb6' '-shared-libgcc' '-mtune=generic' '-march=x86-64' '-dumpdir' 'cmTC_d5cb6.']
-        link line: [ /usr/libexec/gcc/x86_64-linux-gnu/13/collect2 -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUl29aH.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_d5cb6 /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. -v CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o]
-          arg [/usr/libexec/gcc/x86_64-linux-gnu/13/collect2] ==> ignore
-          arg [-plugin] ==> ignore
-          arg [/usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so] ==> ignore
-          arg [-plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper] ==> ignore
-          arg [-plugin-opt=-fresolution=/tmp/ccUl29aH.res] ==> ignore
-          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-          arg [-plugin-opt=-pass-through=-lc] ==> ignore
-          arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
-          arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
-          arg [--build-id] ==> ignore
-          arg [--eh-frame-hdr] ==> ignore
-          arg [-m] ==> ignore
-          arg [elf_x86_64] ==> ignore
-          arg [--hash-style=gnu] ==> ignore
-          arg [--as-needed] ==> ignore
-          arg [-dynamic-linker] ==> ignore
-          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
-          arg [-pie] ==> ignore
-          arg [-znow] ==> ignore
-          arg [-zrelro] ==> ignore
-          arg [-o] ==> ignore
-          arg [cmTC_d5cb6] ==> ignore
-          arg [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o]
-          arg [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o]
-          arg [/usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o]
-          arg [-L/usr/lib/gcc/x86_64-linux-gnu/13] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/13]
-          arg [-L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu]
-          arg [-L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib]
-          arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
-          arg [-L/lib/../lib] ==> dir [/lib/../lib]
-          arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
-          arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
-          arg [-L/usr/lib/gcc/x86_64-linux-gnu/13/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../..]
-          arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
-          arg [-lstdc++] ==> lib [stdc++]
-          arg [-lm] ==> lib [m]
-          arg [-lgcc_s] ==> lib [gcc_s]
-          arg [-lgcc] ==> lib [gcc]
-          arg [-lc] ==> lib [c]
-          arg [-lgcc_s] ==> lib [gcc_s]
-          arg [-lgcc] ==> lib [gcc]
-          arg [/usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o]
-          arg [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o] ==> obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o]
-        ignore line: [collect2 version 13.3.0]
-        ignore line: [/usr/bin/ld -plugin /usr/libexec/gcc/x86_64-linux-gnu/13/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/x86_64-linux-gnu/13/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUl29aH.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie -z now -z relro -o cmTC_d5cb6 /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o -L/usr/lib/gcc/x86_64-linux-gnu/13 -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/13/../../.. -v CMakeFiles/cmTC_d5cb6.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o /usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o]
-        linker tool for 'CXX': /usr/bin/ld
-        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/Scrt1.o] ==> [/usr/lib/x86_64-linux-gnu/Scrt1.o]
-        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crti.o] ==> [/usr/lib/x86_64-linux-gnu/crti.o]
-        collapse obj [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu/crtn.o] ==> [/usr/lib/x86_64-linux-gnu/crtn.o]
-        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/13] ==> [/usr/lib/gcc/x86_64-linux-gnu/13]
-        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../../../lib] ==> [/usr/lib]
-        collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
-        collapse library dir [/lib/../lib] ==> [/lib]
-        collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
-        collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
-        collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/13/../../..] ==> [/usr/lib]
-        implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
-        implicit objs: [/usr/lib/x86_64-linux-gnu/Scrt1.o;/usr/lib/x86_64-linux-gnu/crti.o;/usr/lib/gcc/x86_64-linux-gnu/13/crtbeginS.o;/usr/lib/gcc/x86_64-linux-gnu/13/crtendS.o;/usr/lib/x86_64-linux-gnu/crtn.o]
-        implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/13;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
-        implicit fwks: []
-      
-      
-  -
-    kind: "message-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/Internal/CMakeDetermineLinkerId.cmake:38 (message)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:299 (cmake_determine_linker_id)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
-      - "CMakeLists.txt:2 (project)"
-    message: |
-      Running the CXX compiler's linker: "/usr/bin/ld" "-v"
-      GNU ld (GNU Binutils for Ubuntu) 2.42
-...
-
----
-events:
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/FindPkgConfig.cmake:517 (find_program)"
-      - "CMakeLists.txt:7 (find_package)"
-    mode: "program"
-    variable: "PKG_CONFIG_EXECUTABLE"
-    description: "pkg-config executable"
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "pkg-config"
-      - "pkgconf"
-    candidate_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/opt/node@22/bin/"
-      - "/home/ajung/.local/bin/"
-      - "/home/ajung/bin/"
-      - "/usr/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/bin/"
-      - "/opt/openai/bin/"
-      - "/opt/weasyprint/bin/"
-      - "/usr/AHFormatterV74/"
-      - "/opt/PDFreactor/clients/cli/"
-      - "/opt/Postman/"
-      - "/opt/FileZilla3/bin/"
-      - "/home/ajung/.bun/bin/"
-      - "/opt/pycharm-2024.3/bin/"
-      - "/home/ajung/.cargo/bin/"
-      - "/usr/sbin/"
-      - "/sbin/"
-      - "/bin/"
-      - "/usr/games/"
-      - "/usr/local/games/"
-      - "/snap/bin/"
-      - "/usr/local/bin/"
-      - "/usr/local/sbin/"
-      - "/usr/local/"
-      - "/usr/bin/"
-      - "/usr/sbin/"
-      - "/usr/"
-      - "/bin/"
-      - "/sbin/"
-      - "/home/linuxbrew/.linuxbrew/bin/"
-      - "/home/linuxbrew/.linuxbrew/sbin/"
-      - "/home/linuxbrew/.linuxbrew/"
-      - "/usr/X11R6/bin/"
-      - "/usr/X11R6/sbin/"
-      - "/usr/X11R6/"
-      - "/usr/pkg/bin/"
-      - "/usr/pkg/sbin/"
-      - "/usr/pkg/"
-      - "/opt/bin/"
-      - "/opt/sbin/"
-      - "/opt/"
-    searched_directories:
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/pkg-config"
-      - "/home/ajung/.nvm/versions/node/v24.3.0/bin/pkgconf"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/pkg-config"
-      - "/home/linuxbrew/.linuxbrew/opt/node@20/bin/pkgconf"
-    found: "/home/linuxbrew/.linuxbrew/bin/pkg-config"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/usr/local"
-      CMAKE_SYSTEM_PREFIX_PATH:
-        - "/usr/local"
-        - "/usr"
-        - "/"
-        - "/home/linuxbrew/.linuxbrew"
-        - "/usr/local"
-        - "/usr/X11R6"
-        - "/usr/pkg"
-        - "/opt"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/FindPkgConfig.cmake:761 (find_library)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/FindPkgConfig.cmake:811 (_pkg_find_libs)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/FindPkgConfig.cmake:1149 (_pkg_recalculate)"
-      - "/home/linuxbrew/.linuxbrew/share/cmake/Modules/FindPkgConfig.cmake:1166 (_pkg_check_modules_internal)"
-      - "CMakeLists.txt:8 (pkg_check_modules)"
-    mode: "library"
-    variable: "pkgcfg_lib_LIBXML2_xml2"
-    description: "Path to a library."
-    settings:
-      SearchFramework: "NEVER"
-      SearchAppBundle: "NEVER"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "xml2"
-    candidate_directories:
-      - "/home/linuxbrew/.linuxbrew/opt/libxml2/lib/"
-    found: "/home/linuxbrew/.linuxbrew/opt/libxml2/lib/libxml2.so"
-    search_context:
-      ENV{PATH}:
-        - "/home/ajung/.nvm/versions/node/v24.3.0/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/linuxbrew/.linuxbrew/sbin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@20/bin"
-        - "/home/linuxbrew/.linuxbrew/opt/node@22/bin"
-        - "/home/ajung/.local/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman/"
-        - "/opt/FileZilla3/bin/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/bin"
-        - "/usr/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/opt/openai/bin"
-        - "/opt/weasyprint/bin"
-        - "/usr/AHFormatterV74"
-        - "/opt/PDFreactor/clients/cli"
-        - "/opt/Postman"
-        - "/opt/Postman/"
-        - "/home/linuxbrew/.linuxbrew/bin"
-        - "/home/ajung/.bun/bin"
-        - "/opt/pycharm-2024.3/bin"
-        - "/home/ajung/bin"
-        - "/home/ajung/.cargo/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/bin"
-        - "/usr/sbin"
-        - "/usr/bin"
-        - "/sbin"
-        - "/bin"
-        - "/usr/games"
-        - "/usr/local/games"
-        - "/snap/bin"
-      CMAKE_INSTALL_PREFIX: "/usr/local"
-      CMAKE_SYSTEM_PREFIX_PATH:
-        - "/usr/local"
-        - "/usr"
-        - "/"
-        - "/home/linuxbrew/.linuxbrew"
-        - "/usr/local"
-        - "/usr/X11R6"
-        - "/usr/pkg"
-        - "/opt"
-      CMAKE_SYSTEM_LIBRARY_PATH:
-        - "/usr/lib/X11"
-...
-
----
-events:
-  -
-    kind: "find-v1"
-    backtrace:
       - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
       - "CMakeLists.txt:2 (project)"
     mode: "program"
@@ -2198,6 +21,7 @@ events:
       - "uname"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -2238,6 +62,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -2254,6 +79,7 @@ events:
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/uname"
+      - "/Users/ajung/.npm-global/bin/uname"
       - "/opt/homebrew/opt/openjdk@11/bin/uname"
       - "/opt/homebrew/opt/ruby/bin/uname"
       - "/opt/homebrew/opt/gradle@7/bin/uname"
@@ -2291,6 +117,8 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
         - "/opt/homebrew/opt/gradle@7/bin"
@@ -2320,6 +148,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -2332,6 +161,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -2358,7 +188,7 @@ events:
       - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
       - "CMakeLists.txt:2 (project)"
     message: |
-      The system is: Darwin - 25.3.0 - arm64
+      The system is: Darwin - 25.4.0 - arm64
   -
     kind: "find-v1"
     backtrace:
@@ -2381,6 +211,7 @@ events:
       - "smake"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -2421,6 +252,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -2437,6 +269,7 @@ events:
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/gmake"
+      - "/Users/ajung/.npm-global/bin/gmake"
       - "/opt/homebrew/opt/openjdk@11/bin/gmake"
       - "/opt/homebrew/opt/ruby/bin/gmake"
       - "/opt/homebrew/opt/gradle@7/bin/gmake"
@@ -2477,6 +310,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/gmake"
+      - "/opt/pkg/env/active/bin/gmake"
       - "/opt/pmk/env/global/bin/gmake"
       - "/opt/X11/bin/gmake"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/gmake"
@@ -2492,6 +326,7 @@ events:
       - "/Users/ajung/.orbstack/bin/gmake"
       - "/Users/ajung/.cache/lm-studio/bin/gmake"
       - "/Users/ajung/.antigravity/antigravity/bin/make"
+      - "/Users/ajung/.npm-global/bin/make"
       - "/opt/homebrew/opt/openjdk@11/bin/make"
       - "/opt/homebrew/opt/ruby/bin/make"
       - "/opt/homebrew/opt/gradle@7/bin/make"
@@ -2529,6 +364,8 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
         - "/opt/homebrew/opt/gradle@7/bin"
@@ -2558,6 +395,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -2570,6 +408,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -2617,6 +456,7 @@ events:
       - "clang++"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -2657,6 +497,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -2673,6 +514,7 @@ events:
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/c++"
+      - "/Users/ajung/.npm-global/bin/c++"
       - "/opt/homebrew/opt/openjdk@11/bin/c++"
       - "/opt/homebrew/opt/ruby/bin/c++"
       - "/opt/homebrew/opt/gradle@7/bin/c++"
@@ -2710,94 +552,7 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
-        - "/opt/homebrew/opt/openjdk@11/bin"
-        - "/opt/homebrew/opt/ruby/bin"
-        - "/opt/homebrew/opt/gradle@7/bin"
-        - "/Users/ajung/.bun/bin"
-        - "/Applications/PyCharm.app 2025.2 EAP.app/Contents/MacOS"
-        - "/opt/homebrew/opt/python@3.10/bin"
-        - "/usr/local/opt/python@3.8/bin"
-        - "/usr/local/opt/python@3.7/bin"
-        - "/Users/ajung/.yarn/bin"
-        - "/Users/ajung/.config/yarn/global/node_modules/.bin"
-        - "/usr/local/bin"
-        - "/usr/local/sbin"
-        - "/usr/local/opt/gettext/bin"
-        - "/opt/homebrew/bin"
-        - "/Applications/oxygen"
-        - "/Library/TeX/texbin/"
-        - "/Applications/PyCharm.app/Contents/MacOS"
-        - "/opt/buildout.python/bin"
-        - "/opt/dita-ot-2.3.1/bin"
-        - "/usr/local/AHFormatterV74"
-        - "/opt/prince-12/bin"
-        - "/opt/versatype/bin"
-        - "/opt/vivliostyle/vivliostyle"
-        - "/opt/ditac-2_5_6/bin"
-        - "/opt/sphinx/bin"
-        - "/Applications/PDFreactor/clients/cli"
-        - "/opt/speedata-publisher/bin"
-        - "/Applications/calibre.app/Contents/MacOS"
-        - "/Users/ajung/bin"
-        - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
-        - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
-        - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
-        - "/usr/local/bin"
-        - "/System/Cryptexes/App/usr/bin"
-        - "/usr/bin"
-        - "/bin"
-        - "/usr/sbin"
-        - "/sbin"
-        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
-        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
-        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pmk/env/global/bin"
-        - "/opt/X11/bin"
-        - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
-        - "/Library/Apple/usr/bin"
-        - "/usr/local/MacGPG2/bin"
-        - "/Library/TeX/texbin"
-        - "/Applications/Little Snitch.app/Contents/Components"
-        - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
-        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
-        - "/Applications/iTerm.app/Contents/Resources/utilities"
-        - "/Users/ajung/.local/bin"
-        - "/usr/local/bin"
-        - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
-        - "/Users/ajung/.local/bin"
-        - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.bun/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
-  -
-    kind: "find-v1"
-    backtrace:
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
-      - "CMakeLists.txt:2 (project)"
-    mode: "file"
-    variable: "src_in"
-    description: "Path to a file."
-    settings:
-      SearchFramework: "FIRST"
-      SearchAppBundle: "FIRST"
-      CMAKE_FIND_USE_CMAKE_PATH: true
-      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
-      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
-      CMAKE_FIND_USE_INSTALL_PREFIX: true
-    names:
-      - "CMakeCXXCompilerId.cpp.in"
-    candidate_directories:
-      - "/opt/homebrew/share/cmake/Modules/"
-    found: "/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
-    search_context:
-      ENV{PATH}:
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -2828,6 +583,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -2840,6 +596,100 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
+        - "/opt/pmk/env/global/bin"
+        - "/opt/X11/bin"
+        - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/MacGPG2/bin"
+        - "/Library/TeX/texbin"
+        - "/Applications/Little Snitch.app/Contents/Components"
+        - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Users/ajung/.cargo/bin"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/ajung/.local/bin"
+        - "/usr/local/bin"
+        - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
+        - "/Users/ajung/.orbstack/bin"
+        - "/Users/ajung/.cache/lm-studio/bin"
+        - "/Users/ajung/.local/bin"
+        - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
+        - "/Users/ajung/.bun/bin"
+        - "/Users/ajung/.cache/lm-studio/bin"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:468 (find_file)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:506 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCXXCompilerId.cpp.in"
+    candidate_directories:
+      - "/opt/homebrew/share/cmake/Modules/"
+    found: "/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
+    search_context:
+      ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/opt/homebrew/opt/openjdk@11/bin"
+        - "/opt/homebrew/opt/ruby/bin"
+        - "/opt/homebrew/opt/gradle@7/bin"
+        - "/Users/ajung/.bun/bin"
+        - "/Applications/PyCharm.app 2025.2 EAP.app/Contents/MacOS"
+        - "/opt/homebrew/opt/python@3.10/bin"
+        - "/usr/local/opt/python@3.8/bin"
+        - "/usr/local/opt/python@3.7/bin"
+        - "/Users/ajung/.yarn/bin"
+        - "/Users/ajung/.config/yarn/global/node_modules/.bin"
+        - "/usr/local/bin"
+        - "/usr/local/sbin"
+        - "/usr/local/opt/gettext/bin"
+        - "/opt/homebrew/bin"
+        - "/Applications/oxygen"
+        - "/Library/TeX/texbin/"
+        - "/Applications/PyCharm.app/Contents/MacOS"
+        - "/opt/buildout.python/bin"
+        - "/opt/dita-ot-2.3.1/bin"
+        - "/usr/local/AHFormatterV74"
+        - "/opt/prince-12/bin"
+        - "/opt/versatype/bin"
+        - "/opt/vivliostyle/vivliostyle"
+        - "/opt/ditac-2_5_6/bin"
+        - "/opt/sphinx/bin"
+        - "/Applications/PDFreactor/clients/cli"
+        - "/opt/speedata-publisher/bin"
+        - "/Applications/calibre.app/Contents/MacOS"
+        - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
+        - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
+        - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
+        - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -2880,12 +730,12 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
       
       The CXX compiler identification is AppleClang, found in:
-        /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/4.2.3/CompilerIdCXX/a.out
+        /Users/ajung/src/xform/xform-cpp/build/CMakeFiles/4.3.2/CompilerIdCXX/a.out
       
   -
     kind: "message-v1"
     backtrace:
-      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:290 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:296 (message)"
       - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
       - "CMakeLists.txt:2 (project)"
     message: |
@@ -2893,7 +743,7 @@ events:
         # 1 "apple-sdk.cpp"
         # 1 "<built-in>" 1
         # 1 "<built-in>" 3
-        # 514 "<built-in>" 3
+        # 531 "<built-in>" 3
         # 1 "<command line>" 1
         # 1 "<built-in>" 2
         # 1 "apple-sdk.cpp" 2
@@ -2945,6 +795,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -2984,6 +835,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3001,6 +853,8 @@ events:
     found: "/usr/bin/ar"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3031,6 +885,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3043,6 +898,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3085,6 +941,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3124,6 +981,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3141,6 +999,8 @@ events:
     found: "/usr/bin/ranlib"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3171,6 +1031,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3183,6 +1044,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3225,6 +1087,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3264,6 +1127,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3281,6 +1145,8 @@ events:
     found: "/usr/bin/strip"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3311,6 +1177,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3323,6 +1190,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3365,6 +1233,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3404,6 +1273,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3421,6 +1291,8 @@ events:
     found: "/usr/bin/ld"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3451,6 +1323,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3463,6 +1336,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3505,6 +1379,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3544,6 +1419,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3561,6 +1437,8 @@ events:
     found: "/usr/bin/nm"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3591,6 +1469,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3603,6 +1482,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3645,6 +1525,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3684,6 +1565,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3701,6 +1583,8 @@ events:
     found: "/usr/bin/objdump"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3731,6 +1615,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3743,6 +1628,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3785,6 +1671,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -3824,6 +1711,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -3841,6 +1729,7 @@ events:
     searched_directories:
       - "/usr/bin/objcopy"
       - "/Users/ajung/.antigravity/antigravity/bin/objcopy"
+      - "/Users/ajung/.npm-global/bin/objcopy"
       - "/opt/homebrew/opt/openjdk@11/bin/objcopy"
       - "/opt/homebrew/opt/ruby/bin/objcopy"
       - "/opt/homebrew/opt/gradle@7/bin/objcopy"
@@ -3880,6 +1769,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/objcopy"
+      - "/opt/pkg/env/active/bin/objcopy"
       - "/opt/pmk/env/global/bin/objcopy"
       - "/opt/X11/bin/objcopy"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/objcopy"
@@ -3897,6 +1787,8 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -3927,6 +1819,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -3939,6 +1832,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -3981,6 +1875,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -4020,6 +1915,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -4037,6 +1933,7 @@ events:
     searched_directories:
       - "/usr/bin/readelf"
       - "/Users/ajung/.antigravity/antigravity/bin/readelf"
+      - "/Users/ajung/.npm-global/bin/readelf"
       - "/opt/homebrew/opt/openjdk@11/bin/readelf"
       - "/opt/homebrew/opt/ruby/bin/readelf"
       - "/opt/homebrew/opt/gradle@7/bin/readelf"
@@ -4076,6 +1973,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/readelf"
+      - "/opt/pkg/env/active/bin/readelf"
       - "/opt/pmk/env/global/bin/readelf"
       - "/opt/X11/bin/readelf"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/readelf"
@@ -4093,6 +1991,8 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -4123,6 +2023,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -4135,6 +2036,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -4177,6 +2079,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -4216,6 +2119,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -4233,6 +2137,7 @@ events:
     searched_directories:
       - "/usr/bin/dlltool"
       - "/Users/ajung/.antigravity/antigravity/bin/dlltool"
+      - "/Users/ajung/.npm-global/bin/dlltool"
       - "/opt/homebrew/opt/openjdk@11/bin/dlltool"
       - "/opt/homebrew/opt/ruby/bin/dlltool"
       - "/opt/homebrew/opt/gradle@7/bin/dlltool"
@@ -4272,6 +2177,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/dlltool"
+      - "/opt/pkg/env/active/bin/dlltool"
       - "/opt/pmk/env/global/bin/dlltool"
       - "/opt/X11/bin/dlltool"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/dlltool"
@@ -4289,6 +2195,8 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -4319,6 +2227,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -4331,6 +2240,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -4373,6 +2283,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -4412,6 +2323,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -4429,6 +2341,7 @@ events:
     searched_directories:
       - "/usr/bin/addr2line"
       - "/Users/ajung/.antigravity/antigravity/bin/addr2line"
+      - "/Users/ajung/.npm-global/bin/addr2line"
       - "/opt/homebrew/opt/openjdk@11/bin/addr2line"
       - "/opt/homebrew/opt/ruby/bin/addr2line"
       - "/opt/homebrew/opt/gradle@7/bin/addr2line"
@@ -4468,6 +2381,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/addr2line"
+      - "/opt/pkg/env/active/bin/addr2line"
       - "/opt/pmk/env/global/bin/addr2line"
       - "/opt/X11/bin/addr2line"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/addr2line"
@@ -4485,6 +2399,8 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -4515,6 +2431,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -4527,6 +2444,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -4569,6 +2487,7 @@ events:
     candidate_directories:
       - "/usr/bin/"
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -4608,6 +2527,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -4625,6 +2545,7 @@ events:
     searched_directories:
       - "/usr/bin/tapi"
       - "/Users/ajung/.antigravity/antigravity/bin/tapi"
+      - "/Users/ajung/.npm-global/bin/tapi"
       - "/opt/homebrew/opt/openjdk@11/bin/tapi"
       - "/opt/homebrew/opt/ruby/bin/tapi"
       - "/opt/homebrew/opt/gradle@7/bin/tapi"
@@ -4664,6 +2585,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/tapi"
+      - "/opt/pkg/env/active/bin/tapi"
       - "/opt/pmk/env/global/bin/tapi"
       - "/opt/X11/bin/tapi"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/tapi"
@@ -4681,6 +2603,8 @@ events:
     found: false
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -4711,6 +2635,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -4723,6 +2648,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -4746,7 +2672,7 @@ events:
   -
     kind: "find-v1"
     backtrace:
-      - "/opt/homebrew/share/cmake/Modules/Platform/Darwin.cmake:76 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/Platform/Darwin.cmake:66 (find_program)"
       - "/opt/homebrew/share/cmake/Modules/CMakeSystemSpecificInformation.cmake:32 (include)"
       - "CMakeLists.txt:2 (project)"
     mode: "program"
@@ -4764,6 +2690,7 @@ events:
       - "install_name_tool"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -4804,6 +2731,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -4820,6 +2748,7 @@ events:
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/install_name_tool"
+      - "/Users/ajung/.npm-global/bin/install_name_tool"
       - "/opt/homebrew/opt/openjdk@11/bin/install_name_tool"
       - "/opt/homebrew/opt/ruby/bin/install_name_tool"
       - "/opt/homebrew/opt/gradle@7/bin/install_name_tool"
@@ -4857,6 +2786,8 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
         - "/opt/homebrew/opt/gradle@7/bin"
@@ -4886,6 +2817,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -4898,6 +2830,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -4928,12 +2861,13 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl"
-      binary: "/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl"
+      source: "/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt"
+      binary: "/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
       CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_CXX_STDLIB_MODULES_JSON: ""
       CMAKE_EXE_LINKER_FLAGS: ""
       CMAKE_OSX_ARCHITECTURES: ""
       CMAKE_OSX_DEPLOYMENT_TARGET: ""
@@ -4942,52 +2876,52 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl'
+        Change Dir: '/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_8fcb7/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_8fcb7.dir/build.make CMakeFiles/cmTC_8fcb7.dir/build
-        Building CXX object CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-        Apple clang version 17.0.0 (clang-1700.6.3.2)
-        Target: arm64-apple-darwin25.3.0
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2428c/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_2428c.dir/build.make CMakeFiles/cmTC_2428c.dir/build
+        Building CXX object CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Apple clang version 21.0.0 (clang-2100.0.123.102)
+        Target: arm64-apple-darwin25.4.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
         clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=26.2 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl -target-linker-version 1230.1 -v -fcoverage-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-        clang -cc1 version 17.0.0 (clang-1700.6.3.2) default target arm64-apple-darwin25.3.0
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.4 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -target-linker-version 1266.8 -v -fcoverage-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 21.0.0 (clang-2100.0.123.102) default target arm64-apple-darwin25.4.0
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
         #include "..." search starts here:
         #include <...> search starts here:
          /usr/local/include
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1
-         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include
          /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)
         End of search list.
-        Linking CXX executable cmTC_8fcb7
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8fcb7.dir/link.txt --verbose=1
-        Apple clang version 17.0.0 (clang-1700.6.3.2)
-        Target: arm64-apple-darwin25.3.0
+        Linking CXX executable cmTC_2428c
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2428c.dir/link.txt --verbose=1
+        Apple clang version 21.0.0 (clang-2100.0.123.102)
+        Target: arm64-apple-darwin25.4.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.2 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_8fcb7 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a
-        @(#)PROGRAM:ld PROJECT:ld-1230.1
-        BUILD 06:36:05 Dec  2 2025
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.4 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_2428c -L/usr/local/lib -v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
+        @(#)PROGRAM:ld PROJECT:ld-1266.8
+        BUILD 01:30:17 Apr  9 2026
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
         will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
-        LTO support using: LLVM version 17.0.0 (static support for 29, runtime is 29)
-        TAPI support using: Apple TAPI version 17.0.0 (tapi-1700.3.8)
+        LTO support using: LLVM version 21.0.0 (static support for 30, runtime is 30)
+        TAPI support using: Apple TAPI version 21.0.0 (tapi-2100.0.2.6)
         Library search paths:
         	/usr/local/lib
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/c++  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_8fcb7
+        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_2428c
         
       exitCode: 0
   -
@@ -5011,16 +2945,16 @@ events:
         found start of implicit include info
           add: [/usr/local/include]
           add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
-          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include]
           add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
           add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
         end of search list found
         collapse include dir [/usr/local/include] ==> [/usr/local/include]
         collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
-        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include]
         collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
         collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
-        implicit include dirs: [/usr/local/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        implicit include dirs: [/usr/local/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
       
       
   -
@@ -5033,39 +2967,39 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl']
+        ignore line: [Change Dir: '/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_8fcb7/fast]
-        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_8fcb7.dir/build.make CMakeFiles/cmTC_8fcb7.dir/build]
-        ignore line: [Building CXX object CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-        ignore line: [Apple clang version 17.0.0 (clang-1700.6.3.2)]
-        ignore line: [Target: arm64-apple-darwin25.3.0]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2428c/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_2428c.dir/build.make CMakeFiles/cmTC_2428c.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Apple clang version 21.0.0 (clang-2100.0.123.102)]
+        ignore line: [Target: arm64-apple-darwin25.4.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
         ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
-        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=26.2 -fvisibility-inlines-hidden-static-local-var -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +zcm -target-feature +zcz -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl -target-linker-version 1230.1 -v -fcoverage-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-uLqbYl -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17 -dependency-file CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-        ignore line: [clang -cc1 version 17.0.0 (clang-1700.6.3.2) default target arm64-apple-darwin25.3.0]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.4 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -target-linker-version 1266.8 -v -fcoverage-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 21.0.0 (clang-2100.0.123.102) default target arm64-apple-darwin25.4.0]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
         ignore line: [#include "..." search starts here:]
         ignore line: [#include <...> search starts here:]
         ignore line: [ /usr/local/include]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
-        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking CXX executable cmTC_8fcb7]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8fcb7.dir/link.txt --verbose=1]
-        ignore line: [Apple clang version 17.0.0 (clang-1700.6.3.2)]
-        ignore line: [Target: arm64-apple-darwin25.3.0]
+        ignore line: [Linking CXX executable cmTC_2428c]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2428c.dir/link.txt --verbose=1]
+        ignore line: [Apple clang version 21.0.0 (clang-2100.0.123.102)]
+        ignore line: [Target: arm64-apple-darwin25.4.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.2 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_8fcb7 -L/usr/local/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.4 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_2428c -L/usr/local/lib -v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -5076,26 +3010,24 @@ events:
           arg [-platform_version] ==> ignore
           arg [macos] ==> ignore
           arg [26.0.0] ==> ignore
-          arg [26.2] ==> ignore
+          arg [26.4] ==> ignore
           arg [-syslibroot] ==> ignore
           arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk] ==> ignore
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_8fcb7] ==> ignore
+          arg [cmTC_2428c] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
-          arg [-search_paths_first] ==> ignore
-          arg [-headerpad_max_install_names] ==> ignore
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_8fcb7.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lSystem] ==> lib [System]
-          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
         linker tool for 'CXX': /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld
         Library search paths: [;/usr/local/lib;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift]
         Framework search paths: [;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks]
         remove lib [System]
-        remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/17/lib/darwin/libclang_rt.osx.a]
+        remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
         collapse library dir [/usr/local/lib] ==> [/usr/local/lib]
         collapse library dir [/usr/local/lib] ==> [/usr/local/lib]
         collapse library dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib]
@@ -5116,12 +3048,12 @@ events:
       - "CMakeLists.txt:2 (project)"
     message: |
       Running the CXX compiler's linker: "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" "-v"
-      @(#)PROGRAM:ld PROJECT:ld-1230.1
-      BUILD 06:36:05 Dec  2 2025
+      @(#)PROGRAM:ld PROJECT:ld-1266.8
+      BUILD 01:30:17 Apr  9 2026
       configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
       will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
-      LTO support using: LLVM version 17.0.0 (static support for 29, runtime is 29)
-      TAPI support using: Apple TAPI version 17.0.0 (tapi-1700.3.8)
+      LTO support using: LLVM version 21.0.0 (static support for 30, runtime is 30)
+      TAPI support using: Apple TAPI version 21.0.0 (tapi-2100.0.2.6)
   -
     kind: "find-v1"
     backtrace:
@@ -5143,6 +3075,7 @@ events:
       - "pkgconf"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
@@ -5183,6 +3116,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/pkg/env/active/bin/"
       - "/opt/pmk/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
@@ -5233,6 +3167,8 @@ events:
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/pkg-config"
       - "/Users/ajung/.antigravity/antigravity/bin/pkgconf"
+      - "/Users/ajung/.npm-global/bin/pkg-config"
+      - "/Users/ajung/.npm-global/bin/pkgconf"
       - "/opt/homebrew/opt/openjdk@11/bin/pkg-config"
       - "/opt/homebrew/opt/openjdk@11/bin/pkgconf"
       - "/opt/homebrew/opt/ruby/bin/pkg-config"
@@ -5263,6 +3199,8 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
         - "/opt/homebrew/opt/gradle@7/bin"
@@ -5292,6 +3230,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -5304,6 +3243,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -5372,6 +3312,8 @@ events:
     search_context:
       ENV{PATH}:
         - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
+        - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
         - "/opt/homebrew/opt/gradle@7/bin"
@@ -5401,6 +3343,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -5413,6 +3356,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
@@ -5482,9 +3426,11 @@ events:
       - "xml2"
     candidate_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
+      - "/Users/ajung/.bun/bin/"
       - "/usr/local/bin/"
       - "/usr/local/sbin/"
       - "/opt/homebrew/bin/"
@@ -5528,9 +3474,11 @@ events:
       - "/System/Library/Frameworks/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/"
+      - "/Users/ajung/.npm-global/bin/"
       - "/opt/homebrew/opt/openjdk@11/bin/"
       - "/opt/homebrew/opt/ruby/bin/"
       - "/opt/homebrew/opt/gradle@7/bin/"
+      - "/Users/ajung/.bun/bin/"
       - "/usr/local/bin/"
       - "/usr/local/sbin/"
       - "/opt/homebrew/bin/"
@@ -5559,6 +3507,8 @@ events:
     found: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libxml2.tbd"
     search_context:
       ENV{PATH}:
+        - "/Users/ajung/.antigravity/antigravity/bin"
+        - "/Users/ajung/.npm-global/bin"
         - "/Users/ajung/.antigravity/antigravity/bin"
         - "/opt/homebrew/opt/openjdk@11/bin"
         - "/opt/homebrew/opt/ruby/bin"
@@ -5589,6 +3539,7 @@ events:
         - "/opt/speedata-publisher/bin"
         - "/Applications/calibre.app/Contents/MacOS"
         - "/Users/ajung/bin"
+        - "/Users/ajung/.bun/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.13/bin"
         - "/Library/Frameworks/Python.framework/Versions/2.7/bin"
         - "/Library/Frameworks/Python.framework/Versions/3.11/bin"
@@ -5601,6 +3552,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/pkg/env/active/bin"
         - "/opt/pmk/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"

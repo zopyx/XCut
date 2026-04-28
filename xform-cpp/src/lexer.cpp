@@ -9,6 +9,8 @@ static const char* KEYWORDS[] = {
     "xform", "version", "import", "as", "ns", "def", "var", "let", "in",
     "for", "where", "return", "if", "then", "else", "match", "case",
     "default", "and", "or", "not", "div", "mod", "rule",
+    "apply", "text", "comment", "pi", "true", "false", "null",
+    "string", "number", "boolean", "map",
     NULL
 };
 

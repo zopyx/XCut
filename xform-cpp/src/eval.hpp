@@ -107,7 +107,7 @@ char* to_string(Seq *seq);  /* caller frees */
 bool value_equal(Seq *a, Seq *b);
 
 /* Built-in functions */
-Seq* call_function(const char *name, Seq **args, size_t arg_count, Context *ctx);
+Seq* call_function(const char *name, Seq **args, size_t arg_count, Context *ctx, NamedArg *named_args, size_t named_arg_count);
 
 /* Serialization */
 char* serialize_items(Seq *items);  /* caller frees */

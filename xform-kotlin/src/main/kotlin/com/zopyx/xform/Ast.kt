@@ -10,15 +10,19 @@ data class LetExpr(val name: String, val value: Expr, val body: Expr) : Expr
 data class ForExpr(val name: String, val seq: Expr, val where: Expr?, val body: Expr) : Expr
 data class MatchExpr(val target: Expr, val cases: List<MatchCase>, val default: Expr?) : Expr
 data class MatchCase(val pattern: Pattern, val expr: Expr)
-data class FuncCall(val name: String, val args: List<Expr>) : Expr
+data class NamedArg(val name: String, val expr: Expr)
+data class FuncCall(val name: String, val args: List<Expr> = emptyList(), val namedArgs: List<NamedArg> = emptyList()) : Expr
 data class UnaryOp(val op: String, val expr: Expr) : Expr
 data class BinaryOp(val op: String, val left: Expr, val right: Expr) : Expr
 data class PathExpr(val start: PathStart, val steps: List<PathStep>) : Expr
 data class Constructor(val name: String, val attrs: List<AttrConstructor>, val contents: List<Expr>) : Expr
 data class AttrConstructor(val name: String, val expr: Expr)
 data class TextConstructor(val expr: Expr) : Expr
+data class CommentConstructor(val expr: Expr) : Expr
+data class PIConstructor(val target: Expr, val value: Expr) : Expr
 data class Text(val value: String) : Expr
 data class Interp(val expr: Expr) : Expr
+data class ApplyExpr(val expr: Expr, val ruleset: String? = null) : Expr
 
 // Path expressions
 data class PathStart(val kind: String, val name: String? = null)
@@ -28,9 +32,9 @@ data class StepTest(val kind: String, val name: String? = null)
 // Patterns
 sealed interface Pattern
 object WildcardPattern : Pattern
-data class ElementPattern(val name: String, val variable: String? = null, val child: Pattern? = null) : Pattern
+data class ElementPattern(val name: String, val variable: String? = null, val child: Pattern? = null, val children: List<Pattern> = emptyList()) : Pattern
 data class TypedPattern(val kind: String) : Pattern
-data class AttributePattern(val name: String) : Pattern
+data class AttributePattern(val name: String, val value: Literal? = null) : Pattern
 
 // Module declarations
 data class Module(

@@ -15,7 +15,10 @@ class Lexer(private val text: String) {
     private val keywords = setOf(
         "xform", "version", "import", "as", "ns", "def", "var", "let", "in",
         "for", "where", "return", "if", "then", "else", "match", "case",
-        "default", "and", "or", "not", "div", "mod", "rule"
+        "default", "and", "or", "not", "div", "mod", "rule",
+        "apply", "text", "comment", "pi",
+        "true", "false", "null",
+        "string", "number", "boolean", "map"
     )
 
     fun peek(): Token {

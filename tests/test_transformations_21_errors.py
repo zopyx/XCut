@@ -80,6 +80,30 @@ def _params_for(lang: str):
             "case35_duplicate_attributes",
             "case37_missing_required_param",
         },
+        "kotlin": {
+            "case31_unsupported_version",
+            "case32_unknown_ruleset",
+            "case33_position_outside_for",
+            "case34_last_outside_for",
+            "case35_duplicate_attributes",
+            "case37_missing_required_param",
+        },
+        "java": {
+            "case31_unsupported_version",
+            "case32_unknown_ruleset",
+            "case33_position_outside_for",
+            "case34_last_outside_for",
+            "case35_duplicate_attributes",
+            "case37_missing_required_param",
+        },
+        "cpp": {
+            "case31_unsupported_version",
+            "case32_unknown_ruleset",
+            "case33_position_outside_for",
+            "case34_last_outside_for",
+            "case35_duplicate_attributes",
+            "case37_missing_required_param",
+        },
     }
     for case in _cases():
         if case.name in currently_passing.get(lang, set()):

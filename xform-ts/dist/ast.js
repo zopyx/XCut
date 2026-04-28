@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RuleDef = exports.FunctionDef = exports.Param = exports.AttributePattern = exports.TypedPattern = exports.ElementPattern = exports.WildcardPattern = exports.StepTest = exports.PathStep = exports.PathStart = exports.Interp = exports.Text = exports.TextConstructor = exports.Constructor = exports.PathExpr = exports.BinaryOp = exports.UnaryOp = exports.FuncCall = exports.MatchExpr = exports.ForExpr = exports.LetExpr = exports.IfExpr = exports.VarRef = exports.Literal = exports.Module = void 0;
+exports.RuleDef = exports.FunctionDef = exports.Param = exports.LiteralPattern = exports.AttributePattern = exports.TypedPattern = exports.ElementPattern = exports.WildcardPattern = exports.StepTest = exports.PathStep = exports.PathStart = exports.Interp = exports.Text = exports.PIConstructor = exports.CommentConstructor = exports.TextConstructor = exports.Constructor = exports.PathExpr = exports.BinaryOp = exports.UnaryOp = exports.ApplyExpr = exports.FuncCall = exports.MatchExpr = exports.ForExpr = exports.LetExpr = exports.IfExpr = exports.VarRef = exports.Literal = exports.Module = void 0;
 class Module {
     constructor(opts) {
         this.functions = opts.functions;
@@ -58,12 +58,20 @@ class MatchExpr {
 }
 exports.MatchExpr = MatchExpr;
 class FuncCall {
-    constructor(name, args) {
+    constructor(name, args, namedArgs = []) {
         this.name = name;
         this.args = args;
+        this.namedArgs = namedArgs;
     }
 }
 exports.FuncCall = FuncCall;
+class ApplyExpr {
+    constructor(expr, ruleset = null) {
+        this.expr = expr;
+        this.ruleset = ruleset;
+    }
+}
+exports.ApplyExpr = ApplyExpr;
 class UnaryOp {
     constructor(op, expr) {
         this.op = op;
@@ -100,6 +108,19 @@ class TextConstructor {
     }
 }
 exports.TextConstructor = TextConstructor;
+class CommentConstructor {
+    constructor(expr) {
+        this.expr = expr;
+    }
+}
+exports.CommentConstructor = CommentConstructor;
+class PIConstructor {
+    constructor(target, value) {
+        this.target = target;
+        this.value = value;
+    }
+}
+exports.PIConstructor = PIConstructor;
 class Text {
     constructor(value) {
         this.value = value;
@@ -138,10 +159,17 @@ class WildcardPattern {
 }
 exports.WildcardPattern = WildcardPattern;
 class ElementPattern {
-    constructor(name, varName = null, child = null) {
+    constructor(name, varName = null, child = null, attrs = [], children = []) {
         this.name = name;
         this.varName = varName;
         this.child = child;
+        this.attrs = attrs;
+        this.children = children;
+        // Normalize legacy child into children
+        if (this.child !== null && this.children.length === 0) {
+            this.children = [this.child];
+            this.child = null;
+        }
     }
 }
 exports.ElementPattern = ElementPattern;
@@ -152,11 +180,18 @@ class TypedPattern {
 }
 exports.TypedPattern = TypedPattern;
 class AttributePattern {
-    constructor(name) {
+    constructor(name, value = null) {
         this.name = name;
+        this.value = value;
     }
 }
 exports.AttributePattern = AttributePattern;
+class LiteralPattern {
+    constructor(value) {
+        this.value = value;
+    }
+}
+exports.LiteralPattern = LiteralPattern;
 class Param {
     constructor(name, typeRef = null, defaultExpr = null) {
         this.name = name;

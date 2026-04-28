@@ -90,6 +90,11 @@ void expr_free(Expr *expr) {
                     expr_free(expr->data.func_call->args[i]);
                 }
                 free(expr->data.func_call->args);
+                for (size_t i = 0; i < expr->data.func_call->named_arg_count; i++) {
+                    free(expr->data.func_call->named_args[i].name);
+                    expr_free(expr->data.func_call->named_args[i].expr);
+                }
+                free(expr->data.func_call->named_args);
                 free(expr->data.func_call);
             }
             break;
@@ -123,6 +128,26 @@ void expr_free(Expr *expr) {
         case EXPR_INTERP:
             expr_free(expr->data.interp);
             break;
+        case EXPR_APPLY:
+            if (expr->data.apply_expr) {
+                expr_free(expr->data.apply_expr->expr);
+                free(expr->data.apply_expr->ruleset);
+                free(expr->data.apply_expr);
+            }
+            break;
+        case EXPR_COMMENT_CONSTRUCTOR:
+            if (expr->data.comment_constructor) {
+                expr_free(expr->data.comment_constructor->expr);
+                free(expr->data.comment_constructor);
+            }
+            break;
+        case EXPR_PI_CONSTRUCTOR:
+            if (expr->data.pi_constructor) {
+                expr_free(expr->data.pi_constructor->target);
+                expr_free(expr->data.pi_constructor->value);
+                free(expr->data.pi_constructor);
+            }
+            break;
     }
     free(expr);
 }
@@ -135,11 +160,22 @@ void pattern_free(Pattern *pat) {
                 free(pat->data.element->name);
                 free(pat->data.element->var);
                 pattern_free(pat->data.element->child);
+                for (size_t i = 0; i < pat->data.element->child_count; i++) {
+                    pattern_free(pat->data.element->children[i]);
+                }
+                free(pat->data.element->children);
                 free(pat->data.element);
             }
             break;
         case PAT_ATTRIBUTE:
-            free(pat->data.attribute);
+            if (pat->data.attribute) {
+                free(pat->data.attribute->name);
+                if (pat->data.attribute->value) {
+                    literal_free(pat->data.attribute->value);
+                    free(pat->data.attribute->value);
+                }
+                free(pat->data.attribute);
+            }
             break;
         case PAT_TYPED:
             free(pat->data.typed);
@@ -236,6 +272,13 @@ StepTest step_test_text(void) {
 StepTest step_test_node(void) {
     StepTest st;
     st.kind = TEST_NODE;
+    st.name = NULL;
+    return st;
+}
+
+StepTest step_test_document(void) {
+    StepTest st;
+    st.kind = TEST_DOCUMENT;
     st.name = NULL;
     return st;
 }
