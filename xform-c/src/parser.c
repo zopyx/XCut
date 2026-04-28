@@ -639,7 +639,7 @@ static Expr* parse_path(Parser *p, PathStart *start) {
     /* Handle special starts */
     if (pe->start.kind == PS_DESC || pe->start.kind == PS_DESC_ROOT) {
         if (peek_is_ident(p) || peek_is(p, TK_OP, "*")) {
-            PathStep step = {};
+            PathStep step = {0};
             step.axis = AXIS_DESC_OR_SELF;
             step.test = parse_step_test(p);
             step.predicates = parse_predicates(p, &step.predicate_count);
@@ -653,14 +653,14 @@ static Expr* parse_path(Parser *p, PathStart *start) {
         if (peek_is(p, TK_AT, NULL)) {
             accept(p, TK_AT, NULL);
             char *name = expect_ident(p);
-            PathStep step = {};
+            PathStep step = {0};
             step.axis = AXIS_ATTR;
             step.test = step_test_named(name);
             free(name);
             pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
             pe->steps[pe->step_count++] = step;
         } else if (peek_is_ident(p) || peek_is(p, TK_OP, "*")) {
-            PathStep step = {};
+            PathStep step = {0};
             step.axis = AXIS_CHILD;
             step.test = parse_step_test(p);
             step.predicates = parse_predicates(p, &step.predicate_count);
@@ -672,7 +672,7 @@ static Expr* parse_path(Parser *p, PathStart *start) {
     if (pe->start.kind == PS_ATTR) {
         if (peek_is_ident(p)) {
             char *name = expect_ident(p);
-            PathStep step = {};
+            PathStep step = {0};
             step.axis = AXIS_ATTR;
             step.test = step_test_named(name);
             free(name);
@@ -690,14 +690,14 @@ static Expr* parse_path(Parser *p, PathStart *start) {
             
             if (accept(p, TK_AT, NULL)) {
                 char *name = expect_ident(p);
-                PathStep step = {};
+                PathStep step = {0};
                 step.axis = AXIS_ATTR;
                 step.test = step_test_named(name);
                 free(name);
                 pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
                 pe->steps[pe->step_count++] = step;
             } else {
-                PathStep step = {};
+                PathStep step = {0};
                 step.axis = axis;
                 step.test = parse_step_test(p);
                 step.predicates = parse_predicates(p, &step.predicate_count);
@@ -708,7 +708,7 @@ static Expr* parse_path(Parser *p, PathStart *start) {
             Token *tok = lexer_next(p->lexer);
             if (strcmp(tok->value, ".") == 0) {
                 token_free(tok);
-                PathStep step = {};
+                PathStep step = {0};
                 step.axis = AXIS_SELF;
                 step.test = step_test_node();
                 
@@ -723,7 +723,7 @@ static Expr* parse_path(Parser *p, PathStart *start) {
                 pe->steps[pe->step_count++] = step;
             } else if (strcmp(tok->value, "..") == 0) {
                 token_free(tok);
-                PathStep step = {};
+                PathStep step = {0};
                 step.axis = AXIS_PARENT;
                 step.test = step_test_node();
                 pe->steps = (PathStep*)realloc(pe->steps, (pe->step_count + 1) * sizeof(PathStep));
@@ -734,7 +734,7 @@ static Expr* parse_path(Parser *p, PathStart *start) {
             }
         } else if (accept(p, TK_AT, NULL)) {
             char *name = expect_ident(p);
-            PathStep step = {};
+            PathStep step = {0};
             step.axis = AXIS_ATTR;
             step.test = step_test_named(name);
             free(name);

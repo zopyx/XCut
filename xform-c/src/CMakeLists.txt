@@ -10,4 +10,4 @@ add_executable(xform
 )
 
 target_link_libraries(xform ${LIBXML2_LIBRARIES} m)
-target_compile_options(xform PRIVATE ${LIBXML2_CFLAGS_OTHER})
+target_compile_options(xform PRIVATE ${LIBXML2_CFLAGS_OTHER} -Wall -Wextra -Wpedantic)

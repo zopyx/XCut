@@ -1384,7 +1384,7 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         }
         seq_append(result, item_new_str(t));
     } else if (strcmp(name, "name") == 0) {
-        char *s = "";
+        const char *s = "";
         if (arg_count > 0 && args[0]->count > 0 && 
             args[0]->items[0]->kind == ITEM_NODE) {
             XmlNode *n = args[0]->items[0]->data.node;
@@ -1392,7 +1392,7 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         }
         seq_append(result, item_new_str(s));
     } else if (strcmp(name, "attr") == 0) {
-        char *val = "";
+        const char *val = "";
         if (arg_count >= 2 && args[0]->count > 0 && 
             args[0]->items[0]->kind == ITEM_NODE) {
             XmlNode *n = args[0]->items[0]->data.node;
