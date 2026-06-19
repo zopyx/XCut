@@ -222,12 +222,12 @@ def test_to_string_number_boolean_and_node() -> None:
 
 
 def test_to_number_conversions_and_error() -> None:
-    assert to_number([]) == 0.0
+    import math
+    assert math.isnan(to_number([]))
     assert to_number([True]) == 1.0
     assert to_number(["2.5"]) == 2.5
     assert to_number([Node(kind="text", value="3")]) == 3.0
-    with pytest.raises(RuntimeError, match="XFDY0002"):
-        to_number(["nope"])
+    assert math.isnan(to_number(["nope"]))
 
 
 def test_value_equal_uses_string_value() -> None:
@@ -262,7 +262,7 @@ def test_builtin_helpers() -> None:
     assert call_function("attr", [[root], ["missing"]], ctx) == [""]
     assert call_function("attr", [[Node(kind="text", value="x")], ["id"]], ctx) == [""]
     assert call_function("text", [[root], [False]], ctx) == [""]
-    assert call_function("text", [["plain"]], ctx) == ["plain"]
+    assert call_function("text", [[Node(kind="text", value="plain")]], ctx) == ["plain"]
     assert call_function("children", [[root]], ctx)[0].name == "child"
     assert call_function("elements", [[root], ["child"]], ctx)
     assert call_function("elements", [[Node(kind="text", value="x")]], ctx) == []

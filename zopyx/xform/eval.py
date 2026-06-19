@@ -16,6 +16,9 @@ class Context:
     rules: Dict[str, List[ast.RuleDef]]
     position: Optional[int] = None
     last: Optional[int] = None
+    recursion_depth: int = 0
+
+MAX_RECURSION_DEPTH = 10000
 
 
 def eval_module(module: ast.Module, doc: Node) -> List[Any]:
@@ -54,7 +57,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         new_vars[expr.name] = value
         return eval_expr(
             expr.body,
-            Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
+            Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth),
         )
     if isinstance(expr, ast.ForExpr):
         seq = eval_expr(expr.seq, ctx)
@@ -70,6 +73,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
                 rules=ctx.rules,
                 position=idx,
                 last=total,
+                recursion_depth=ctx.recursion_depth,
             )
             if expr.where is not None:
                 if not to_boolean(eval_expr(expr.where, new_ctx)):
@@ -97,6 +101,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
                                 ctx.rules,
                                 ctx.position,
                                 ctx.last,
+                                ctx.recursion_depth,
                             ),
                         )
                     )
@@ -114,6 +119,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
                             ctx.rules,
                             ctx.position,
                             ctx.last,
+                            ctx.recursion_depth,
                         ),
                     )
                 )
@@ -290,7 +296,7 @@ def apply_step(items: List[Any], step: ast.PathStep, ctx: Context) -> List[Any]:
                 to_boolean(
                     eval_expr(
                         pred,
-                        Context(cand, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last),
+                        Context(cand, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth),
                     )
                 )
                 for pred in step.predicates
@@ -304,6 +310,8 @@ def _matches_test(node: Node, test: ast.StepTest) -> bool:
         return True
     if test.kind == "wildcard":
         return node.kind in ("element", "attribute")
+    if test.kind == "element":
+        return node.kind == "element"
     if test.kind == "text":
         return node.kind == "text"
     if test.kind == "comment":
@@ -335,8 +343,9 @@ def eval_constructor(expr: ast.Constructor, ctx: Context) -> Node:
         for item in seq:
             if isinstance(item, Node):
                 if item.kind == "attribute":
-                    raise RuntimeError("XFDY0005")
-                children.append(deep_copy(item))
+                    children.append(Node(kind="text", value=item.value or ""))
+                else:
+                    children.append(deep_copy(item))
             else:
                 children.append(Node(kind="text", value=to_string([item])))
     # Merge adjacent text nodes
@@ -367,6 +376,8 @@ def call_function(
 ) -> List[Any]:
     named_args = named_args or {}
     if name in ctx.functions:
+        if ctx.recursion_depth >= MAX_RECURSION_DEPTH:
+            raise RuntimeError("XFDY0099")
         func = ctx.functions[name]
         params = func.params
         body = func.body
@@ -385,7 +396,7 @@ def call_function(
                 raise RuntimeError("XFDY0008: unknown parameter")
             new_vars[param_name] = value
             bound.add(param_name)
-        new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last)
+        new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1)
         for param in params:
             if param.name not in bound:
                 if param.default is None:
@@ -404,6 +415,8 @@ def call_function(
 
 
 def _do_apply(seq: List[Any], ruleset: str, ctx: Context) -> List[Any]:
+    if ctx.recursion_depth >= MAX_RECURSION_DEPTH:
+        raise RuntimeError("XFDY0099")
     if ruleset != "main" and ruleset not in ctx.rules:
         raise RuntimeError("XFST0007")
     rules = ctx.rules.get(ruleset, [])
@@ -419,7 +432,7 @@ def _do_apply(seq: List[Any], ruleset: str, ctx: Context) -> List[Any]:
                 out.extend(
                     eval_expr(
                         rule.body,
-                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last),
+                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1),
                     )
                 )
                 break
@@ -476,7 +489,7 @@ def to_string(seq: List[Any]) -> str:
 
 def to_number(seq: List[Any]) -> float:
     if not seq:
-        return 0.0
+        return float("nan")
     item = seq[0]
     if isinstance(item, Node):
         item = item.string_value()
@@ -484,8 +497,8 @@ def to_number(seq: List[Any]) -> float:
         return 1.0 if item else 0.0
     try:
         return float(item)
-    except Exception as exc:
-        raise RuntimeError("XFDY0002: number conversion") from exc
+    except Exception:
+        return float("nan")
 
 
 def value_equal(left: List[Any], right: List[Any]) -> bool:
@@ -508,6 +521,8 @@ def match_pattern(pattern: ast.Pattern, item: Any) -> tuple[bool, Dict[str, List
             return False, {}
         if pattern.kind == "node":
             return isinstance(item, Node), {}
+        if pattern.kind == "element":
+            return isinstance(item, Node) and item.kind == "element", {}
         if pattern.kind == "text":
             return isinstance(item, Node) and item.kind == "text", {}
         if pattern.kind == "comment":
@@ -576,6 +591,8 @@ def _fn_typeof(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]])
         return ["node"]
     if isinstance(item, dict):
         return ["map"]
+    if isinstance(item, FunctionRef):
+        return ["function"]
     if isinstance(item, bool):
         return ["boolean"]
     if isinstance(item, (int, float)):
@@ -589,16 +606,18 @@ def _fn_name(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -
     if not args or not args[0]:
         return [""]
     item = args[0][0]
-    if isinstance(item, Node):
-        return [item.name or ""]
-    return [""]
+    if not isinstance(item, Node):
+        raise RuntimeError("XFDY0003")
+    return [item.name or ""]
 
 
 def _fn_attr(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return [""]
     node = args[0][0]
-    if not isinstance(node, Node) or node.kind != "element":
+    if not isinstance(node, Node):
+        raise RuntimeError("XFDY0003")
+    if node.kind != "element":
         return [""]
     if len(args) < 2:
         return [""]
@@ -610,39 +629,41 @@ def _fn_text(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -
     if not args or not args[0]:
         return [""]
     node = args[0][0]
-    if isinstance(node, Node):
-        deep = True
-        if len(args) > 1:
-            deep = to_boolean(args[1])
-        elif "deep" in named:
-            deep = to_boolean(named["deep"])
-        if deep:
-            return [node.string_value()]
-        if node.kind in ("element", "document"):
-            direct = "".join(
-                child.value or ""
-                for child in node.children
-                if isinstance(child, Node) and child.kind == "text"
-            )
-            return [direct]
+    if not isinstance(node, Node):
+        raise RuntimeError("XFDY0003")
+    deep = True
+    if len(args) > 1:
+        deep = to_boolean(args[1])
+    elif "deep" in named:
+        deep = to_boolean(named["deep"])
+    if deep:
         return [node.string_value()]
-    return [to_string(args[0])]
+    if node.kind in ("element", "document"):
+        direct = "".join(
+            child.value or ""
+            for child in node.children
+            if isinstance(child, Node) and child.kind == "text"
+        )
+        return [direct]
+    return [node.string_value()]
 
 
 def _fn_children(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     node = args[0][0]
-    if isinstance(node, Node):
-        return list(node.children)
-    return []
+    if not isinstance(node, Node):
+        raise RuntimeError("XFDY0003")
+    return list(node.children)
 
 
 def _fn_elements(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         return []
     node = args[0][0]
-    if not isinstance(node, Node) or node.kind not in ("element", "document"):
+    if not isinstance(node, Node):
+        raise RuntimeError("XFDY0003")
+    if node.kind not in ("element", "document"):
         return []
     name_test = to_string(args[1]) if len(args) > 1 else None
     out = [c for c in node.children if isinstance(c, Node) and c.kind == "element"]
@@ -655,7 +676,9 @@ def _fn_attributes(args: List[List[Any]], ctx: Context, named: Dict[str, List[An
     if not args or not args[0]:
         return []
     node = args[0][0]
-    if not isinstance(node, Node) or node.kind != "element":
+    if not isinstance(node, Node):
+        raise RuntimeError("XFDY0003")
+    if node.kind != "element":
         return []
     return [Node(kind="attribute", name=k, value=v) for k, v in node.attrs.items()]
 
@@ -665,7 +688,7 @@ def _fn_copy(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -
         return []
     node = args[0][0]
     if not isinstance(node, Node):
-        return []
+        raise RuntimeError("XFDY0003")
     recurse = True
     if len(args) > 1:
         recurse = to_boolean(args[1])
@@ -732,7 +755,7 @@ def _fn_tail(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -
 def _fn_last(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if not args or not args[0]:
         if ctx.last is None:
-            raise RuntimeError("XFDY0006")
+            raise RuntimeError("XFDY0003")
         return [float(ctx.last)]
     seq = args[0]
     if not seq:
@@ -761,7 +784,7 @@ def _fn_index(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]], 
         if key_fn:
             key = to_string(call_function(key_fn, [[item]], ctx))
         elif key_expr is not None:
-            item_ctx = Context(item, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last)
+            item_ctx = Context(item, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)
             key = to_string(eval_expr(key_expr, item_ctx))
         else:
             key = to_string([item])
@@ -809,7 +832,7 @@ def _fn_seq(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) ->
 
 def _fn_position(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
     if ctx.position is None:
-        raise RuntimeError("XFDY0006")
+        raise RuntimeError("XFDY0003")
     return [float(ctx.position)]
 
 
@@ -897,6 +920,29 @@ def _fn_mapSize(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]
     return [float(len(mapping))]
 
 
+def _fn_stringLength(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    s = to_string(args[0] if args else [])
+    return [float(len(s))]
+
+
+def _fn_upperCase(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    s = to_string(args[0] if args else [])
+    return [s.upper()]
+
+
+def _fn_lowerCase(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    s = to_string(args[0] if args else [])
+    return [s.lower()]
+
+
+def _fn_matches(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
+    if not args or len(args) < 2:
+        return [False]
+    s = to_string(args[0])
+    pattern = to_string(args[1])
+    return [pattern in s]
+
+
 BUILTINS: Dict[str, Callable[[List[List[Any]], Context, Dict[str, List[Any]]], List[Any]]] = {
     "string": _fn_string,
     "number": _fn_number,
@@ -932,4 +978,8 @@ BUILTINS: Dict[str, Callable[[List[List[Any]], Context, Dict[str, List[Any]]], L
     "replace": _fn_replace,
     "keys": _fn_keys,
     "mapSize": _fn_mapSize,
+    "stringLength": _fn_stringLength,
+    "upperCase": _fn_upperCase,
+    "lowerCase": _fn_lowerCase,
+    "matches": _fn_matches,
 }

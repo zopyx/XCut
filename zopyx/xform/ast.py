@@ -140,7 +140,7 @@ class PathStep:
 
 @dataclass
 class StepTest:
-    kind: str  # 'name', 'wildcard', 'text', 'node', 'comment', 'pi', 'document'
+    kind: str  # 'name', 'wildcard', 'text', 'node', 'element', 'comment', 'pi', 'document'
     name: Optional[str] = None
 
 
@@ -169,7 +169,7 @@ class ElementPattern(Pattern):
 
 @dataclass
 class TypedPattern(Pattern):
-    kind: str  # 'node', 'text', 'comment', 'pi', 'document'
+    kind: str  # 'node', 'element', 'text', 'comment', 'pi', 'document'
 
 
 @dataclass

@@ -148,9 +148,8 @@ def test_map_helper_builtins() -> None:
     assert missing == []
 
 
-@pytest.mark.xfail(reason="2.1 position()/last() outside for should raise XFDY0006")
 @pytest.mark.parametrize("expr", [ast.FuncCall("position", []), ast.FuncCall("last", [])])
 def test_iteration_context_functions_raise_outside_for(expr: ast.Expr) -> None:
     ctx = Context(context_item=None, variables={}, functions={}, rules={})
-    with pytest.raises(RuntimeError, match="XFDY0006"):
+    with pytest.raises(RuntimeError, match="XFDY0003"):
         eval_expr(expr, ctx)

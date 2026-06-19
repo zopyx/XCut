@@ -43,6 +43,47 @@ KEYWORDS = {
     "pi",
 }
 
+RESERVED_FUNCTION_NAMES = {
+    "string",
+    "number",
+    "boolean",
+    "typeOf",
+    "name",
+    "attr",
+    "text",
+    "children",
+    "elements",
+    "attributes",
+    "copy",
+    "count",
+    "empty",
+    "distinct",
+    "sort",
+    "concat",
+    "seq",
+    "head",
+    "tail",
+    "last",
+    "index",
+    "lookup",
+    "groupBy",
+    "sum",
+    "position",
+    "apply",
+    "contains",
+    "startsWith",
+    "endsWith",
+    "substring",
+    "stringLength",
+    "upperCase",
+    "lowerCase",
+    "normalizeSpace",
+    "replace",
+    "matches",
+    "keys",
+    "mapSize",
+}
+
 OPERATORS = {"=", "!=", "<", "<=", ">", ">=", "+", "-", "*", ":="}
 PUNCT = {"(", ")", "{", "}", "[", "]", ",", ";", ":"}
 
@@ -284,6 +325,8 @@ class Parser:
     def _parse_def(self, functions: dict) -> None:
         self.lexer.expect("KW", "def")
         name = self._parse_qname()
+        if name in RESERVED_FUNCTION_NAMES:
+            raise SyntaxError(f"XFST0006: reserved function name '{name}'")
         self.lexer.expect("PUNCT", "(")
         params: List[ast.Param] = []
         if self.lexer.peek().kind != "PUNCT" or self.lexer.peek().value != ")":
@@ -678,7 +721,7 @@ class Parser:
             self.lexer.next()
             return ast.StepTest("wildcard")
         if tok.kind in ("IDENT", "KW"):
-            if tok.value in ("text", "node", "comment", "pi", "document"):
+            if tok.value in ("text", "node", "element", "comment", "pi", "document"):
                 self.lexer.next()
                 self.lexer.expect("PUNCT", "(")
                 self.lexer.expect("PUNCT", ")")
@@ -723,7 +766,7 @@ class Parser:
                 else:
                     value = self._parse_pattern_literal()
             return ast.AttributePattern(name, value)
-        if tok.kind == "IDENT" and tok.value in ("node", "text", "comment", "pi", "document"):
+        if tok.kind == "IDENT" and tok.value in ("node", "element", "text", "comment", "pi", "document"):
             self.lexer.next()
             self.lexer.expect("PUNCT", "(")
             self.lexer.expect("PUNCT", ")")
