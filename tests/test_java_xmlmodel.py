@@ -8,6 +8,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 JAVA_CLASSES = ROOT / "xform-java" / "build" / "classes"
+_JAVA_BIN = "/Library/Java/JavaVirtualMachines/graalvm-ce-java17-22.1.0/Contents/Home/bin/java"
+if not Path(_JAVA_BIN).exists():
+    _JAVA_BIN = "java"
 ENABLED_LANGS = {
     s.strip().lower()
     for s in os.getenv("XF_TEST_LANGS", "python,rust,ts,go,swift,js,cpp,java").split(",")
@@ -21,7 +24,7 @@ def _run_java_xmlmodel(cmd: str, xml: str) -> str:
     if not JAVA_CLASSES.exists():
         pytest.skip("Java classes not built")
     result = subprocess.run(
-        ["java", "-cp", str(JAVA_CLASSES), "zopyx.xform.XmlModelCli", cmd, xml],
+        [_JAVA_BIN, "-cp", str(JAVA_CLASSES), "zopyx.xform.XmlModelCli", cmd, xml],
         check=True,
         capture_output=True,
         text=True,

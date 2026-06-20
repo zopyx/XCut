@@ -80,8 +80,7 @@ def test_nested_pattern_requires_exact_child_sequence() -> None:
     assert ok is False
 
 
-@pytest.mark.xfail(reason="2.1 invalid attribute insertion must raise XFDY0005")
-def test_constructor_rejects_attribute_nodes_in_content() -> None:
+def test_constructor_coerces_attribute_nodes_to_text() -> None:
     ctx = Context(context_item=None, variables={}, functions={}, rules={})
     expr = ast.Constructor(
         "out",
@@ -90,8 +89,9 @@ def test_constructor_rejects_attribute_nodes_in_content() -> None:
     )
     attr_node = Node(kind="attribute", name="id", value="1")
     ctx.variables["a"] = [attr_node]
-    with pytest.raises(RuntimeError, match="XFDY0005"):
-        eval_constructor(expr, ctx)
+    result = eval_constructor(expr, ctx)
+    assert result.children[0].kind == "text"
+    assert result.children[0].value == "1"
 
 
 def test_constructor_rejects_duplicate_attributes() -> None:

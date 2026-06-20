@@ -1,6 +1,2 @@
 #!/usr/bin/env sh
-if [ -n "${JAVA_HOME}" ]; then
-  exec "${JAVA_HOME}/bin/java" -cp "$(dirname "$0")/../build/classes" zopyx.xform.Main "$@"
-else
-  exec java -cp "$(dirname "$0")/../build/classes" zopyx.xform.Main "$@"
-fi
+exec /Library/Java/JavaVirtualMachines/graalvm-ce-java17-22.1.0/Contents/Home/bin/java -cp "$(dirname "$0")/../build/classes" zopyx.xform.Main "$@"

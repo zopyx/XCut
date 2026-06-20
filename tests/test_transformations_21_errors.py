@@ -122,10 +122,6 @@ def _params_for(lang: str):
                 pytest.param(
                     case,
                     id=case.name,
-                    marks=pytest.mark.xfail(
-                        reason="2.1 error fixture corpus targets future implementation updates across all runtimes",
-                        strict=False,
-                    ),
                 )
             )
     return out

@@ -9,11 +9,6 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = pytest.mark.xfail(
-    reason="2.1 fixture corpus targets future implementation updates across all runtimes",
-    strict=False,
-)
-
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURES = ROOT / "tests" / "fixtures_21"
 ENABLED_LANGS = {
