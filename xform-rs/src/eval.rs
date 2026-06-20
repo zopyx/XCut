@@ -22,6 +22,8 @@ pub enum Item {
     FuncRef(String),
 }
 
+pub const MAX_RECURSION_DEPTH: usize = 10000;
+
 #[derive(Clone)]
 pub struct Context {
     pub context_item: Option<Item>,
@@ -31,6 +33,7 @@ pub struct Context {
     pub rules: HashMap<String, Vec<RuleDef>>,
     pub position: Option<f64>,
     pub last: Option<f64>,
+    pub recursion_depth: usize,
 }
 
 impl Context {
@@ -53,6 +56,7 @@ pub fn eval_module(module: &Module, doc: Rc<XmlNode>) -> Result<Seq, String> {
         rules: module.rules.clone(),
         position: None,
         last: None,
+        recursion_depth: 0,
     };
     for (name, expr) in &module.vars {
         let val = eval_expr(expr, &ctx)?;
@@ -397,6 +401,7 @@ fn matches_test(node: &Rc<XmlNode>, test: &StepTest) -> bool {
     match test.kind {
         StepTestKind::Node => true,
         StepTestKind::Wildcard => node.kind == NodeKind::Element || node.kind == NodeKind::Attribute,
+        StepTestKind::Element => node.kind == NodeKind::Element,
         StepTestKind::Text => node.kind == NodeKind::Text,
         StepTestKind::Comment => node.kind == NodeKind::Comment,
         StepTestKind::Pi => node.kind == NodeKind::Pi,
@@ -429,7 +434,7 @@ fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, Strin
                 for item in seq {
                     match item {
                         Item::Node(n) if n.kind == NodeKind::Attribute => {
-                            return Err("XFDY0005".into());
+                            children.push(make_text(&(n.value.clone().unwrap_or_default())));
                         }
                         Item::Node(n) => children.push(deep_copy(&n)),
                         other => children.push(make_text(&to_string(&[other]))),
@@ -494,6 +499,7 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> 
             if let Item::Node(n) = item {
                 let matches = match kind.as_str() {
                     "node" => true,
+                    "element" => n.kind == NodeKind::Element,
                     "text" => n.kind == NodeKind::Text,
                     "comment" => n.kind == NodeKind::Comment,
                     "pi" => n.kind == NodeKind::Pi,
@@ -554,6 +560,9 @@ fn match_pattern(pat: &Pattern, item: &Item) -> Option<HashMap<String, SeqRef>> 
 }
 
 fn _do_apply(seq: Seq, ruleset: &str, ctx: &Context) -> Result<Seq, String> {
+    if ctx.recursion_depth >= MAX_RECURSION_DEPTH {
+        return Err("XFDY0099".into());
+    }
     if ruleset != "main" && !ctx.rules.contains_key(ruleset) {
         return Err("XFST0007".into());
     }
@@ -569,6 +578,7 @@ fn _do_apply(seq: Seq, ruleset: &str, ctx: &Context) -> Result<Seq, String> {
                 let new_ctx = Context {
                     context_item: Some(item.clone()),
                     variables: vars,
+                    recursion_depth: ctx.recursion_depth + 1,
                     ..ctx.clone()
                 };
                 out.extend(eval_expr(&rule.body, &new_ctx)?);
@@ -626,6 +636,9 @@ fn call_function(
 ) -> Result<Seq, String> {
     // User-defined function?
     if let Some(fd) = ctx.functions.get(name) {
+        if ctx.recursion_depth >= MAX_RECURSION_DEPTH {
+            return Err("XFDY0099".into());
+        }
         let fd = fd.clone();
         if args.len() > fd.params.len() {
             return Err(format!("XFDY0008: too many arguments for {}", name));
@@ -661,7 +674,12 @@ fn call_function(
                 }
             }
         }
-        return eval_expr(&fd.body, &Context { variables: vars, ..ctx.clone() });
+        let new_ctx = Context {
+            variables: vars,
+            recursion_depth: ctx.recursion_depth + 1,
+            ..ctx.clone()
+        };
+        return eval_expr(&fd.body, &new_ctx);
     }
 
     match name {
@@ -671,7 +689,7 @@ fn call_function(
         }
         "number" => {
             let seq = args.into_iter().next().unwrap_or_default();
-            Ok(vec![Item::Num(to_number(&seq)?)])
+            Ok(vec![Item::Num(to_number_loose(&seq))])
         }
         "boolean" => {
             let seq = args.into_iter().next().unwrap_or_default();
@@ -693,11 +711,14 @@ fn call_function(
         }
         "name" => {
             let seq = args.into_iter().next().unwrap_or_default();
-            let s = match seq.first() {
-                Some(Item::Node(n)) => n.name.clone().unwrap_or_default(),
-                _ => String::new(),
-            };
-            Ok(vec![Item::Str(s)])
+            match seq.first() {
+                Some(Item::Node(n)) => {
+                    let s = n.name.clone().unwrap_or_default();
+                    Ok(vec![Item::Str(s)])
+                }
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![Item::Str(String::new())]),
+            }
         }
         "attr" => {
             let mut it = args.into_iter();
@@ -714,7 +735,9 @@ fn call_function(
                         .unwrap_or_default();
                     Ok(vec![Item::Str(v)])
                 }
-                _ => Ok(vec![Item::Str(String::new())]),
+                Some(Item::Node(_)) => Ok(vec![Item::Str(String::new())]),
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![Item::Str(String::new())]),
             }
         }
         "text" => {
@@ -733,16 +756,20 @@ fn call_function(
                     let s = if deep {
                         n.string_value()
                     } else {
-                        n.children
-                            .iter()
-                            .filter(|c| c.kind == NodeKind::Text)
-                            .map(|c| c.value.clone().unwrap_or_default())
-                            .collect::<Vec<_>>()
-                            .join("")
+                        if n.kind == NodeKind::Element || n.kind == NodeKind::Document {
+                            n.children
+                                .iter()
+                                .filter(|c| c.kind == NodeKind::Text)
+                                .map(|c| c.value.clone().unwrap_or_default())
+                                .collect::<Vec<_>>()
+                                .join("")
+                        } else {
+                            n.string_value()
+                        }
                     };
                     Ok(vec![Item::Str(s)])
                 }
-                Some(item) => Ok(vec![Item::Str(to_string(&[item.clone()]))]),
+                Some(_) => Err("XFDY0003".into()),
                 None => Ok(vec![Item::Str(String::new())]),
             }
         }
@@ -752,7 +779,8 @@ fn call_function(
                 Some(Item::Node(n)) => {
                     Ok(n.children.iter().map(|c| Item::Node(c.clone())).collect())
                 }
-                _ => Ok(vec![]),
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![]),
             }
         }
         "elements" => {
@@ -777,7 +805,9 @@ fn call_function(
                         .collect();
                     Ok(out)
                 }
-                _ => Ok(vec![]),
+                Some(Item::Node(_)) => Ok(vec![]),
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![]),
             }
         }
         "attributes" => {
@@ -789,7 +819,9 @@ fn call_function(
                         .collect();
                     Ok(out)
                 }
-                _ => Ok(vec![]),
+                Some(Item::Node(_)) => Ok(vec![]),
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![]),
             }
         }
         "copy" => {
@@ -806,7 +838,8 @@ fn call_function(
                     };
                     Ok(vec![Item::Node(deep_copy_recurse(n, recurse))])
                 }
-                _ => Ok(vec![]),
+                Some(_) => Err("XFDY0003".into()),
+                None => Ok(vec![]),
             }
         }
         "count" => {
@@ -871,14 +904,14 @@ fn call_function(
                 if let Some(l) = ctx.last {
                     return Ok(vec![Item::Num(l)]);
                 }
-                return Err("XFDY0006".into());
+                return Err("XFDY0003".into());
             }
             Ok(vec![seq.into_iter().last().unwrap()])
         }
         "position" => {
             match ctx.position {
                 Some(p) => Ok(vec![Item::Num(p)]),
-                None => Err("XFDY0006".into()),
+                None => Err("XFDY0003".into()),
             }
         }
         "index" => {
@@ -1008,6 +1041,24 @@ fn call_function(
             let replacement = to_string(&it.next().unwrap_or_default());
             Ok(vec![Item::Str(s.replace(&pattern, &replacement))])
         }
+        "stringLength" => {
+            let s = to_string(&args.into_iter().next().unwrap_or_default());
+            Ok(vec![Item::Num(s.chars().count() as f64)])
+        }
+        "upperCase" => {
+            let s = to_string(&args.into_iter().next().unwrap_or_default());
+            Ok(vec![Item::Str(s.to_uppercase())])
+        }
+        "lowerCase" => {
+            let s = to_string(&args.into_iter().next().unwrap_or_default());
+            Ok(vec![Item::Str(s.to_lowercase())])
+        }
+        "matches" => {
+            let mut it = args.into_iter();
+            let s = to_string(&it.next().unwrap_or_default());
+            let pattern = to_string(&it.next().unwrap_or_default());
+            Ok(vec![Item::Bool(s.contains(&pattern))])
+        }
         "keys" => {
             let seq = args.into_iter().next().unwrap_or_default();
             match seq.first() {
@@ -1076,6 +1127,18 @@ pub fn to_number(seq: &[Item]) -> Result<f64, String> {
         }
         Some(Item::Null) => Ok(0.0),
         _ => Err("XFDY0002: number conversion error".into()),
+    }
+}
+
+pub fn to_number_loose(seq: &[Item]) -> f64 {
+    match seq.first() {
+        None => f64::NAN,
+        Some(Item::Num(n)) => *n,
+        Some(Item::Bool(b)) => if *b { 1.0 } else { 0.0 },
+        Some(Item::Str(s)) => s.trim().parse::<f64>().unwrap_or(f64::NAN),
+        Some(Item::Node(n)) => n.string_value().trim().parse::<f64>().unwrap_or(f64::NAN),
+        Some(Item::Null) => f64::NAN,
+        _ => f64::NAN,
     }
 }
 

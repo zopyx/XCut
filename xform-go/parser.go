@@ -28,6 +28,47 @@ var softKeywords = map[string]bool{
 	"pi":      true,
 }
 
+var reservedFunctionNames = map[string]bool{
+	"string":         true,
+	"number":         true,
+	"boolean":        true,
+	"typeOf":         true,
+	"name":           true,
+	"attr":           true,
+	"text":           true,
+	"children":       true,
+	"elements":       true,
+	"attributes":     true,
+	"copy":           true,
+	"count":          true,
+	"empty":          true,
+	"distinct":       true,
+	"sort":           true,
+	"concat":         true,
+	"seq":            true,
+	"head":           true,
+	"tail":           true,
+	"last":           true,
+	"index":          true,
+	"lookup":         true,
+	"groupBy":        true,
+	"sum":            true,
+	"position":       true,
+	"apply":          true,
+	"contains":       true,
+	"startsWith":     true,
+	"endsWith":       true,
+	"substring":      true,
+	"stringLength":   true,
+	"upperCase":      true,
+	"lowerCase":      true,
+	"normalizeSpace": true,
+	"replace":        true,
+	"matches":        true,
+	"keys":           true,
+	"mapSize":        true,
+}
+
 func isSoftKeyword(val string) bool {
 	return softKeywords[val]
 }
@@ -129,6 +170,9 @@ func (p *Parser) parseVar() (string, Expr) {
 func (p *Parser) parseDef(functions map[string]FunctionDef) {
 	p.lexer.Expect(TokKW, "def")
 	name := p.parseQName()
+	if reservedFunctionNames[name] {
+		panic(fmt.Errorf("XFST0006: reserved function name '%s'", name))
+	}
 	p.lexer.Expect(TokPunct, "(")
 	params := []Param{}
 	if !(p.lexer.Peek().Kind == TokPunct && p.lexer.Peek().Val == ")") {
@@ -598,7 +642,7 @@ func (p *Parser) parseStepTest() StepTest {
 		return StepTest{Kind: "wildcard"}
 	}
 	if tok.Kind == TokIdent || (tok.Kind == TokKW && isSoftKeyword(tok.Val)) {
-		if tok.Val == "text" || tok.Val == "node" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document" {
+		if tok.Val == "text" || tok.Val == "node" || tok.Val == "element" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document" {
 			p.lexer.Next()
 			p.lexer.Expect(TokPunct, "(")
 			p.lexer.Expect(TokPunct, ")")
@@ -652,7 +696,7 @@ func (p *Parser) parsePattern() Pattern {
 	if tok.Kind == TokString {
 		return LiteralPattern{Value: p.lexer.Next().Val}
 	}
-	if tok.Kind == TokIdent && (tok.Val == "node" || tok.Val == "text" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document") {
+	if tok.Kind == TokIdent && (tok.Val == "node" || tok.Val == "element" || tok.Val == "text" || tok.Val == "comment" || tok.Val == "pi" || tok.Val == "document") {
 		p.lexer.Next()
 		p.lexer.Expect(TokPunct, "(")
 		p.lexer.Expect(TokPunct, ")")

@@ -8,6 +8,7 @@ export class Context {
   rules: Record<string, ast.RuleDef[]>;
   position: number | null;
   last: number | null;
+  recursion_depth: number;
 
   constructor(
     contextItem: any,
@@ -16,6 +17,7 @@ export class Context {
     rules: Record<string, ast.RuleDef[]>,
     position: number | null = null,
     last: number | null = null,
+    recursion_depth: number = 0,
   ) {
     this.contextItem = contextItem;
     this.variables = variables;
@@ -23,8 +25,11 @@ export class Context {
     this.rules = rules;
     this.position = position;
     this.last = last;
+    this.recursion_depth = recursion_depth;
   }
 }
+
+const MAX_RECURSION_DEPTH = 10000;
 
 export function evalModule(module: ast.Module, doc: Node): any[] {
   const functions = { ...module.functions };
@@ -59,7 +64,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
   if (expr instanceof ast.LetExpr) {
     const value = evalExpr(expr.value, ctx);
     const newVars = { ...ctx.variables, [expr.name]: value };
-    return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last));
+    return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth));
   }
   if (expr instanceof ast.ForExpr) {
     const seq = evalExpr(expr.seq, ctx);
@@ -67,7 +72,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
     const total = seq.length;
     seq.forEach((item, idx) => {
       const newVars = { ...ctx.variables, [expr.name]: [item] };
-      const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total);
+      const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursion_depth);
       if (expr.where) {
         if (!toBoolean(evalExpr(expr.where, newCtx))) return;
       }
@@ -86,7 +91,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
           matchedAny = true;
           const newVars = { ...ctx.variables, ...bindings };
           out.push(
-            ...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)),
+            ...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)),
           );
           break;
         }
@@ -94,7 +99,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
       if (!matchedAny) {
         if (!expr.defaultExpr) throw new Error("XFDY0001: no matching case");
         out.push(
-          ...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last)),
+          ...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)),
         );
       }
     }
@@ -275,7 +280,7 @@ export function applyStep(items: any[], step: ast.PathStep, ctx: Context): any[]
       const predOut: Node[] = [];
       for (let i = 0; i < filtered.length; i += 1) {
         const child = filtered[i];
-        const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length);
+        const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursion_depth);
         if (toBoolean(evalExpr(pred, predCtx))) predOut.push(child);
       }
       filtered = predOut;
@@ -288,6 +293,7 @@ export function applyStep(items: any[], step: ast.PathStep, ctx: Context): any[]
 function matchesStepTest(test: ast.StepTest, node: Node): boolean {
   if (test.kind === "node") return true;
   if (test.kind === "wildcard") return node.kind === "element" || node.kind === "attribute";
+  if (test.kind === "element") return node.kind === "element";
   if (test.kind === "text") return node.kind === "text";
   if (test.kind === "comment") return node.kind === "comment";
   if (test.kind === "pi") return node.kind === "pi";
@@ -317,9 +323,10 @@ export function evalConstructor(expr: ast.Constructor, ctx: Context): Node {
     for (const item of seq) {
       if (item instanceof Node) {
         if (item.kind === "attribute") {
-          throw new Error("XFDY0005");
+          children.push(new Node({ kind: "text", value: item.value ?? "" }));
+        } else {
+          children.push(deepCopy(item, true));
         }
-        children.push(deepCopy(item, true));
       } else {
         children.push(new Node({ kind: "text", value: toString([item]) }));
       }
@@ -354,6 +361,9 @@ export function callFunction(
   namedRaw: Record<string, ast.Expr> = {},
 ): any[] {
   if (name in ctx.functions) {
+    if (ctx.recursion_depth >= MAX_RECURSION_DEPTH) {
+      throw new Error("XFDY0099");
+    }
     const func = ctx.functions[name];
     const params = func.params;
     if (args.length > params.length) {
@@ -376,7 +386,7 @@ export function callFunction(
       newVars[paramName] = value;
       bound.add(paramName);
     }
-    const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last);
+    const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1);
     for (const param of params) {
       if (!bound.has(param.name)) {
         if (!param.defaultExpr) {
@@ -417,12 +427,12 @@ export function toString(seq: any[]): string {
 }
 
 export function toNumber(seq: any[]): number {
-  if (!seq || seq.length === 0) return 0.0;
+  if (!seq || seq.length === 0) return NaN;
   let item: any = seq[0];
   if (item instanceof Node) item = item.stringValue();
   if (typeof item === "boolean") return item ? 1.0 : 0.0;
   const num = Number(item);
-  if (Number.isNaN(num)) throw new Error("XFDY0002: number conversion");
+  if (Number.isNaN(num)) return NaN;
   return num;
 }
 
@@ -447,6 +457,7 @@ export function matchPattern(pattern: ast.Pattern, item: any): [boolean, Record<
   if (pattern instanceof ast.TypedPattern) {
     if (item === null || item === undefined) return [false, {}];
     if (pattern.kind === "node") return [item instanceof Node, {}];
+    if (pattern.kind === "element") return [item instanceof Node && item.kind === "element", {}];
     if (pattern.kind === "text") return [item instanceof Node && item.kind === "text", {}];
     if (pattern.kind === "comment") return [item instanceof Node && item.kind === "comment", {}];
     if (pattern.kind === "pi") return [item instanceof Node && item.kind === "pi", {}];
@@ -498,6 +509,9 @@ export function matchPattern(pattern: ast.Pattern, item: any): [boolean, Record<
 }
 
 function doApply(seq: any[], ruleset: string, ctx: Context): any[] {
+  if (ctx.recursion_depth >= MAX_RECURSION_DEPTH) {
+    throw new Error("XFDY0099");
+  }
   if (ruleset !== "main" && !(ruleset in ctx.rules)) {
     throw new Error("XFST0007");
   }
@@ -511,7 +525,7 @@ function doApply(seq: any[], ruleset: string, ctx: Context): any[] {
         matched = true;
         const newVars = { ...ctx.variables, ...bindings };
         out.push(
-          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)),
+          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1)),
         );
         break;
       }
@@ -564,6 +578,7 @@ function fnBoolean(args: any[][]): any[] {
 function fnTypeOf(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return ["null"];
   const item = args[0][0];
+  if (item instanceof FunctionRef) return ["function"];
   if (item instanceof Node) return ["node"];
   if (item && typeof item === "object" && !Array.isArray(item)) return ["map"];
   if (typeof item === "boolean") return ["boolean"];
@@ -575,14 +590,15 @@ function fnTypeOf(args: any[][]): any[] {
 function fnName(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [""];
   const item = args[0][0];
-  if (item instanceof Node) return [item.name ?? ""];
-  return [""];
+  if (!(item instanceof Node)) throw new Error("XFDY0003");
+  return [item.name ?? ""];
 }
 
 function fnAttr(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [""];
   const node = args[0][0];
-  if (!(node instanceof Node) || node.kind !== "element") return [""];
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
+  if (node.kind !== "element") return [""];
   if (args.length < 2) return [""];
   const key = toString(args[1]);
   return [node.attrs[key] ?? ""];
@@ -591,39 +607,38 @@ function fnAttr(args: any[][]): any[] {
 function fnText(args: any[][], ctx: Context, named: Record<string, any[]>): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [""];
   const node = args[0][0];
-  if (node instanceof Node) {
-    let deep = true;
-    if (args.length > 1) {
-      deep = toBoolean(args[1]);
-    } else if (named && "deep" in named) {
-      deep = toBoolean(named["deep"]);
-    }
-    if (deep) {
-      return [node.stringValue()];
-    }
-    if (node.kind === "element" || node.kind === "document") {
-      const direct = node.children
-        .filter((c) => c.kind === "text")
-        .map((c) => c.value ?? "")
-        .join("");
-      return [direct];
-    }
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
+  let deep = true;
+  if (args.length > 1) {
+    deep = toBoolean(args[1]);
+  } else if (named && "deep" in named) {
+    deep = toBoolean(named["deep"]);
+  }
+  if (deep) {
     return [node.stringValue()];
   }
-  return [toString(args[0])];
+  if (node.kind === "element" || node.kind === "document") {
+    const direct = node.children
+      .filter((c) => c.kind === "text")
+      .map((c) => c.value ?? "")
+      .join("");
+    return [direct];
+  }
+  return [node.stringValue()];
 }
 
 function fnChildren(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [];
   const node = args[0][0];
-  if (node instanceof Node) return [...node.children];
-  return [];
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
+  return [...node.children];
 }
 
 function fnElements(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [];
   const node = args[0][0];
-  if (!(node instanceof Node) || (node.kind !== "element" && node.kind !== "document")) return [];
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
+  if (node.kind !== "element" && node.kind !== "document") return [];
   const nameTest = args.length > 1 ? toString(args[1]) : null;
   let out = node.children.filter((c) => c.kind === "element");
   if (nameTest) out = out.filter((c) => c.name === nameTest);
@@ -633,14 +648,15 @@ function fnElements(args: any[][]): any[] {
 function fnAttributes(args: any[][]): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [];
   const node = args[0][0];
-  if (!(node instanceof Node) || node.kind !== "element") return [];
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
+  if (node.kind !== "element") return [];
   return Object.entries(node.attrs).map(([k, v]) => new Node({ kind: "attribute", name: k, value: v }));
 }
 
 function fnCopy(args: any[][], ctx: Context, named: Record<string, any[]>): any[] {
   if (!args || args.length === 0 || args[0].length === 0) return [];
   const node = args[0][0];
-  if (!(node instanceof Node)) return [];
+  if (!(node instanceof Node)) throw new Error("XFDY0003");
   let recurse = true;
   if (args.length > 1) {
     recurse = toBoolean(args[1]);
@@ -707,7 +723,7 @@ function fnTail(args: any[][]): any[] {
 function fnLast(args: any[][], ctx: Context): any[] {
   if (!args || args.length === 0 || args[0].length === 0) {
     if (ctx.last === null) {
-      throw new Error("XFDY0006");
+      throw new Error("XFDY0003");
     }
     return [ctx.last];
   }
@@ -738,7 +754,7 @@ function fnIndex(args: any[][], ctx: Context, named: Record<string, any[]>, name
     if (keyFn) {
       key = toString(callFunction(keyFn, [[item]], ctx));
     } else if (keyExpr !== null) {
-      const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last);
+      const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth);
       key = toString(evalExpr(keyExpr, itemCtx));
     } else {
       key = toString([item]);
@@ -782,7 +798,7 @@ function fnSeq(args: any[][]): any[] {
 
 function fnPosition(_: any[][], ctx: Context): any[] {
   if (ctx.position === null) {
-    throw new Error("XFDY0006");
+    throw new Error("XFDY0003");
   }
   return [ctx.position];
 }
@@ -845,6 +861,28 @@ function fnReplace(args: any[][]): any[] {
   return [s.split(pattern).join(replacement)];
 }
 
+function fnStringLength(args: any[][]): any[] {
+  const s = toString(args[0] ?? []);
+  return [s.length];
+}
+
+function fnUpperCase(args: any[][]): any[] {
+  const s = toString(args[0] ?? []);
+  return [s.toUpperCase()];
+}
+
+function fnLowerCase(args: any[][]): any[] {
+  const s = toString(args[0] ?? []);
+  return [s.toLowerCase()];
+}
+
+function fnMatches(args: any[][]): any[] {
+  if (!args || args.length < 2) return [false];
+  const s = toString(args[0]);
+  const pattern = toString(args[1]);
+  return [s.includes(pattern)];
+}
+
 // Map helpers
 
 function fnKeys(args: any[][]): any[] {
@@ -894,6 +932,10 @@ const BUILTINS: Record<string, BuiltinFn> = {
   substring: (args) => fnSubstring(args),
   normalizeSpace: (args) => fnNormalizeSpace(args),
   replace: (args) => fnReplace(args),
+  stringLength: (args) => fnStringLength(args),
+  upperCase: (args) => fnUpperCase(args),
+  lowerCase: (args) => fnLowerCase(args),
+  matches: (args) => fnMatches(args),
   keys: (args) => fnKeys(args),
   mapSize: (args) => fnMapSize(args),
 };

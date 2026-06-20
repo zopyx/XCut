@@ -158,6 +158,7 @@ impl StepTest {
     pub fn wildcard() -> Self { StepTest { kind: StepTestKind::Wildcard, name: None } }
     pub fn text() -> Self { StepTest { kind: StepTestKind::Text, name: None } }
     pub fn node() -> Self { StepTest { kind: StepTestKind::Node, name: None } }
+    pub fn element() -> Self { StepTest { kind: StepTestKind::Element, name: None } }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -166,6 +167,7 @@ pub enum StepTestKind {
     Wildcard,
     Text,
     Node,
+    Element,
     Comment,
     Pi,
     Document,

@@ -1,5 +1,52 @@
+use std::collections::HashSet;
+
 use crate::ast::*;
 use crate::lexer::{Lexer, TK};
+
+lazy_static::lazy_static! {
+    static ref RESERVED_FUNCTION_NAMES: HashSet<&'static str> = {
+        let mut s = HashSet::new();
+        s.insert("string");
+        s.insert("number");
+        s.insert("boolean");
+        s.insert("typeOf");
+        s.insert("name");
+        s.insert("attr");
+        s.insert("text");
+        s.insert("children");
+        s.insert("elements");
+        s.insert("attributes");
+        s.insert("copy");
+        s.insert("count");
+        s.insert("empty");
+        s.insert("distinct");
+        s.insert("sort");
+        s.insert("concat");
+        s.insert("seq");
+        s.insert("head");
+        s.insert("tail");
+        s.insert("last");
+        s.insert("index");
+        s.insert("lookup");
+        s.insert("groupBy");
+        s.insert("sum");
+        s.insert("position");
+        s.insert("apply");
+        s.insert("contains");
+        s.insert("startsWith");
+        s.insert("endsWith");
+        s.insert("substring");
+        s.insert("stringLength");
+        s.insert("upperCase");
+        s.insert("lowerCase");
+        s.insert("normalizeSpace");
+        s.insert("replace");
+        s.insert("matches");
+        s.insert("keys");
+        s.insert("mapSize");
+        s
+    };
+}
 
 pub struct Parser {
     pub lexer: Lexer,
@@ -101,6 +148,9 @@ impl Parser {
     fn parse_def(&mut self) -> Result<(String, FunctionDef), String> {
         self.lexer.expect(TK::Kw, Some("def"))?;
         let name = self.parse_qname()?;
+        if RESERVED_FUNCTION_NAMES.contains(name.as_str()) {
+            return Err(format!("XFST0006: reserved function name '{}'", name));
+        }
         self.lexer.expect(TK::Punct, Some("("))?;
         let params = if self.lexer.peek().kind == TK::Punct && self.lexer.peek().value == ")" {
             vec![]
@@ -647,13 +697,14 @@ impl Parser {
             return Ok(StepTest::wildcard());
         }
         if pk == TK::Ident || pk == TK::Kw {
-            if ["text", "node", "comment", "pi", "document"].contains(&pv.as_str()) {
+            if ["text", "node", "element", "comment", "pi", "document"].contains(&pv.as_str()) {
                 self.lexer.next();
                 self.lexer.expect(TK::Punct, Some("("))?;
                 self.lexer.expect(TK::Punct, Some(")"))?;
                 return Ok(match pv.as_str() {
                     "text" => StepTest::text(),
                     "node" => StepTest::node(),
+                    "element" => StepTest::element(),
                     "comment" => StepTest { kind: StepTestKind::Comment, name: None },
                     "pi" => StepTest { kind: StepTestKind::Pi, name: None },
                     "document" => StepTest { kind: StepTestKind::Document, name: None },
@@ -714,7 +765,7 @@ impl Parser {
             return Ok(Pattern::Attribute(AttributePattern { name, value }));
         }
         if pk == TK::Ident || pk == TK::Kw {
-            if ["node", "text", "comment", "pi", "document"].contains(&pv.as_str()) {
+            if ["node", "element", "text", "comment", "pi", "document"].contains(&pv.as_str()) {
                 self.lexer.next();
                 self.lexer.expect(TK::Punct, Some("("))?;
                 self.lexer.expect(TK::Punct, Some(")"))?;

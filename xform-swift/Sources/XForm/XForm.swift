@@ -379,6 +379,15 @@ private let keywords: Set<String> = [
     "apply", "text", "comment", "pi"
 ]
 
+private let reservedFunctionNames: Set<String> = [
+    "string", "number", "boolean", "typeOf", "name", "attr", "text", "children",
+    "elements", "attributes", "copy", "count", "empty", "distinct", "sort",
+    "concat", "seq", "head", "tail", "last", "index", "lookup", "groupBy",
+    "sum", "position", "apply", "contains", "startsWith", "endsWith",
+    "substring", "stringLength", "upperCase", "lowerCase", "normalizeSpace",
+    "replace", "matches", "keys", "mapSize"
+]
+
 // Parser
 
 public final class Parser {
@@ -474,6 +483,7 @@ public final class Parser {
     private func parseDef(_ functions: inout [String: FunctionDef]) {
         _ = lexer.expect(.kw, "def")
         let name = parseQName()
+        if reservedFunctionNames.contains(name) { fatalError("XFST0006: reserved function name '\(name)'") }
         _ = lexer.expect(.punct, "(")
         var params: [Param] = []
         if !(lexer.peek().kind == .punct && lexer.peek().value == ")") {
@@ -941,7 +951,7 @@ public final class Parser {
             return StepTest(kind: "wildcard", name: nil)
         }
         if tok.kind == .ident || tok.kind == .kw {
-            if ["text", "node", "comment", "pi", "document"].contains(tok.value) {
+            if ["text", "node", "element", "comment", "pi", "document"].contains(tok.value) {
                 _ = lexer.next()
                 _ = lexer.expect(.punct, "(")
                 _ = lexer.expect(.punct, ")")
@@ -994,7 +1004,7 @@ public final class Parser {
             return AttributePattern(name: name, value: value)
         }
         if tok.kind == .ident || tok.kind == .kw {
-            if ["node", "text", "comment", "pi", "document"].contains(tok.value) {
+            if ["node", "element", "text", "comment", "pi", "document"].contains(tok.value) {
                 _ = lexer.next()
                 _ = lexer.expect(.punct, "(")
                 _ = lexer.expect(.punct, ")")
@@ -1203,18 +1213,21 @@ public struct Context {
     public let rules: [String: [RuleDef]]
     public let position: Int?
     public let last: Int?
+    public let recursionDepth: Int
 }
+
+public let MAX_RECURSION_DEPTH = 10000
 
 public struct FunctionRef { public let name: String }
 
 public func evalModule(_ module: Module, _ doc: Node) -> [Any] {
     var variables: [String: [Any]] = [:]
-    let ctx = Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil)
+    let ctx = Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0)
     for (name, expr) in module.vars {
         variables[name] = evalExpr(expr, ctx)
     }
     if module.expr == nil { return [] }
-    return evalExpr(module.expr!, Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil))
+    return evalExpr(module.expr!, Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0))
 }
 
 public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
@@ -1234,7 +1247,7 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
     case let e as LetExpr:
         var newVars = ctx.variables
         newVars[e.name] = evalExpr(e.value, ctx)
-        return evalExpr(e.body, Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last))
+        return evalExpr(e.body, Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth))
     case let e as ForExpr:
         let seq = evalExpr(e.seq, ctx)
         var out: [Any] = []
@@ -1242,7 +1255,7 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
         for (idx, item) in seq.enumerated() {
             var newVars = ctx.variables
             newVars[e.name] = [item]
-            let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: idx + 1, last: total)
+            let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: idx + 1, last: total, recursionDepth: ctx.recursionDepth)
             if let w = e.whereExpr {
                 if !toBoolean(evalExpr(w, newCtx)) { continue }
             }
@@ -1260,13 +1273,13 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
                     matchedAny = true
                     var newVars = ctx.variables
                     for (k, v) in bindings { newVars[k] = v }
-                    out.append(contentsOf: evalExpr(body, Context(contextItem: target, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)))
+                    out.append(contentsOf: evalExpr(body, Context(contextItem: target, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)))
                     break
                 }
             }
             if !matchedAny {
                 guard let def = e.defaultExpr else { fatalError("XFDY0001: no matching case") }
-                out.append(contentsOf: evalExpr(def, Context(contextItem: target, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)))
+                out.append(contentsOf: evalExpr(def, Context(contextItem: target, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)))
             }
         }
         return out
@@ -1413,7 +1426,7 @@ public func applyStep(_ items: [Any], _ step: PathStep, _ ctx: Context) -> [Any]
         for pred in step.predicates {
             var predOut: [Node] = []
             for (i, child) in filtered.enumerated() {
-                let predCtx = Context(contextItem: child, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: i + 1, last: filtered.count)
+                let predCtx = Context(contextItem: child, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: i + 1, last: filtered.count, recursionDepth: ctx.recursionDepth)
                 if toBoolean(evalExpr(pred, predCtx)) { predOut.append(child) }
             }
             filtered = predOut
@@ -1428,6 +1441,7 @@ private func matchesStepTest(_ test: StepTest, _ node: Node) -> Bool {
     case "wildcard": return node.kind == "element" || node.kind == "attribute"
     case "text": return node.kind == "text"
     case "node": return true
+    case "element": return node.kind == "element"
     case "comment": return node.kind == "comment"
     case "pi": return node.kind == "pi"
     case "document": return node.kind == "document"
@@ -1453,7 +1467,10 @@ public func evalConstructor(_ expr: Constructor, _ ctx: Context) -> Node {
         let seq = evalExpr(content, ctx)
         for item in seq {
             if let n = item as? Node {
-                if n.kind == "attribute" { fatalError("XFDY0005") }
+                if n.kind == "attribute" {
+                    children.append(Node(kind: "text", value: n.value ?? ""))
+                    continue
+                }
                 children.append(deepCopy(n, recurse: true))
             } else {
                 children.append(Node(kind: "text", value: toString([item])))
@@ -1485,6 +1502,7 @@ public func callFunction(_ name: String, _ args: [[Any]], _ ctx: Context, _ name
 }
 
 private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context, _ named: [String: [Any]] = [:]) -> [Any] {
+    if ctx.recursionDepth >= MAX_RECURSION_DEPTH { fatalError("XFDY0099") }
     let params = fn.params
     if args.count > params.count { fatalError("XFDY0008: too many arguments") }
     var newVars = ctx.variables
@@ -1499,9 +1517,9 @@ private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context
         newVars[paramName] = value
         bound.insert(paramName)
     }
+    let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1)
     for param in params {
         if !bound.contains(param.name) {
-            let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
             if let def = param.defaultExpr {
                 newVars[param.name] = evalExpr(def, newCtx)
                 bound.insert(param.name)
@@ -1510,7 +1528,6 @@ private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context
             }
         }
     }
-    let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
     return evalExpr(fn.body, newCtx)
 }
 
@@ -1549,7 +1566,7 @@ public func toNumber(_ seq: [Any]) -> Double {
     if let n = item as? Int { return Double(n) }
     if let n = item as? Double { return n }
     if let s = item as? String, let v = Double(s) { return v }
-    fatalError("XFDY0002: number conversion")
+    return Double.nan
 }
 
 public func valueEqual(_ left: [Any], _ right: [Any]) -> Bool { toString(left) == toString(right) }
@@ -1575,6 +1592,7 @@ public func matchPattern(_ pattern: Pattern, _ item: Any) -> (Bool, [String: [An
         if p.kind == "node" { return (item is Node, [:]) }
         if let node = item as? Node {
             if p.kind == "text" { return (node.kind == "text", [:]) }
+            if p.kind == "element" { return (node.kind == "element", [:]) }
             if p.kind == "comment" { return (node.kind == "comment", [:]) }
             if p.kind == "pi" { return (node.kind == "pi", [:]) }
             if p.kind == "document" { return (node.kind == "document", [:]) }
@@ -1612,6 +1630,7 @@ public func matchPattern(_ pattern: Pattern, _ item: Any) -> (Bool, [String: [An
 }
 
 private func doApply(_ seq: [Any], _ ruleset: String, _ ctx: Context) -> [Any] {
+    if ctx.recursionDepth >= MAX_RECURSION_DEPTH { fatalError("XFDY0099") }
     if ruleset != "main" && !ctx.rules.keys.contains(ruleset) { fatalError("XFST0007") }
     let rules = ctx.rules[ruleset] ?? []
     var out: [Any] = []
@@ -1623,7 +1642,7 @@ private func doApply(_ seq: [Any], _ ruleset: String, _ ctx: Context) -> [Any] {
                 matched = true
                 var newVars = ctx.variables
                 for (k, v) in bindings { newVars[k] = v }
-                let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
+                let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1)
                 out.append(contentsOf: evalExpr(rule.body, newCtx))
                 break
             }
@@ -1667,6 +1686,7 @@ private func fnTypeOf(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]],
     let item = args[0][0]
     if item is Node { return ["node"] }
     if item is [String: [Any]] { return ["map"] }
+    if item is FunctionRef { return ["function"] }
     if item is Bool { return ["boolean"] }
     if item is Double || item is Int { return ["number"] }
     if item is NSNull { return ["null"] }
@@ -1675,13 +1695,14 @@ private func fnTypeOf(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]],
 
 private func fnName(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [""] }
-    if let node = args[0][0] as? Node { return [node.name ?? ""] }
-    return [""]
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    return [node.name ?? ""]
 }
 
 private func fnAttr(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [""] }
-    guard let node = args[0][0] as? Node, node.kind == "element" else { return [""] }
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    if node.kind != "element" { return [""] }
     if args.count < 2 { return [""] }
     let key = toString(args[1])
     return [node.attrs[key] ?? ""]
@@ -1689,46 +1710,45 @@ private func fnAttr(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _
 
 private func fnText(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [""] }
-    let item = args[0][0]
-    if let node = item as? Node {
-        var deep = true
-        if args.count > 1 {
-            deep = toBoolean(args[1])
-        } else if let d = named["deep"] {
-            deep = toBoolean(d)
-        }
-        if deep { return [node.stringValue()] }
-        if node.kind == "element" || node.kind == "document" {
-            let direct = node.children.filter { $0.kind == "text" }.map { $0.value ?? "" }.joined()
-            return [direct]
-        }
-        return [node.stringValue()]
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    var deep = true
+    if args.count > 1 {
+        deep = toBoolean(args[1])
+    } else if let d = named["deep"] {
+        deep = toBoolean(d)
     }
-    return [toString(args[0])]
+    if deep { return [node.stringValue()] }
+    if node.kind == "element" || node.kind == "document" {
+        let direct = node.children.filter { $0.kind == "text" }.map { $0.value ?? "" }.joined()
+        return [direct]
+    }
+    return [node.stringValue()]
 }
 
 private func fnChildren(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [] }
-    if let node = args[0][0] as? Node { return node.children }
-    return []
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    return node.children
 }
 
 private func fnElements(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [] }
-    guard let node = args[0][0] as? Node, node.kind == "element" || node.kind == "document" else { return [] }
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    if node.kind != "element" && node.kind != "document" { return [] }
     let nameTest = args.count > 1 ? toString(args[1]) : ""
     return node.children.filter { $0.kind == "element" && (nameTest.isEmpty || $0.name == nameTest) }
 }
 
 private func fnAttributes(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [] }
-    guard let node = args[0][0] as? Node, node.kind == "element" else { return [] }
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
+    if node.kind != "element" { return [] }
     return node.attrs.map { Node(kind: "attribute", name: $0.key, value: $0.value) }
 }
 
 private func fnCopy(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty { return [] }
-    guard let node = args[0][0] as? Node else { return [] }
+    guard let node = args[0][0] as? Node else { fatalError("XFDY0003") }
     var recurse = true
     if args.count > 1 {
         recurse = toBoolean(args[1])
@@ -1794,14 +1814,14 @@ private func fnTail(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _
 private func fnLast(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if args.isEmpty || args[0].isEmpty {
         if let last = ctx.last { return [Double(last)] }
-        fatalError("XFDY0006")
+        fatalError("XFDY0003")
     }
     return [args[0].last!]
 }
 
 private func fnPosition(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
     if let pos = ctx.position { return [Double(pos)] }
-    fatalError("XFDY0006")
+    fatalError("XFDY0003")
 }
 
 private func fnIndex(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
@@ -1817,7 +1837,7 @@ private func fnIndex(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], 
         if let k = keyFn, let fn = ctx.functions[k] {
             key = toString(callUserFunction(fn, [[item]], ctx))
         } else if let ke = keyExpr {
-            let itemCtx = Context(contextItem: item, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last)
+            let itemCtx = Context(contextItem: item, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)
             key = toString(evalExpr(ke, itemCtx))
         }
         index[key, default: []].append(item)
@@ -1928,6 +1948,28 @@ private func fnMapSize(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]]
     return [Double(mapping.count)]
 }
 
+private func fnStringLength(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let s = toString(args.get(0, otherwise: []))
+    return [Double(s.count)]
+}
+
+private func fnUpperCase(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let s = toString(args.get(0, otherwise: []))
+    return [s.uppercased()]
+}
+
+private func fnLowerCase(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    let s = toString(args.get(0, otherwise: []))
+    return [s.lowercased()]
+}
+
+private func fnMatches(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], _ namedRaw: [String: Expr]) -> [Any] {
+    if args.count < 2 { return [false] }
+    let s = toString(args[0])
+    let pattern = toString(args[1])
+    return [s.contains(pattern)]
+}
+
 private extension Array {
     func get(_ index: Int, otherwise: Element) -> Element {
         return indices.contains(index) ? self[index] : otherwise
@@ -1968,7 +2010,11 @@ private let builtins: [String: BuiltinFn] = [
     "normalizeSpace": fnNormalizeSpace,
     "replace": fnReplace,
     "keys": fnKeys,
-    "mapSize": fnMapSize
+    "mapSize": fnMapSize,
+    "stringLength": fnStringLength,
+    "upperCase": fnUpperCase,
+    "lowerCase": fnLowerCase,
+    "matches": fnMatches
 ]
 
 public func serializeItem(_ item: Any) -> String {

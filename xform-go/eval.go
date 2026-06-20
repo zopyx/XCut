@@ -9,13 +9,16 @@ import (
 )
 
 type Context struct {
-	ContextItem any
-	Variables   map[string][]any
-	Functions   map[string]FunctionDef
-	Rules       map[string][]RuleDef
-	Position    *int
-	Last        *int
+	ContextItem    any
+	Variables      map[string][]any
+	Functions      map[string]FunctionDef
+	Rules          map[string][]RuleDef
+	Position       *int
+	Last           *int
+	RecursionDepth int
 }
+
+const maxRecursionDepth = 10000
 
 func EvalModule(module *Module, doc *Node) []any {
 	functions := map[string]FunctionDef{}
@@ -341,6 +344,8 @@ func matchesStepTest(test StepTest, node *Node) bool {
 	switch test.Kind {
 	case "wildcard":
 		return node.Kind == "element" || node.Kind == "attribute"
+	case "element":
+		return node.Kind == "element"
 	case "text":
 		return node.Kind == "text"
 	case "node":
@@ -383,10 +388,11 @@ func EvalConstructor(expr Constructor, ctx Context) *Node {
 			for _, item := range seq {
 				if n, ok := item.(*Node); ok {
 					if n.Kind == "attribute" {
-						panic(fmt.Errorf("XFDY0005"))
+						children = append(children, &Node{Kind: "text", Value: n.Value, Attrs: map[string]string{}})
+					} else {
+						child := DeepCopy(n, true)
+						children = append(children, child)
 					}
-					child := DeepCopy(n, true)
-					children = append(children, child)
 				} else {
 					children = append(children, &Node{Kind: "text", Value: ToString([]any{item}), Attrs: map[string]string{}})
 				}
@@ -424,6 +430,9 @@ func CallFunction(name string, args [][]any, ctx Context, namedArgs map[string][
 }
 
 func callUserFunction(fn FunctionDef, args [][]any, ctx Context, namedArgs map[string][]any, namedRaw map[string]Expr) []any {
+	if ctx.RecursionDepth >= maxRecursionDepth {
+		panic(fmt.Errorf("XFDY0099"))
+	}
 	params := fn.Params
 	if len(args) > len(params) {
 		panic(fmt.Errorf("XFDY0008: too many arguments"))
@@ -451,7 +460,7 @@ func callUserFunction(fn FunctionDef, args [][]any, ctx Context, namedArgs map[s
 		newVars[paramName] = value
 		bound[paramName] = true
 	}
-	newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+	newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1}
 	for _, param := range params {
 		if !bound[param.Name] {
 			if param.Default == nil {
@@ -531,7 +540,7 @@ func ToString(seq []any) string {
 
 func ToNumber(seq []any) float64 {
 	if len(seq) == 0 {
-		return 0.0
+		return math.NaN()
 	}
 	item := seq[0]
 	if node, ok := item.(*Node); ok {
@@ -550,11 +559,11 @@ func ToNumber(seq []any) float64 {
 	case string:
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			panic(fmt.Errorf("XFDY0002: number conversion"))
+			return math.NaN()
 		}
 		return f
 	default:
-		panic(fmt.Errorf("XFDY0002: number conversion"))
+		return math.NaN()
 	}
 }
 
@@ -584,6 +593,9 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 		node, ok := item.(*Node)
 		if p.Kind == "node" {
 			return ok, map[string][]any{}
+		}
+		if p.Kind == "element" {
+			return ok && node.Kind == "element", map[string][]any{}
 		}
 		if p.Kind == "text" {
 			return ok && node.Kind == "text", map[string][]any{}
@@ -648,6 +660,9 @@ func MatchPattern(pattern Pattern, item any) (bool, map[string][]any) {
 }
 
 func doApply(seq []any, ruleset string, ctx Context) []any {
+	if ctx.RecursionDepth >= maxRecursionDepth {
+		panic(fmt.Errorf("XFDY0099"))
+	}
 	if ruleset != "main" {
 		if _, ok := ctx.Rules[ruleset]; !ok {
 			panic(fmt.Errorf("XFST0007"))
@@ -665,7 +680,7 @@ func doApply(seq []any, ruleset string, ctx Context) []any {
 				for k, v := range bindings {
 					newVars[k] = v
 				}
-				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1}
 				out = append(out, EvalExpr(rule.Body, newCtx)...)
 				break
 			}
@@ -739,6 +754,9 @@ func fnTypeOf(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []
 	if _, ok := item.(*Node); ok {
 		return []any{"node"}
 	}
+	if _, ok := item.(FunctionRef); ok {
+		return []any{"function"}
+	}
 	if _, ok := item.(map[string][]any); ok {
 		return []any{"map"}
 	}
@@ -758,10 +776,11 @@ func fnName(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []an
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{""}
 	}
-	if node, ok := args[0][0].(*Node); ok {
-		return []any{node.Name}
+	node, ok := args[0][0].(*Node)
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
 	}
-	return []any{""}
+	return []any{node.Name}
 }
 
 func fnAttr(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
@@ -769,7 +788,10 @@ func fnAttr(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []an
 		return []any{""}
 	}
 	node, ok := args[0][0].(*Node)
-	if !ok || node.Kind != "element" {
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
+	}
+	if node.Kind != "element" {
 		return []any{""}
 	}
 	if len(args) < 2 {
@@ -784,44 +806,45 @@ func fnText(args [][]any, _ Context, named map[string][]any, _ map[string]Expr) 
 		return []any{""}
 	}
 	node, ok := args[0][0].(*Node)
-	if ok {
-		deep := true
-		if len(args) > 1 {
-			deep = ToBoolean(args[1])
-		} else if named != nil {
-			if v, ok := named["deep"]; ok {
-				deep = ToBoolean(v)
-			}
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
+	}
+	deep := true
+	if len(args) > 1 {
+		deep = ToBoolean(args[1])
+	} else if named != nil {
+		if v, ok := named["deep"]; ok {
+			deep = ToBoolean(v)
 		}
-		if deep {
-			return []any{node.StringValue()}
-		}
-		if node.Kind == "element" || node.Kind == "document" {
-			direct := ""
-			for _, c := range node.Children {
-				if c.Kind == "text" {
-					direct += c.Value
-				}
-			}
-			return []any{direct}
-		}
+	}
+	if deep {
 		return []any{node.StringValue()}
 	}
-	return []any{ToString(args[0])}
+	if node.Kind == "element" || node.Kind == "document" {
+		direct := ""
+		for _, c := range node.Children {
+			if c.Kind == "text" {
+				direct += c.Value
+			}
+		}
+		return []any{direct}
+	}
+	return []any{node.StringValue()}
 }
 
 func fnChildren(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
 	}
-	if node, ok := args[0][0].(*Node); ok {
-		out := []any{}
-		for _, c := range node.Children {
-			out = append(out, c)
-		}
-		return out
+	node, ok := args[0][0].(*Node)
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
 	}
-	return []any{}
+	out := []any{}
+	for _, c := range node.Children {
+		out = append(out, c)
+	}
+	return out
 }
 
 func fnElements(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
@@ -829,7 +852,10 @@ func fnElements(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) 
 		return []any{}
 	}
 	node, ok := args[0][0].(*Node)
-	if !ok || (node.Kind != "element" && node.Kind != "document") {
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
+	}
+	if node.Kind != "element" && node.Kind != "document" {
 		return []any{}
 	}
 	nameTest := ""
@@ -852,7 +878,10 @@ func fnAttributes(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr
 		return []any{}
 	}
 	node, ok := args[0][0].(*Node)
-	if !ok || node.Kind != "element" {
+	if !ok {
+		panic(fmt.Errorf("XFDY0003"))
+	}
+	if node.Kind != "element" {
 		return []any{}
 	}
 	out := []any{}
@@ -868,7 +897,7 @@ func fnCopy(args [][]any, _ Context, named map[string][]any, _ map[string]Expr) 
 	}
 	node, ok := args[0][0].(*Node)
 	if !ok {
-		return []any{}
+		panic(fmt.Errorf("XFDY0003"))
 	}
 	recurse := true
 	if len(args) > 1 {
@@ -959,9 +988,9 @@ func fnTail(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []an
 }
 
 func fnLast(args [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
-	if len(args) == 0 || len(args[0]) == 0 {
+	if len(args) == 0 {
 		if ctx.Last == nil {
-			panic(fmt.Errorf("XFDY0006"))
+			panic(fmt.Errorf("XFDY0003"))
 		}
 		return []any{float64(*ctx.Last)}
 	}
@@ -1064,7 +1093,7 @@ func fnSeq(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any
 
 func fnPosition(_ [][]any, ctx Context, _ map[string][]any, _ map[string]Expr) []any {
 	if ctx.Position == nil {
-		panic(fmt.Errorf("XFDY0006"))
+		panic(fmt.Errorf("XFDY0003"))
 	}
 	return []any{float64(*ctx.Position)}
 }
@@ -1151,6 +1180,30 @@ func fnReplace(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) [
 	return []any{strings.ReplaceAll(s, pattern, replacement)}
 }
 
+func fnStringLength(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	s := ToString(firstOrEmpty(args))
+	return []any{float64(len(s))}
+}
+
+func fnUpperCase(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	s := ToString(firstOrEmpty(args))
+	return []any{strings.ToUpper(s)}
+}
+
+func fnLowerCase(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	s := ToString(firstOrEmpty(args))
+	return []any{strings.ToLower(s)}
+}
+
+func fnMatches(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
+	if len(args) < 2 {
+		return []any{false}
+	}
+	s := ToString(args[0])
+	pattern := ToString(args[1])
+	return []any{strings.Contains(s, pattern)}
+}
+
 func fnKeys(args [][]any, _ Context, _ map[string][]any, _ map[string]Expr) []any {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return []any{}
@@ -1213,6 +1266,10 @@ func init() {
 		"substring":    fnSubstring,
 		"normalizeSpace": fnNormalizeSpace,
 		"replace":      fnReplace,
+		"stringLength": fnStringLength,
+		"upperCase":    fnUpperCase,
+		"lowerCase":    fnLowerCase,
+		"matches":      fnMatches,
 		"keys":         fnKeys,
 		"mapSize":      fnMapSize,
 	}

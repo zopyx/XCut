@@ -259,7 +259,7 @@ export class ElementPattern {
 }
 
 export class TypedPattern {
-  kind: string; // node, text, comment, pi, document
+  kind: string; // node, element, text, comment, pi, document
   constructor(kind: string) {
     this.kind = kind;
   }
