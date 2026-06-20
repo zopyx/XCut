@@ -70,11 +70,20 @@ build-java:
 		javac -d xform-java/build/classes $$(find xform-java/src/main/java -name '*.java'); \
 	fi
 	@echo '#!/usr/bin/env sh' > xform-java/bin/xform
-	@echo 'if [ -n "$${JAVA_HOME}" ]; then' >> xform-java/bin/xform
-	@echo '  exec "$${JAVA_HOME}/bin/java" -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
+	@echo 'JAVA_CMD="java"' >> xform-java/bin/xform
+	@echo 'if [ -n "$${JAVA_HOME}" ] && [ -x "$${JAVA_HOME}/bin/java" ] && "$${JAVA_HOME}/bin/java" -version 2>&1 | grep -qE '\''version "(1[7-9]|[2-9][0-9])'\''; then' >> xform-java/bin/xform
+	@echo '  JAVA_CMD="$${JAVA_HOME}/bin/java"' >> xform-java/bin/xform
 	@echo 'else' >> xform-java/bin/xform
-	@echo '  exec java -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
+	@echo '  for d in /Library/Java/JavaVirtualMachines/graalvm-ce-java17-*/Contents/Home \\' >> xform-java/bin/xform
+	@echo '           /Library/Java/JavaVirtualMachines/temurin-26.jdk/Contents/Home \\' >> xform-java/bin/xform
+	@echo '           /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home \\' >> xform-java/bin/xform
+	@echo '           /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home \\' >> xform-java/bin/xform
+	@echo '           /usr/lib/jvm/java-17-* \\' >> xform-java/bin/xform
+	@echo '           /usr/lib/jvm/temurin-17-*; do' >> xform-java/bin/xform
+	@echo '    if [ -x "$${d}/bin/java" ]; then JAVA_CMD="$${d}/bin/java"; break; fi' >> xform-java/bin/xform
+	@echo '  done' >> xform-java/bin/xform
 	@echo 'fi' >> xform-java/bin/xform
+	@echo 'exec "$${JAVA_CMD}" -cp "$$(dirname "$$0")/../build/classes" zopyx.xform.Main "$$@"' >> xform-java/bin/xform
 	chmod +x xform-java/bin/xform
 
 build-kotlin:

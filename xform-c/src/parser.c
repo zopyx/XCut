@@ -330,6 +330,11 @@ static Expr* parse_match(Parser *p) {
         if (peek_is(p, TK_KW, "case")) {
             accept(p, TK_KW, "case");
             Pattern *pat = parse_pattern(p);
+            Expr *guard = NULL;
+            if (peek_is(p, TK_KW, "where")) {
+                accept(p, TK_KW, "where");
+                guard = parse_expr_internal(p);
+            }
             expect(p, TK_OP, "=");
             expect(p, TK_OP, ">");
             Expr *expr = parse_expr_internal(p);
@@ -337,9 +342,12 @@ static Expr* parse_match(Parser *p) {
             
             me->patterns = (Pattern**)realloc(me->patterns, 
                 (me->case_count + 1) * sizeof(Pattern*));
+            me->guards = (Expr**)realloc(me->guards,
+                (me->case_count + 1) * sizeof(Expr*));
             me->exprs = (Expr**)realloc(me->exprs, 
                 (me->case_count + 1) * sizeof(Expr*));
             me->patterns[me->case_count] = pat;
+            me->guards[me->case_count] = guard;
             me->exprs[me->case_count] = expr;
             me->case_count++;
         } else if (peek_is(p, TK_KW, "default")) {
@@ -360,6 +368,23 @@ static Expr* parse_match(Parser *p) {
 }
 
 static Expr* parse_or(Parser *p);
+
+static int next_token_is_arrow_tail(Parser *p) {
+    size_t saved_pos = p->lexer->pos;
+    Token *saved_buffer = p->lexer->buffer;
+    Token *tok = lexer_next(p->lexer);
+    Token *peek = lexer_peek(p->lexer);
+    int is_arrow = peek && peek->kind == TK_OP && strcmp(peek->value, ">") == 0;
+    p->lexer->pos = saved_pos;
+    if (p->lexer->buffer && p->lexer->buffer != saved_buffer) {
+        token_free(p->lexer->buffer);
+    }
+    if (tok && tok != saved_buffer) {
+        token_free(tok);
+    }
+    p->lexer->buffer = saved_buffer;
+    return is_arrow;
+}
 
 static Expr* parse_func_call(Parser *p, char *name) {
     accept(p, TK_PUNCT, "(");
@@ -979,6 +1004,9 @@ static Expr* parse_eq(Parser *p) {
     
     while (1) {
         if (peek_is(p, TK_OP, "=") || peek_is(p, TK_OP, "!=")) {
+            if (peek_is(p, TK_OP, "=") && next_token_is_arrow_tail(p)) {
+                break;
+            }
             Token *tok = lexer_next(p->lexer);
             Expr *right = parse_rel(p);
             BinaryOp *bo = (BinaryOp*)malloc(sizeof(BinaryOp));
@@ -1243,12 +1271,13 @@ Module* parser_parse_module(Parser *p) {
         accept(p, TK_KW, "xform");
         expect(p, TK_KW, "version");
         Token *ver = lexer_next(p->lexer);
-        if (ver && strcmp(ver->value, "2.0") != 0 && strcmp(ver->value, "2.1") != 0) {
+        if (ver && strcmp(ver->value, "2.0") != 0 && strcmp(ver->value, "2.1") != 0 && strcmp(ver->value, "2.2") != 0) {
             set_error("XFST0005: unsupported version");
             token_free(ver);
             module_free(mod);
             return NULL;
         }
+        if (ver) mod->version = strdup(ver->value);
         token_free(ver);
         expect(p, TK_PUNCT, ";");
     }

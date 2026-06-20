@@ -242,6 +242,7 @@ public final class XFormEngine {
         public Map<String, String> namespaces = new HashMap<>();
         public List<ImportDecl> imports = new ArrayList<>();
         public Expr expr;
+        public String version = "2.0";
     }
 
     public static final class ImportDecl { public String iri; public String alias; }
@@ -254,7 +255,7 @@ public final class XFormEngine {
     public static final class LetExpr implements Expr { public String name; public Expr value, body; }
     public static final class ForExpr implements Expr { public String name; public Expr seq, where, body; }
     public static final class MatchExpr implements Expr { public Expr target; public List<MatchCase> cases = new ArrayList<>(); public Expr defaultExpr; }
-    public static final class MatchCase { public Pattern pattern; public Expr expr; }
+    public static final class MatchCase { public Pattern pattern; public Expr guard; public Expr expr; }
     public static final class FuncCall implements Expr { public String name; public List<Expr> args = new ArrayList<>(); public List<NamedArg> namedArgs = new ArrayList<>(); }
     public static final class UnaryOp implements Expr { public String op; public Expr expr; }
     public static final class BinaryOp implements Expr { public String op; public Expr left, right; }
@@ -403,7 +404,8 @@ public final class XFormEngine {
             if (tok.kind == TokenKind.KW && tok.val.equals("xform")) {
                 lexer.next(); lexer.expect(TokenKind.KW, "version");
                 String version = lexer.expect(TokenKind.STRING, null).val;
-                if (!"2.0".equals(version) && !"2.1".equals(version)) throw new XFormException("XFST0005: unsupported version");
+                if (!"2.0".equals(version) && !"2.1".equals(version) && !"2.2".equals(version)) throw new XFormException("XFST0005: unsupported version");
+                m.version = version;
                 lexer.expect(TokenKind.PUNCT, ";");
             }
             while (true) {
@@ -516,7 +518,9 @@ public final class XFormEngine {
             while (true) {
                 Token tok = lexer.peek();
                 if (tok.kind == TokenKind.KW && tok.val.equals("case")) {
-                    lexer.next(); MatchCase c = new MatchCase(); c.pattern = parsePattern(); lexer.expect(TokenKind.OP, "="); lexer.expect(TokenKind.OP, ">"); c.expr = parseExpr(); lexer.expect(TokenKind.PUNCT, ";"); e.cases.add(c); continue;
+                    lexer.next(); MatchCase c = new MatchCase(); c.pattern = parsePattern();
+                    if (lexer.peek().kind == TokenKind.KW && lexer.peek().val.equals("where")) { lexer.next(); c.guard = parseExpr(); }
+                    lexer.expect(TokenKind.OP, "="); lexer.expect(TokenKind.OP, ">"); c.expr = parseExpr(); lexer.expect(TokenKind.PUNCT, ";"); e.cases.add(c); continue;
                 }
                 if (tok.kind == TokenKind.KW && tok.val.equals("default")) {
                     lexer.next(); lexer.expect(TokenKind.OP, "="); lexer.expect(TokenKind.OP, ">"); e.defaultExpr = parseExpr(); lexer.expect(TokenKind.PUNCT, ";"); break;
@@ -527,7 +531,21 @@ public final class XFormEngine {
         }
         private Expr parseOr() { Expr e = parseAnd(); while (lexer.peek().kind == TokenKind.KW && lexer.peek().val.equals("or")) { lexer.next(); BinaryOp b = new BinaryOp(); b.op = "or"; b.left = e; b.right = parseAnd(); e = b; } return e; }
         private Expr parseAnd() { Expr e = parseEq(); while (lexer.peek().kind == TokenKind.KW && lexer.peek().val.equals("and")) { lexer.next(); BinaryOp b = new BinaryOp(); b.op = "and"; b.left = e; b.right = parseEq(); e = b; } return e; }
-        private Expr parseEq() { Expr e = parseRel(); while (lexer.peek().kind == TokenKind.OP && (lexer.peek().val.equals("=") || lexer.peek().val.equals("!="))) { String op = lexer.next().val; BinaryOp b = new BinaryOp(); b.op = op; b.left = e; b.right = parseRel(); e = b; } return e; }
+        private Expr parseEq() {
+            Expr e = parseRel();
+            while (lexer.peek().kind == TokenKind.OP && (lexer.peek().val.equals("=") || lexer.peek().val.equals("!="))) {
+                if (lexer.peek().val.equals("=") && nextTokenIsArrowTail()) break;
+                String op = lexer.next().val; BinaryOp b = new BinaryOp(); b.op = op; b.left = e; b.right = parseRel(); e = b;
+            }
+            return e;
+        }
+        private boolean nextTokenIsArrowTail() {
+            int savedPos = lexer.pos; Token savedBuf = lexer.buffer;
+            lexer.next();
+            boolean isArrow = lexer.peek().kind == TokenKind.OP && lexer.peek().val.equals(">");
+            lexer.pos = savedPos; lexer.buffer = savedBuf;
+            return isArrow;
+        }
         private Expr parseRel() { Expr e = parseAdd(); while (lexer.peek().kind == TokenKind.OP && Set.of("<", "<=", ">", ">=").contains(lexer.peek().val)) { String op = lexer.next().val; BinaryOp b = new BinaryOp(); b.op = op; b.left = e; b.right = parseAdd(); e = b; } return e; }
         private Expr parseAdd() { Expr e = parseMul(); while (lexer.peek().kind == TokenKind.OP && (lexer.peek().val.equals("+") || lexer.peek().val.equals("-"))) { String op = lexer.next().val; BinaryOp b = new BinaryOp(); b.op = op; b.left = e; b.right = parseMul(); e = b; } return e; }
         private Expr parseMul() {
@@ -774,6 +792,7 @@ public final class XFormEngine {
         Integer position;
         Integer last;
         int recursionDepth;
+        String version = "2.0";
     }
 
     static final int MAX_RECURSION_DEPTH = 10000;
@@ -784,6 +803,7 @@ public final class XFormEngine {
         ctx.variables = new HashMap<>();
         ctx.functions = new HashMap<>(module.functions);
         ctx.rules = new HashMap<>(module.rules);
+        ctx.version = module.version;
         for (Map.Entry<String, Expr> e : module.vars.entrySet()) ctx.variables.put(e.getKey(), evalExpr(e.getValue(), ctx));
         if (module.expr == null) return new ArrayList<>();
         return evalExpr(module.expr, ctx);
@@ -822,8 +842,9 @@ public final class XFormEngine {
                 for (MatchCase c : e.cases) {
                     MatchResult mr = matchPattern(c.pattern, item);
                     if (mr.matched) {
-                        matchedAny = true;
                         Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings);
+                        if (c.guard != null && !toBoolean(evalExpr(c.guard, n))) continue;
+                        matchedAny = true;
                         out.addAll(evalExpr(c.expr, n));
                         break;
                     }
@@ -1001,6 +1022,7 @@ public final class XFormEngine {
             for (Object item : seq) {
                 if (item instanceof Node n) {
                     if ("attribute".equals(n.kind)) {
+                        if (ctx.version.compareTo("2.2") >= 0) throw new XFormException("XFDY0005");
                         Node t = new Node("text"); t.value = n.value == null ? "" : n.value; children.add(t);
                     } else {
                         children.add(deepCopy(n, true));
@@ -1431,7 +1453,7 @@ public final class XFormEngine {
 
     private static List<Object> firstOrEmpty(List<List<Object>> args) { return args.isEmpty() ? new ArrayList<>() : args.get(0); }
     private static Map<String, List<Object>> copyVars(Map<String, List<Object>> src) { return new HashMap<>(src); }
-    private static Context cloneCtx(Context c) { Context n = new Context(); n.contextItem = c.contextItem; n.variables = c.variables; n.functions = c.functions; n.rules = c.rules; n.position = c.position; n.last = c.last; n.recursionDepth = c.recursionDepth; return n; }
+    private static Context cloneCtx(Context c) { Context n = new Context(); n.contextItem = c.contextItem; n.variables = c.variables; n.functions = c.functions; n.rules = c.rules; n.position = c.position; n.last = c.last; n.recursionDepth = c.recursionDepth; n.version = c.version; return n; }
     private static List<Object> seq(Object... items) { return new ArrayList<>(Arrays.asList(items)); }
     private static List<Object> seq(Object item) { List<Object> l = new ArrayList<>(); l.add(item); return l; }
 

@@ -9,7 +9,8 @@ object Evaluator {
         val ctx = EvalContext(
             contextItem = doc,
             functions = module.functions,
-            rules = module.rules
+            rules = module.rules,
+            version = module.version
         )
         for ((name, expr) in module.vars) {
             ctx.variables[name] = evalExpr(expr, ctx)
@@ -108,11 +109,14 @@ object Evaluator {
             for (c in expr.cases) {
                 val (ok, bindings) = matchPattern(c.pattern, item)
                 if (ok) {
-                    matched = true
                     val newCtx = ctx.copy().apply {
                         contextItem = item
                         variables.putAll(bindings)
                     }
+                    if (c.guard != null && !toBoolean(evalExpr(c.guard, newCtx))) {
+                        continue
+                    }
+                    matched = true
                     out.addAll(evalExpr(c.expr, newCtx))
                     break
                 }
@@ -305,6 +309,9 @@ object Evaluator {
                     for (item in seq) {
                         if (item is XmlNode) {
                             if (item.kind == "attribute") {
+                                if (ctx.version >= "2.2") {
+                                    throw XFormException("XFDY0005")
+                                }
                                 children.add(XmlNode("text", value = item.value))
                             } else {
                                 children.add(XmlModel.deepCopy(item, true))

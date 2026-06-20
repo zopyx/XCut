@@ -32,12 +32,13 @@ export class Parser {
     const namespaces: Record<string, string> = {};
     const imports: Array<[string, string | null]> = [];
 
+    let version = "2.0";
     let tok = this.lexer.peek();
     if (tok.kind === "KW" && tok.value === "xform") {
       this.lexer.next();
       this.lexer.expect("KW", "version");
-      const version = this.lexer.expect("STRING").value;
-      if (version !== "2.0" && version !== "2.1") {
+      version = this.lexer.expect("STRING").value;
+      if (version !== "2.0" && version !== "2.1" && version !== "2.2") {
         throw new Error("XFST0005: unsupported version");
       }
       this.lexer.expect("PUNCT", ";");
@@ -84,6 +85,7 @@ export class Parser {
       namespaces,
       imports,
       expr,
+      version,
     });
   }
 
@@ -224,18 +226,23 @@ export class Parser {
     this.lexer.expect("KW", "match");
     const target = this.parseExpr();
     this.lexer.expect("PUNCT", ":");
-    const cases: Array<[ast.Pattern, ast.Expr]> = [];
+    const cases: Array<[ast.Pattern, ast.Expr | null, ast.Expr]> = [];
     let defaultExpr: ast.Expr | null = null;
     while (true) {
       const tok = this.lexer.peek();
       if (tok.kind === "KW" && tok.value === "case") {
         this.lexer.next();
         const pattern = this.parsePattern();
+        let guard: ast.Expr | null = null;
+        if (this.lexer.peek().kind === "KW" && this.lexer.peek().value === "where") {
+          this.lexer.next();
+          guard = this.parseExpr();
+        }
         this.lexer.expect("OP", "=");
         this.lexer.expect("OP", ">");
         const expr = this.parseExpr();
         this.lexer.expect("PUNCT", ";");
-        cases.push([pattern, expr]);
+        cases.push([pattern, guard, expr]);
         continue;
       }
       if (tok.kind === "KW" && tok.value === "default") {
@@ -274,11 +281,22 @@ export class Parser {
   private parseEq(): ast.Expr {
     let expr = this.parseRel();
     while (this.lexer.peek().kind === "OP" && ["=", "!="].includes(this.lexer.peek().value)) {
+      if (this.lexer.peek().value === "=" && this.nextTokenIsArrowTail()) break;
       const op = this.lexer.next().value;
       const right = this.parseRel();
       expr = new ast.BinaryOp(op, expr, right);
     }
     return expr;
+  }
+
+  private nextTokenIsArrowTail(): boolean {
+    const savedPos = this.lexer.pos;
+    const savedBuffer = this.lexer.buffer;
+    this.lexer.next();
+    const isArrow = this.lexer.peek().kind === "OP" && this.lexer.peek().value === ">";
+    this.lexer.pos = savedPos;
+    this.lexer.buffer = savedBuffer;
+    return isArrow;
   }
 
   private parseRel(): ast.Expr {

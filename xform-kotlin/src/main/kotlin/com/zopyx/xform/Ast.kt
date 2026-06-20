@@ -9,7 +9,7 @@ data class IfExpr(val cond: Expr, val thenExpr: Expr, val elseExpr: Expr) : Expr
 data class LetExpr(val name: String, val value: Expr, val body: Expr) : Expr
 data class ForExpr(val name: String, val seq: Expr, val where: Expr?, val body: Expr) : Expr
 data class MatchExpr(val target: Expr, val cases: List<MatchCase>, val default: Expr?) : Expr
-data class MatchCase(val pattern: Pattern, val expr: Expr)
+data class MatchCase(val pattern: Pattern, val guard: Expr?, val expr: Expr)
 data class NamedArg(val name: String, val expr: Expr)
 data class FuncCall(val name: String, val args: List<Expr> = emptyList(), val namedArgs: List<NamedArg> = emptyList()) : Expr
 data class UnaryOp(val op: String, val expr: Expr) : Expr
@@ -43,7 +43,8 @@ data class Module(
     val vars: MutableMap<String, Expr> = mutableMapOf(),
     val namespaces: MutableMap<String, String> = mutableMapOf(),
     val imports: MutableList<ImportDecl> = mutableListOf(),
-    var expr: Expr? = null
+    var expr: Expr? = null,
+    var version: String = "2.0"
 )
 
 data class ImportDecl(val iri: String, val alias: String? = null)

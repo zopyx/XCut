@@ -7,6 +7,7 @@ type Module struct {
 	Namespaces map[string]string
 	Imports    [][2]*string
 	Expr       Expr
+	Version    string
 }
 
 type Expr interface{}
@@ -42,6 +43,7 @@ type MatchExpr struct {
 
 type MatchCase struct {
 	Pattern Pattern
+	Guard   Expr
 	Expr    Expr
 }
 

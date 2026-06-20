@@ -158,6 +158,7 @@ typedef struct ForExpr {
 typedef struct MatchExpr {
     struct Expr *target;
     struct Pattern **patterns;
+    struct Expr **guards;
     struct Expr **exprs;
     size_t case_count;
     struct Expr *default_expr;
@@ -273,6 +274,7 @@ typedef struct {
     size_t import_count;
     /* Main expression */
     Expr *expr;
+    char *version;
 } Module;
 
 /* Memory management functions */

@@ -9,6 +9,7 @@ class Module {
         this.namespaces = opts.namespaces;
         this.imports = opts.imports;
         this.expr = opts.expr;
+        this.version = opts.version ?? "2.0";
     }
 }
 exports.Module = Module;

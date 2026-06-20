@@ -16,6 +16,7 @@ type Context struct {
 	Position       *int
 	Last           *int
 	RecursionDepth int
+	Version        string
 }
 
 const maxRecursionDepth = 10000
@@ -30,7 +31,7 @@ func EvalModule(module *Module, doc *Node) []any {
 		rules[k] = v
 	}
 	variables := map[string][]any{}
-	ctx := Context{ContextItem: doc, Variables: variables, Functions: functions, Rules: rules}
+	ctx := Context{ContextItem: doc, Variables: variables, Functions: functions, Rules: rules, Version: module.Version}
 	for name, expr := range module.Vars {
 		variables[name] = EvalExpr(expr, ctx)
 	}
@@ -71,7 +72,7 @@ func EvalExpr(expr Expr, ctx Context) []any {
 		value := EvalExpr(e.Value, ctx)
 		newVars := copyVars(ctx.Variables)
 		newVars[e.Name] = value
-		newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+		newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
 		return EvalExpr(e.Body, newCtx)
 	case ForExpr:
 		seq := EvalExpr(e.Seq, ctx)
@@ -82,7 +83,7 @@ func EvalExpr(expr Expr, ctx Context) []any {
 			newVars[e.Name] = []any{item}
 			pos := idx + 1
 			last := total
-			newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: &pos, Last: &last}
+			newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: &pos, Last: &last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
 			if e.Where != nil {
 				if !ToBoolean(EvalExpr(e.Where, newCtx)) {
 					continue
@@ -99,12 +100,15 @@ func EvalExpr(expr Expr, ctx Context) []any {
 			for _, c := range e.Cases {
 				matched, bindings := MatchPattern(c.Pattern, target)
 				if matched {
-					matchedAny = true
 					newVars := copyVars(ctx.Variables)
 					for k, v := range bindings {
 						newVars[k] = v
 					}
-					newCtx := Context{ContextItem: target, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+					newCtx := Context{ContextItem: target, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
+					if c.Guard != nil && !ToBoolean(EvalExpr(c.Guard, newCtx)) {
+						continue
+					}
+					matchedAny = true
 					out = append(out, EvalExpr(c.Expr, newCtx)...)
 					break
 				}
@@ -113,7 +117,7 @@ func EvalExpr(expr Expr, ctx Context) []any {
 				if e.Default == nil {
 					panic(fmt.Errorf("XFDY0001: no matching case"))
 				}
-				newCtx := Context{ContextItem: target, Variables: copyVars(ctx.Variables), Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+				newCtx := Context{ContextItem: target, Variables: copyVars(ctx.Variables), Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
 				out = append(out, EvalExpr(e.Default, newCtx)...)
 			}
 		}
@@ -326,7 +330,7 @@ func ApplyStep(items []any, step PathStep, ctx Context) []any {
 			for i, child := range filtered {
 				pos := i + 1
 				last := len(filtered)
-				predCtx := Context{ContextItem: child, Variables: ctx.Variables, Functions: ctx.Functions, Rules: ctx.Rules, Position: &pos, Last: &last}
+				predCtx := Context{ContextItem: child, Variables: ctx.Variables, Functions: ctx.Functions, Rules: ctx.Rules, Position: &pos, Last: &last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
 				if ToBoolean(EvalExpr(pred, predCtx)) {
 					predOut = append(predOut, child)
 				}
@@ -388,6 +392,9 @@ func EvalConstructor(expr Constructor, ctx Context) *Node {
 			for _, item := range seq {
 				if n, ok := item.(*Node); ok {
 					if n.Kind == "attribute" {
+						if ctx.Version >= "2.2" {
+							panic(fmt.Errorf("XFDY0005"))
+						}
 						children = append(children, &Node{Kind: "text", Value: n.Value, Attrs: map[string]string{}})
 					} else {
 						child := DeepCopy(n, true)
@@ -460,7 +467,7 @@ func callUserFunction(fn FunctionDef, args [][]any, ctx Context, namedArgs map[s
 		newVars[paramName] = value
 		bound[paramName] = true
 	}
-	newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1}
+	newCtx := Context{ContextItem: ctx.ContextItem, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1, Version: ctx.Version}
 	for _, param := range params {
 		if !bound[param.Name] {
 			if param.Default == nil {
@@ -680,7 +687,7 @@ func doApply(seq []any, ruleset string, ctx Context) []any {
 				for k, v := range bindings {
 					newVars[k] = v
 				}
-				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1}
+				newCtx := Context{ContextItem: item, Variables: newVars, Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth + 1, Version: ctx.Version}
 				out = append(out, EvalExpr(rule.Body, newCtx)...)
 				break
 			}
@@ -1033,7 +1040,7 @@ func fnIndex(args [][]any, ctx Context, named map[string][]any, namedRaw map[str
 			fn := ctx.Functions[keyFn]
 			key = ToString(callUserFunction(fn, [][]any{{item}}, ctx, map[string][]any{}, map[string]Expr{}))
 		} else if keyExpr != nil {
-			itemCtx := Context{ContextItem: item, Variables: copyVars(ctx.Variables), Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last}
+			itemCtx := Context{ContextItem: item, Variables: copyVars(ctx.Variables), Functions: ctx.Functions, Rules: ctx.Rules, Position: ctx.Position, Last: ctx.Last, RecursionDepth: ctx.RecursionDepth, Version: ctx.Version}
 			key = ToString(EvalExpr(keyExpr, itemCtx))
 		}
 		index[key] = append(index[key], item)

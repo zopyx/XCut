@@ -5,6 +5,7 @@ export class Module {
   namespaces: Record<string, string>;
   imports: Array<[string, string | null]>;
   expr: Expr | null;
+  version: string;
 
   constructor(opts: {
     functions: Record<string, FunctionDef>;
@@ -13,6 +14,7 @@ export class Module {
     namespaces: Record<string, string>;
     imports: Array<[string, string | null]>;
     expr: Expr | null;
+    version?: string;
   }) {
     this.functions = opts.functions;
     this.rules = opts.rules;
@@ -20,6 +22,7 @@ export class Module {
     this.namespaces = opts.namespaces;
     this.imports = opts.imports;
     this.expr = opts.expr;
+    this.version = opts.version ?? "2.0";
   }
 }
 
@@ -93,9 +96,9 @@ export class ForExpr {
 
 export class MatchExpr {
   target: Expr;
-  cases: Array<[Pattern, Expr]>;
+  cases: Array<[Pattern, Expr | null, Expr]>;
   defaultExpr: Expr | null;
-  constructor(target: Expr, cases: Array<[Pattern, Expr]>, defaultExpr: Expr | null) {
+  constructor(target: Expr, cases: Array<[Pattern, Expr | null, Expr]>, defaultExpr: Expr | null) {
     this.target = target;
     this.cases = cases;
     this.defaultExpr = defaultExpr;

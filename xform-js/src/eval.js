@@ -51,7 +51,7 @@ const ast = __importStar(require("./ast"));
 const xmlmodel_1 = require("./xmlmodel");
 const MAX_RECURSION_DEPTH = 10000;
 class Context {
-    constructor(contextItem, variables, functions, rules, position = null, last = null, recursionDepth = 0) {
+    constructor(contextItem, variables, functions, rules, position = null, last = null, recursionDepth = 0, version = "2.0") {
         this.contextItem = contextItem;
         this.variables = variables;
         this.functions = functions;
@@ -59,6 +59,7 @@ class Context {
         this.position = position;
         this.last = last;
         this.recursionDepth = recursionDepth;
+        this.version = version;
     }
 }
 exports.Context = Context;
@@ -66,7 +67,7 @@ function evalModule(module, doc) {
     const functions = { ...module.functions };
     const rules = { ...module.rules };
     const variables = {};
-    const ctx = new Context(doc, variables, functions, rules);
+    const ctx = new Context(doc, variables, functions, rules, null, null, 0, module.version);
     for (const [name, expr] of Object.entries(module.vars)) {
         variables[name] = evalExpr(expr, ctx);
     }
@@ -95,7 +96,7 @@ function evalExpr(expr, ctx) {
     if (expr instanceof ast.LetExpr) {
         const value = evalExpr(expr.value, ctx);
         const newVars = { ...ctx.variables, [expr.name]: value };
-        return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth));
+        return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth, ctx.version));
     }
     if (expr instanceof ast.ForExpr) {
         const seq = evalExpr(expr.seq, ctx);
@@ -103,7 +104,7 @@ function evalExpr(expr, ctx) {
         const total = seq.length;
         seq.forEach((item, idx) => {
             const newVars = { ...ctx.variables, [expr.name]: [item] };
-            const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursionDepth);
+            const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursionDepth, ctx.version);
             if (expr.where) {
                 if (!toBoolean(evalExpr(expr.where, newCtx)))
                     return;
@@ -117,19 +118,22 @@ function evalExpr(expr, ctx) {
         const out = [];
         for (const target of targetSeq) {
             let matchedAny = false;
-            for (const [pattern, body] of expr.cases) {
+            for (const [pattern, guard, body] of expr.cases) {
                 const [matched, bindings] = matchPattern(pattern, target);
                 if (matched) {
-                    matchedAny = true;
                     const newVars = { ...ctx.variables, ...bindings };
-                    out.push(...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth)));
+                    const matchCtx = new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth, ctx.version);
+                    if (guard && !toBoolean(evalExpr(guard, matchCtx)))
+                        continue;
+                    matchedAny = true;
+                    out.push(...evalExpr(body, matchCtx));
                     break;
                 }
             }
             if (!matchedAny) {
                 if (!expr.defaultExpr)
                     throw new Error("XFDY0001: no matching case");
-                out.push(...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth)));
+                out.push(...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth, ctx.version)));
             }
         }
         return out;
@@ -334,7 +338,7 @@ function applyStep(items, step, ctx) {
             const predOut = [];
             for (let i = 0; i < filtered.length; i += 1) {
                 const child = filtered[i];
-                const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursionDepth);
+                const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursionDepth, ctx.version);
                 if (toBoolean(evalExpr(pred, predCtx)))
                     predOut.push(child);
             }
@@ -384,6 +388,8 @@ function evalConstructor(expr, ctx) {
         for (const item of seq) {
             if (item instanceof xmlmodel_1.Node) {
                 if (item.kind === "attribute") {
+                    if (ctx.version >= "2.2")
+                        throw new Error("XFDY0005");
                     children.push(new xmlmodel_1.Node({ kind: "text", value: item.value || "" }));
                 }
                 else {
@@ -439,7 +445,7 @@ function callFunction(name, args, ctx, namedArgs = {}, namedRaw = {}) {
             newVars[paramName] = value;
             bound.add(paramName);
         }
-        const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1);
+        const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1, ctx.version);
         if (newCtx.recursionDepth >= MAX_RECURSION_DEPTH)
             throw new Error("XFDY0099");
         for (const param of params) {
@@ -591,7 +597,7 @@ function doApply(seq, ruleset, ctx) {
             if (ok) {
                 matched = true;
                 const newVars = { ...ctx.variables, ...bindings };
-                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1)));
+                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1, ctx.version)));
                 break;
             }
         }
@@ -837,7 +843,7 @@ function fnIndex(args, ctx, named, namedRaw) {
             key = toString(callFunction(keyFn, [[item]], ctx));
         }
         else if (keyExpr !== null) {
-            const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth);
+            const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth, ctx.version);
             key = toString(evalExpr(keyExpr, itemCtx));
         }
         else {

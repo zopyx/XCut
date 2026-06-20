@@ -8,6 +8,7 @@ pub struct Module {
     pub namespaces: HashMap<String, String>,
     pub imports: Vec<(String, Option<String>)>,
     pub expr: Option<Expr>,
+    pub version: String,
 }
 
 #[derive(Debug, Clone)]
@@ -83,8 +84,15 @@ pub struct ForExpr {
 #[derive(Debug, Clone)]
 pub struct MatchExpr {
     pub target: Expr,
-    pub cases: Vec<(Pattern, Expr)>,
+    pub cases: Vec<MatchCase>,
     pub default: Option<Expr>,
+}
+
+#[derive(Debug, Clone)]
+pub struct MatchCase {
+    pub pattern: Pattern,
+    pub guard: Option<Expr>,
+    pub body: Expr,
 }
 
 #[derive(Debug, Clone)]

@@ -47,7 +47,7 @@ const KEYWORDS = new Set([
 export class Lexer {
   private text: string;
   pos: number;
-  private buffer: Token | null;
+  buffer: Token | null;
 
   constructor(text: string) {
     this.text = text;

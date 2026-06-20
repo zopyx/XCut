@@ -9,6 +9,7 @@ export class Context {
   position: number | null;
   last: number | null;
   recursion_depth: number;
+  version: string;
 
   constructor(
     contextItem: any,
@@ -18,6 +19,7 @@ export class Context {
     position: number | null = null,
     last: number | null = null,
     recursion_depth: number = 0,
+    version: string = "2.0",
   ) {
     this.contextItem = contextItem;
     this.variables = variables;
@@ -26,6 +28,7 @@ export class Context {
     this.position = position;
     this.last = last;
     this.recursion_depth = recursion_depth;
+    this.version = version;
   }
 }
 
@@ -35,7 +38,7 @@ export function evalModule(module: ast.Module, doc: Node): any[] {
   const functions = { ...module.functions };
   const rules = { ...module.rules };
   const variables: Record<string, any[]> = {};
-  const ctx = new Context(doc, variables, functions, rules);
+  const ctx = new Context(doc, variables, functions, rules, null, null, 0, module.version);
   for (const [name, expr] of Object.entries(module.vars)) {
     variables[name] = evalExpr(expr, ctx);
   }
@@ -64,7 +67,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
   if (expr instanceof ast.LetExpr) {
     const value = evalExpr(expr.value, ctx);
     const newVars = { ...ctx.variables, [expr.name]: value };
-    return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth));
+    return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version));
   }
   if (expr instanceof ast.ForExpr) {
     const seq = evalExpr(expr.seq, ctx);
@@ -72,7 +75,7 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
     const total = seq.length;
     seq.forEach((item, idx) => {
       const newVars = { ...ctx.variables, [expr.name]: [item] };
-      const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursion_depth);
+      const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursion_depth, ctx.version);
       if (expr.where) {
         if (!toBoolean(evalExpr(expr.where, newCtx))) return;
       }
@@ -85,21 +88,21 @@ export function evalExpr(expr: ast.Expr, ctx: Context): any[] {
     const out: any[] = [];
     for (const target of targetSeq) {
       let matchedAny = false;
-      for (const [pattern, body] of expr.cases) {
+      for (const [pattern, guard, body] of expr.cases) {
         const [matched, bindings] = matchPattern(pattern, target);
         if (matched) {
-          matchedAny = true;
           const newVars = { ...ctx.variables, ...bindings };
-          out.push(
-            ...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)),
-          );
+          const matchCtx = new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version);
+          if (guard && !toBoolean(evalExpr(guard, matchCtx))) continue;
+          matchedAny = true;
+          out.push(...evalExpr(body, matchCtx));
           break;
         }
       }
       if (!matchedAny) {
         if (!expr.defaultExpr) throw new Error("XFDY0001: no matching case");
         out.push(
-          ...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)),
+          ...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version)),
         );
       }
     }
@@ -280,7 +283,7 @@ export function applyStep(items: any[], step: ast.PathStep, ctx: Context): any[]
       const predOut: Node[] = [];
       for (let i = 0; i < filtered.length; i += 1) {
         const child = filtered[i];
-        const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursion_depth);
+        const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursion_depth, ctx.version);
         if (toBoolean(evalExpr(pred, predCtx))) predOut.push(child);
       }
       filtered = predOut;
@@ -323,6 +326,7 @@ export function evalConstructor(expr: ast.Constructor, ctx: Context): Node {
     for (const item of seq) {
       if (item instanceof Node) {
         if (item.kind === "attribute") {
+          if (ctx.version >= "2.2") throw new Error("XFDY0005");
           children.push(new Node({ kind: "text", value: item.value ?? "" }));
         } else {
           children.push(deepCopy(item, true));
@@ -386,7 +390,7 @@ export function callFunction(
       newVars[paramName] = value;
       bound.add(paramName);
     }
-    const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1);
+    const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1, ctx.version);
     for (const param of params) {
       if (!bound.has(param.name)) {
         if (!param.defaultExpr) {
@@ -525,7 +529,7 @@ function doApply(seq: any[], ruleset: string, ctx: Context): any[] {
         matched = true;
         const newVars = { ...ctx.variables, ...bindings };
         out.push(
-          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1)),
+          ...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1, ctx.version)),
         );
         break;
       }
@@ -754,7 +758,7 @@ function fnIndex(args: any[][], ctx: Context, named: Record<string, any[]>, name
     if (keyFn) {
       key = toString(callFunction(keyFn, [[item]], ctx));
     } else if (keyExpr !== null) {
-      const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth);
+      const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version);
       key = toString(evalExpr(keyExpr, itemCtx));
     } else {
       key = toString([item]);

@@ -1,0 +1,7 @@
+xform version "2.2";
+<out>{
+  for i in .//item return
+    match @type:
+      case @type = "product" => <hit>{text(i)}</hit>;
+      default => <miss/>;
+}</out>

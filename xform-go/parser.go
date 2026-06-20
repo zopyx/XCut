@@ -79,13 +79,14 @@ func (p *Parser) ParseModule() *Module {
 	vars := map[string]Expr{}
 	namespaces := map[string]string{}
 	imports := [][2]*string{}
+	version := "2.0"
 
 	tok := p.lexer.Peek()
 	if tok.Kind == TokKW && tok.Val == "xform" {
 		p.lexer.Next()
 		p.lexer.Expect(TokKW, "version")
-		version := p.lexer.Expect(TokString, "").Val
-		if version != "2.0" && version != "2.1" {
+		version = p.lexer.Expect(TokString, "").Val
+		if version != "2.0" && version != "2.1" && version != "2.2" {
 			panic(fmt.Errorf("XFST0005: unsupported version"))
 		}
 		p.lexer.Expect(TokPunct, ";")
@@ -132,6 +133,7 @@ func (p *Parser) ParseModule() *Module {
 		Namespaces: namespaces,
 		Imports:    imports,
 		Expr:       expr,
+		Version:    version,
 	}
 }
 
@@ -289,11 +291,16 @@ func (p *Parser) parseMatch() Expr {
 		if tok.Kind == TokKW && tok.Val == "case" {
 			p.lexer.Next()
 			pattern := p.parsePattern()
+			var guard Expr
+			if p.lexer.Peek().Kind == TokKW && p.lexer.Peek().Val == "where" {
+				p.lexer.Next()
+				guard = p.parseExpr()
+			}
 			p.lexer.Expect(TokOp, "=")
 			p.lexer.Expect(TokOp, ">")
 			expr := p.parseExpr()
 			p.lexer.Expect(TokPunct, ";")
-			cases = append(cases, MatchCase{Pattern: pattern, Expr: expr})
+			cases = append(cases, MatchCase{Pattern: pattern, Guard: guard, Expr: expr})
 			continue
 		}
 		if tok.Kind == TokKW && tok.Val == "default" {
@@ -332,11 +339,24 @@ func (p *Parser) parseAnd() Expr {
 func (p *Parser) parseEq() Expr {
 	expr := p.parseRel()
 	for p.lexer.Peek().Kind == TokOp && (p.lexer.Peek().Val == "=" || p.lexer.Peek().Val == "!=") {
+		if p.lexer.Peek().Val == "=" && p.nextTokenIsArrowTail() {
+			break
+		}
 		op := p.lexer.Next().Val
 		right := p.parseRel()
 		expr = BinaryOp{Op: op, Left: expr, Right: right}
 	}
 	return expr
+}
+
+func (p *Parser) nextTokenIsArrowTail() bool {
+	savedPos := p.lexer.Pos
+	savedBuf := p.lexer.Buffer
+	p.lexer.Next()
+	isArrow := p.lexer.Peek().Kind == TokOp && p.lexer.Peek().Val == ">"
+	p.lexer.Pos = savedPos
+	p.lexer.Buffer = savedBuf
+	return isArrow
 }
 
 func (p *Parser) parseRel() Expr {

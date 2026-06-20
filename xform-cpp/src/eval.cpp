@@ -563,7 +563,6 @@ Seq* eval_expr(Expr *expr, Context *ctx) {
                 for (size_t j = 0; j < expr->data.match_expr->case_count; j++) {
                     HashMap *bindings = match_pattern(expr->data.match_expr->patterns[j], item);
                     if (bindings) {
-                        matched = 1;
                         HashMap *vars = hm_new();
                         /* Copy existing vars */
                         size_t count;
@@ -582,6 +581,16 @@ Seq* eval_expr(Expr *expr, Context *ctx) {
                         
                         Context *new_ctx = ctx_with_vars(ctx, vars);
                         new_ctx->context_item = item;
+                        if (expr->data.match_expr->guards[j]) {
+                            Seq *guard_result = eval_expr(expr->data.match_expr->guards[j], new_ctx);
+                            int guard_ok = to_boolean(guard_result);
+                            seq_free(guard_result);
+                            if (!guard_ok) {
+                                free(new_ctx);
+                                continue;
+                            }
+                        }
+                        matched = 1;
                         Seq *case_result = eval_expr(expr->data.match_expr->exprs[j], new_ctx);
                         seq_extend(result, case_result);
                         seq_free(case_result);
@@ -1013,6 +1022,12 @@ XmlNode* eval_constructor(Constructor *c, Context *ctx) {
                 Item *item = val->items[j];
                 if (item->kind == ITEM_NODE) {
                     if (item->data.node->kind == NODE_ATTRIBUTE) {
+                        if (ctx->version && strcmp(ctx->version, "2.2") >= 0) {
+                            fprintf(stderr, "XFDY0005\n");
+                            node_unref(elem);
+                            seq_free(val);
+                            return NULL;
+                        }
                         char *attr_val = item->data.node->value ? strdup(item->data.node->value) : strdup("");
                         XmlNode *text_node = node_new_text(attr_val);
                         free(attr_val);
@@ -1936,6 +1951,7 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
 Seq* eval_module(Module *mod, XmlNode *doc) {
     Context *ctx = ctx_new(doc);
     ctx->context_item = item_new_node(doc);
+    ctx->version = mod->version ? mod->version : "2.0";
     
     /* Copy module functions and rules */
     ctx->functions = mod->functions;

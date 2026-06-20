@@ -12,6 +12,7 @@ class Module:
     namespaces: dict
     imports: list
     expr: "Expr | None"
+    version: str = "2.0"
 
 
 class Expr:
@@ -53,8 +54,18 @@ class ForExpr(Expr):
 @dataclass
 class MatchExpr(Expr):
     target: Expr
-    cases: List[Tuple["Pattern", Expr]]
+    cases: List[Tuple["Pattern", Optional[Expr], Expr]]
     default: Optional[Expr]
+
+    def __post_init__(self):
+        normalized = []
+        for case in self.cases:
+            if len(case) == 2:
+                pattern, body = case  # type: ignore[misc]
+                normalized.append((pattern, None, body))
+            else:
+                normalized.append(case)
+        self.cases = normalized
 
 
 @dataclass

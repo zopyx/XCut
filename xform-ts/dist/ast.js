@@ -3,12 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RuleDef = exports.FunctionDef = exports.Param = exports.LiteralPattern = exports.AttributePattern = exports.TypedPattern = exports.ElementPattern = exports.WildcardPattern = exports.StepTest = exports.PathStep = exports.PathStart = exports.Interp = exports.Text = exports.PIConstructor = exports.CommentConstructor = exports.TextConstructor = exports.Constructor = exports.PathExpr = exports.BinaryOp = exports.UnaryOp = exports.ApplyExpr = exports.FuncCall = exports.MatchExpr = exports.ForExpr = exports.LetExpr = exports.IfExpr = exports.VarRef = exports.Literal = exports.Module = void 0;
 class Module {
     constructor(opts) {
+        var _a;
         this.functions = opts.functions;
         this.rules = opts.rules;
         this.vars = opts.vars;
         this.namespaces = opts.namespaces;
         this.imports = opts.imports;
         this.expr = opts.expr;
+        this.version = (_a = opts.version) !== null && _a !== void 0 ? _a : "2.0";
     }
 }
 exports.Module = Module;

@@ -17,6 +17,7 @@ class Context:
     position: Optional[int] = None
     last: Optional[int] = None
     recursion_depth: int = 0
+    version: str = "2.0"
 
 MAX_RECURSION_DEPTH = 10000
 
@@ -25,7 +26,13 @@ def eval_module(module: ast.Module, doc: Node) -> List[Any]:
     functions = dict(module.functions)
     rules = dict(module.rules)
     variables: Dict[str, List[Any]] = {}
-    ctx = Context(context_item=doc, variables=variables, functions=functions, rules=rules)
+    ctx = Context(
+        context_item=doc,
+        variables=variables,
+        functions=functions,
+        rules=rules,
+        version=module.version,
+    )
     for name, expr in module.vars.items():
         variables[name] = eval_expr(expr, ctx)
     if module.expr is None:
@@ -57,7 +64,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         new_vars[expr.name] = value
         return eval_expr(
             expr.body,
-            Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth),
+            Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version),
         )
     if isinstance(expr, ast.ForExpr):
         seq = eval_expr(expr.seq, ctx)
@@ -74,6 +81,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
                 position=idx,
                 last=total,
                 recursion_depth=ctx.recursion_depth,
+                version=ctx.version,
             )
             if expr.where is not None:
                 if not to_boolean(eval_expr(expr.where, new_ctx)):
@@ -85,24 +93,28 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
         out: List[Any] = []
         for target in target_seq:
             matched_any = False
-            for pattern, body in expr.cases:
+            for pattern, guard, body in expr.cases:
                 matched, bindings = match_pattern(pattern, target)
                 if matched:
-                    matched_any = True
                     new_vars = dict(ctx.variables)
                     new_vars.update(bindings)
+                    match_ctx = Context(
+                        target,
+                        new_vars,
+                        ctx.functions,
+                        ctx.rules,
+                        ctx.position,
+                        ctx.last,
+                        ctx.recursion_depth,
+                        ctx.version,
+                    )
+                    if guard is not None and not to_boolean(eval_expr(guard, match_ctx)):
+                        continue
+                    matched_any = True
                     out.extend(
                         eval_expr(
                             body,
-                            Context(
-                                target,
-                                new_vars,
-                                ctx.functions,
-                                ctx.rules,
-                                ctx.position,
-                                ctx.last,
-                                ctx.recursion_depth,
-                            ),
+                            match_ctx,
                         )
                     )
                     break
@@ -120,6 +132,7 @@ def eval_expr(expr: ast.Expr, ctx: Context) -> List[Any]:
                             ctx.position,
                             ctx.last,
                             ctx.recursion_depth,
+                            ctx.version,
                         ),
                     )
                 )
@@ -296,7 +309,7 @@ def apply_step(items: List[Any], step: ast.PathStep, ctx: Context) -> List[Any]:
                 to_boolean(
                     eval_expr(
                         pred,
-                        Context(cand, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth),
+                        Context(cand, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version),
                     )
                 )
                 for pred in step.predicates
@@ -343,6 +356,8 @@ def eval_constructor(expr: ast.Constructor, ctx: Context) -> Node:
         for item in seq:
             if isinstance(item, Node):
                 if item.kind == "attribute":
+                    if ctx.version >= "2.2":
+                        raise RuntimeError("XFDY0005")
                     children.append(Node(kind="text", value=item.value or ""))
                 else:
                     children.append(deep_copy(item))
@@ -396,7 +411,7 @@ def call_function(
                 raise RuntimeError("XFDY0008: unknown parameter")
             new_vars[param_name] = value
             bound.add(param_name)
-        new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1)
+        new_ctx = Context(ctx.context_item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1, ctx.version)
         for param in params:
             if param.name not in bound:
                 if param.default is None:
@@ -432,7 +447,7 @@ def _do_apply(seq: List[Any], ruleset: str, ctx: Context) -> List[Any]:
                 out.extend(
                     eval_expr(
                         rule.body,
-                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1),
+                        Context(item, new_vars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth + 1, ctx.version),
                     )
                 )
                 break
@@ -784,7 +799,7 @@ def _fn_index(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]], 
         if key_fn:
             key = to_string(call_function(key_fn, [[item]], ctx))
         elif key_expr is not None:
-            item_ctx = Context(item, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth)
+            item_ctx = Context(item, dict(ctx.variables), ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursion_depth, ctx.version)
             key = to_string(eval_expr(key_expr, item_ctx))
         else:
             key = to_string([item])

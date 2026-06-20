@@ -34,6 +34,7 @@ pub struct Context {
     pub position: Option<f64>,
     pub last: Option<f64>,
     pub recursion_depth: usize,
+    pub version: String,
 }
 
 impl Context {
@@ -57,6 +58,7 @@ pub fn eval_module(module: &Module, doc: Rc<XmlNode>) -> Result<Seq, String> {
         position: None,
         last: None,
         recursion_depth: 0,
+        version: module.version.clone(),
     };
     for (name, expr) in &module.vars {
         let val = eval_expr(expr, &ctx)?;
@@ -143,9 +145,8 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
             let mut out = Vec::new();
             for target in target_seq {
                 let mut matched = false;
-                for (pat, body) in &me.cases {
-                    if let Some(bindings) = match_pattern(pat, &target) {
-                        matched = true;
+                for case in &me.cases {
+                    if let Some(bindings) = match_pattern(&case.pattern, &target) {
                         let mut vars = ctx.variables.clone();
                         vars.extend(bindings);
                         let new_ctx = Context {
@@ -153,7 +154,13 @@ pub fn eval_expr(expr: &Expr, ctx: &Context) -> Result<Seq, String> {
                             variables: vars,
                             ..ctx.clone()
                         };
-                        out.extend(eval_expr(body, &new_ctx)?);
+                        if let Some(guard) = &case.guard {
+                            if !to_boolean(&eval_expr(guard, &new_ctx)?) {
+                                continue;
+                            }
+                        }
+                        matched = true;
+                        out.extend(eval_expr(&case.body, &new_ctx)?);
                         break;
                     }
                 }
@@ -434,6 +441,9 @@ fn eval_constructor(c: &Constructor, ctx: &Context) -> Result<Rc<XmlNode>, Strin
                 for item in seq {
                     match item {
                         Item::Node(n) if n.kind == NodeKind::Attribute => {
+                            if ctx.version.as_str() >= "2.2" {
+                                return Err("XFDY0005".into());
+                            }
                             children.push(make_text(&(n.value.clone().unwrap_or_default())));
                         }
                         Item::Node(n) => children.push(deep_copy(&n)),

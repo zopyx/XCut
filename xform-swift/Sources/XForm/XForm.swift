@@ -158,14 +158,16 @@ public final class Module {
     public let namespaces: [String: String]
     public let imports: [(String, String?)]
     public let expr: Expr?
+    public let version: String
 
-    public init(functions: [String: FunctionDef], rules: [String: [RuleDef]], vars: [String: Expr], namespaces: [String: String], imports: [(String, String?)], expr: Expr?) {
+    public init(functions: [String: FunctionDef], rules: [String: [RuleDef]], vars: [String: Expr], namespaces: [String: String], imports: [(String, String?)], expr: Expr?, version: String = "2.0") {
         self.functions = functions
         self.rules = rules
         self.vars = vars
         self.namespaces = namespaces
         self.imports = imports
         self.expr = expr
+        self.version = version
     }
 }
 
@@ -176,7 +178,8 @@ public struct VarRef: Expr { public let name: String }
 public struct IfExpr: Expr { public let cond: Expr; public let thenExpr: Expr; public let elseExpr: Expr }
 public struct LetExpr: Expr { public let name: String; public let value: Expr; public let body: Expr }
 public struct ForExpr: Expr { public let name: String; public let seq: Expr; public let whereExpr: Expr?; public let body: Expr }
-public struct MatchExpr: Expr { public let target: Expr; public let cases: [(Pattern, Expr)]; public let defaultExpr: Expr? }
+public struct MatchCase { public let pattern: Pattern; public let guardExpr: Expr?; public let body: Expr }
+public struct MatchExpr: Expr { public let target: Expr; public let cases: [MatchCase]; public let defaultExpr: Expr? }
 public struct FuncCall: Expr { public let name: String; public let args: [Expr]; public let namedArgs: [(String, Expr)] }
 public struct ApplyExpr: Expr { public let expr: Expr; public let ruleset: String? }
 public struct UnaryOp: Expr { public let op: String; public let expr: Expr }
@@ -405,13 +408,14 @@ public final class Parser {
         var vars: [String: Expr] = [:]
         var namespaces: [String: String] = [:]
         var imports: [(String, String?)] = []
+        var version = "2.0"
 
         var tok = lexer.peek()
         if tok.kind == .kw && tok.value == "xform" {
             _ = lexer.next()
             _ = lexer.expect(.kw, "version")
-            let version = lexer.expect(.string).value
-            if version != "2.0" && version != "2.1" { fatalError("XFST0005: unsupported version") }
+            version = lexer.expect(.string).value
+            if version != "2.0" && version != "2.1" && version != "2.2" { fatalError("XFST0005: unsupported version") }
             _ = lexer.expect(.punct, ";")
         }
 
@@ -447,7 +451,7 @@ public final class Parser {
             if lexer.peek().kind != .eof { fatalError("Unexpected token at \(lexer.peek().pos)") }
         }
 
-        return Module(functions: functions, rules: rules, vars: vars, namespaces: namespaces, imports: imports, expr: expr)
+        return Module(functions: functions, rules: rules, vars: vars, namespaces: namespaces, imports: imports, expr: expr, version: version)
     }
 
     private func parseNs(_ namespaces: inout [String: String]) {
@@ -582,18 +586,23 @@ public final class Parser {
         _ = lexer.expect(.kw, "match")
         let target = parseExpr()
         _ = lexer.expect(.punct, ":")
-        var cases: [(Pattern, Expr)] = []
+        var cases: [MatchCase] = []
         var def: Expr? = nil
         while true {
             let tok = lexer.peek()
             if tok.kind == .kw && tok.value == "case" {
                 _ = lexer.next()
                 let pattern = parsePattern()
+                var guardExpr: Expr? = nil
+                if lexer.peek().kind == .kw && lexer.peek().value == "where" {
+                    _ = lexer.next()
+                    guardExpr = parseExpr()
+                }
                 _ = lexer.expect(.op, "=")
                 _ = lexer.expect(.op, ">")
                 let expr = parseExpr()
                 _ = lexer.expect(.punct, ";")
-                cases.append((pattern, expr))
+                cases.append(MatchCase(pattern: pattern, guardExpr: guardExpr, body: expr))
                 continue
             }
             if tok.kind == .kw && tok.value == "default" {
@@ -632,11 +641,22 @@ public final class Parser {
     private func parseEq() -> Expr {
         var expr = parseRel()
         while lexer.peek().kind == .op && ["=", "!="].contains(lexer.peek().value) {
+            if lexer.peek().value == "=" && nextTokenIsArrowTail() { break }
             let op = lexer.next().value
             let right = parseRel()
             expr = BinaryOp(op: op, left: expr, right: right)
         }
         return expr
+    }
+
+    private func nextTokenIsArrowTail() -> Bool {
+        let savedPos = lexer.pos
+        let savedBuffer = lexer.snapshotBuffer()
+        _ = lexer.next()
+        let isArrow = lexer.peek().kind == .op && lexer.peek().value == ">"
+        lexer.pos = savedPos
+        lexer.restoreBuffer(savedBuffer)
+        return isArrow
     }
 
     private func parseRel() -> Expr {
@@ -1214,6 +1234,7 @@ public struct Context {
     public let position: Int?
     public let last: Int?
     public let recursionDepth: Int
+    public let version: String
 }
 
 public let MAX_RECURSION_DEPTH = 10000
@@ -1222,12 +1243,12 @@ public struct FunctionRef { public let name: String }
 
 public func evalModule(_ module: Module, _ doc: Node) -> [Any] {
     var variables: [String: [Any]] = [:]
-    let ctx = Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0)
+    let ctx = Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0, version: module.version)
     for (name, expr) in module.vars {
         variables[name] = evalExpr(expr, ctx)
     }
     if module.expr == nil { return [] }
-    return evalExpr(module.expr!, Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0))
+    return evalExpr(module.expr!, Context(contextItem: doc, variables: variables, functions: module.functions, rules: module.rules, position: nil, last: nil, recursionDepth: 0, version: module.version))
 }
 
 public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
@@ -1247,7 +1268,7 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
     case let e as LetExpr:
         var newVars = ctx.variables
         newVars[e.name] = evalExpr(e.value, ctx)
-        return evalExpr(e.body, Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth))
+        return evalExpr(e.body, Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth, version: ctx.version))
     case let e as ForExpr:
         let seq = evalExpr(e.seq, ctx)
         var out: [Any] = []
@@ -1255,7 +1276,7 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
         for (idx, item) in seq.enumerated() {
             var newVars = ctx.variables
             newVars[e.name] = [item]
-            let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: idx + 1, last: total, recursionDepth: ctx.recursionDepth)
+            let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: idx + 1, last: total, recursionDepth: ctx.recursionDepth, version: ctx.version)
             if let w = e.whereExpr {
                 if !toBoolean(evalExpr(w, newCtx)) { continue }
             }
@@ -1267,19 +1288,23 @@ public func evalExpr(_ expr: Expr, _ ctx: Context) -> [Any] {
         var out: [Any] = []
         for target in targetSeq {
             var matchedAny = false
-            for (pattern, body) in e.cases {
-                let (matched, bindings) = matchPattern(pattern, target)
+            for matchCase in e.cases {
+                let (matched, bindings) = matchPattern(matchCase.pattern, target)
                 if matched {
-                    matchedAny = true
                     var newVars = ctx.variables
                     for (k, v) in bindings { newVars[k] = v }
-                    out.append(contentsOf: evalExpr(body, Context(contextItem: target, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)))
+                    let matchCtx = Context(contextItem: target, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth, version: ctx.version)
+                    if let guardExpr = matchCase.guardExpr {
+                        if !toBoolean(evalExpr(guardExpr, matchCtx)) { continue }
+                    }
+                    matchedAny = true
+                    out.append(contentsOf: evalExpr(matchCase.body, matchCtx))
                     break
                 }
             }
             if !matchedAny {
                 guard let def = e.defaultExpr else { fatalError("XFDY0001: no matching case") }
-                out.append(contentsOf: evalExpr(def, Context(contextItem: target, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)))
+                out.append(contentsOf: evalExpr(def, Context(contextItem: target, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth, version: ctx.version)))
             }
         }
         return out
@@ -1426,7 +1451,7 @@ public func applyStep(_ items: [Any], _ step: PathStep, _ ctx: Context) -> [Any]
         for pred in step.predicates {
             var predOut: [Node] = []
             for (i, child) in filtered.enumerated() {
-                let predCtx = Context(contextItem: child, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: i + 1, last: filtered.count, recursionDepth: ctx.recursionDepth)
+                let predCtx = Context(contextItem: child, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: i + 1, last: filtered.count, recursionDepth: ctx.recursionDepth, version: ctx.version)
                 if toBoolean(evalExpr(pred, predCtx)) { predOut.append(child) }
             }
             filtered = predOut
@@ -1468,6 +1493,7 @@ public func evalConstructor(_ expr: Constructor, _ ctx: Context) -> Node {
         for item in seq {
             if let n = item as? Node {
                 if n.kind == "attribute" {
+                    if ctx.version >= "2.2" { fatalError("XFDY0005") }
                     children.append(Node(kind: "text", value: n.value ?? ""))
                     continue
                 }
@@ -1517,7 +1543,7 @@ private func callUserFunction(_ fn: FunctionDef, _ args: [[Any]], _ ctx: Context
         newVars[paramName] = value
         bound.insert(paramName)
     }
-    let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1)
+    let newCtx = Context(contextItem: ctx.contextItem, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1, version: ctx.version)
     for param in params {
         if !bound.contains(param.name) {
             if let def = param.defaultExpr {
@@ -1642,7 +1668,7 @@ private func doApply(_ seq: [Any], _ ruleset: String, _ ctx: Context) -> [Any] {
                 matched = true
                 var newVars = ctx.variables
                 for (k, v) in bindings { newVars[k] = v }
-                let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1)
+                let newCtx = Context(contextItem: item, variables: newVars, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth + 1, version: ctx.version)
                 out.append(contentsOf: evalExpr(rule.body, newCtx))
                 break
             }
@@ -1837,7 +1863,7 @@ private func fnIndex(_ args: [[Any]], _ ctx: Context, _ named: [String: [Any]], 
         if let k = keyFn, let fn = ctx.functions[k] {
             key = toString(callUserFunction(fn, [[item]], ctx))
         } else if let ke = keyExpr {
-            let itemCtx = Context(contextItem: item, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth)
+            let itemCtx = Context(contextItem: item, variables: ctx.variables, functions: ctx.functions, rules: ctx.rules, position: ctx.position, last: ctx.last, recursionDepth: ctx.recursionDepth, version: ctx.version)
             key = toString(evalExpr(ke, itemCtx))
         }
         index[key, default: []].append(item)

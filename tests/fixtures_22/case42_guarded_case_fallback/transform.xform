@@ -1,0 +1,8 @@
+xform version "2.2";
+<kinds>{
+  for i in .//item return
+    match @type:
+      case @type = "product" where 1 = 0 => <kind>nonempty</kind>;
+      case @type = "service" where 1 = 1 => <kind>nonempty</kind>;
+      default => <kind>empty</kind>;
+}</kinds>

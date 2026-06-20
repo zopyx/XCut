@@ -253,12 +253,13 @@ class Parser:
         namespaces: dict[str, str] = {}
         imports: List[Tuple[str, Optional[str]]] = []
 
+        version = "2.0"
         tok = self.lexer.peek()
         if tok.kind == "KW" and tok.value == "xform":
             self.lexer.next()
             self.lexer.expect("KW", "version")
             version = self.lexer.expect("STRING").value
-            if version not in ("2.0", "2.1"):
+            if version not in ("2.0", "2.1", "2.2"):
                 raise SyntaxError("XFST0005: unsupported version")
             self.lexer.expect("PUNCT", ";")
 
@@ -294,6 +295,7 @@ class Parser:
             namespaces=namespaces,
             imports=imports,
             expr=expr,
+            version=version,
         )
 
     def _parse_ns(self, namespaces: dict) -> None:
@@ -422,11 +424,15 @@ class Parser:
             if tok.kind == "KW" and tok.value == "case":
                 self.lexer.next()
                 pattern = self._parse_pattern()
+                guard = None
+                if self.lexer.peek().kind == "KW" and self.lexer.peek().value == "where":
+                    self.lexer.next()
+                    guard = self.parse_expr()
                 self.lexer.expect("OP", "=")
                 self.lexer.expect("OP", ">")
                 expr = self.parse_expr()
                 self.lexer.expect("PUNCT", ";")
-                cases.append((pattern, expr))
+                cases.append((pattern, guard, expr))
                 continue
             if tok.kind == "KW" and tok.value == "default":
                 self.lexer.next()
@@ -457,10 +463,21 @@ class Parser:
     def _parse_eq(self) -> ast.Expr:
         expr = self._parse_rel()
         while self.lexer.peek().kind == "OP" and self.lexer.peek().value in ("=", "!="):
+            if self.lexer.peek().value == "=" and self._next_token_is_arrow_tail():
+                break
             op = self.lexer.next().value
             right = self._parse_rel()
             expr = ast.BinaryOp(op, expr, right)
         return expr
+
+    def _next_token_is_arrow_tail(self) -> bool:
+        saved_pos = self.lexer.pos
+        saved_buf = self.lexer._buffer
+        self.lexer.next()
+        is_arrow = self.lexer.peek().kind == "OP" and self.lexer.peek().value == ">"
+        self.lexer.pos = saved_pos
+        self.lexer._buffer = saved_buf
+        return is_arrow
 
     def _parse_rel(self) -> ast.Expr:
         expr = self._parse_add()

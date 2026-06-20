@@ -57,6 +57,7 @@ typedef struct Context {
     int has_position;
     int has_last;
     int recursion_depth;
+    const char *version;
 } Context;
 
 /* Item functions */

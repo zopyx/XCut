@@ -1,0 +1,2 @@
+xform version "2.2";
+apply(.//item, detail)

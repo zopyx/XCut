@@ -29,9 +29,10 @@ class Parser(private val text: String) {
             lexer.next()
             lexer.expect(TokenKind.KW, "version")
             val version = lexer.expect(TokenKind.STRING).value
-            if (version != "2.0" && version != "2.1") {
+            if (version != "2.0" && version != "2.1" && version != "2.2") {
                 throw XFormException("XFST0005: unsupported version")
             }
+            module.version = version
             lexer.expect(TokenKind.PUNCT, ";")
         }
 
@@ -203,11 +204,17 @@ class Parser(private val text: String) {
                 lexer.peek().kind == TokenKind.KW && lexer.peek().value == "case" -> {
                     lexer.next()
                     val pattern = parsePattern()
+                    val guard = if (lexer.peek().kind == TokenKind.KW && lexer.peek().value == "where") {
+                        lexer.next()
+                        parseExpr()
+                    } else {
+                        null
+                    }
                     lexer.expect(TokenKind.OP, "=")
                     lexer.expect(TokenKind.OP, ">")
                     val expr = parseExpr()
                     lexer.expect(TokenKind.PUNCT, ";")
-                    cases.add(MatchCase(pattern, expr))
+                    cases.add(MatchCase(pattern, guard, expr))
                 }
                 lexer.peek().kind == TokenKind.KW && lexer.peek().value == "default" -> {
                     lexer.next()
@@ -246,11 +253,22 @@ class Parser(private val text: String) {
     private fun parseEq(): Expr {
         var expr = parseRel()
         while (lexer.peek().kind == TokenKind.OP && lexer.peek().value in setOf("=", "!=")) {
+            if (lexer.peek().value == "=" && nextTokenIsArrowTail()) break
             val op = lexer.next().value
             val right = parseRel()
             expr = BinaryOp(op, expr, right)
         }
         return expr
+    }
+
+    private fun nextTokenIsArrowTail(): Boolean {
+        val savedPos = lexer.pos
+        val savedBuffer = lexer.buffer
+        lexer.next()
+        val isArrow = lexer.peek().kind == TokenKind.OP && lexer.peek().value == ">"
+        lexer.pos = savedPos
+        lexer.buffer = savedBuffer
+        return isArrow
     }
 
     private fun parseRel(): Expr {

@@ -75,9 +75,11 @@ void expr_free(Expr *expr) {
                 expr_free(expr->data.match_expr->target);
                 for (size_t i = 0; i < expr->data.match_expr->case_count; i++) {
                     pattern_free(expr->data.match_expr->patterns[i]);
+                    expr_free(expr->data.match_expr->guards[i]);
                     expr_free(expr->data.match_expr->exprs[i]);
                 }
                 free(expr->data.match_expr->patterns);
+                free(expr->data.match_expr->guards);
                 free(expr->data.match_expr->exprs);
                 expr_free(expr->data.match_expr->default_expr);
                 free(expr->data.match_expr);
@@ -245,6 +247,7 @@ void module_free(Module *mod) {
     free(mod->imports);
     
     expr_free(mod->expr);
+    free(mod->version);
     free(mod);
 }
 

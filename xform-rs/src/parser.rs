@@ -65,12 +65,13 @@ impl Parser {
         let mut namespaces = std::collections::HashMap::new();
         let mut imports = Vec::new();
 
+        let mut version = "2.0".to_string();
         // Optional prolog
         if self.lexer.peek().kind == TK::Kw && self.lexer.peek().value == "xform" {
             self.lexer.next();
             self.lexer.expect(TK::Kw, Some("version"))?;
-            let ver = self.lexer.expect(TK::Str, None)?.value;
-            if ver != "2.0" && ver != "2.1" {
+            version = self.lexer.expect(TK::Str, None)?.value;
+            if version != "2.0" && version != "2.1" && version != "2.2" {
                 return Err("XFST0005: unsupported version".into());
             }
             self.lexer.expect(TK::Punct, Some(";"))?;
@@ -103,7 +104,7 @@ impl Parser {
             None
         };
 
-        Ok(Module { functions, rules, vars, namespaces, imports, expr })
+        Ok(Module { functions, rules, vars, namespaces, imports, expr, version })
     }
 
     fn parse_ns(
@@ -274,12 +275,19 @@ impl Parser {
             if pk == TK::Kw && pv == "case" {
                 self.lexer.next();
                 let pat = self.parse_pattern()?;
+                let guard =
+                    if self.lexer.peek().kind == TK::Kw && self.lexer.peek().value == "where" {
+                        self.lexer.next();
+                        Some(self.parse_expr()?)
+                    } else {
+                        None
+                    };
                 // "=>" is two tokens: "=" then ">"
                 self.lexer.expect(TK::Op, Some("="))?;
                 self.lexer.expect(TK::Op, Some(">"))?;
                 let expr = self.parse_expr()?;
                 self.lexer.expect(TK::Punct, Some(";"))?;
-                cases.push((pat, expr));
+                cases.push(MatchCase { pattern: pat, guard, body: expr });
             } else if pk == TK::Kw && pv == "default" {
                 self.lexer.next();
                 self.lexer.expect(TK::Op, Some("="))?;
@@ -323,11 +331,24 @@ impl Parser {
         while self.lexer.peek().kind == TK::Op
             && (self.lexer.peek().value == "=" || self.lexer.peek().value == "!=")
         {
+            if self.lexer.peek().value == "=" && self.next_token_is_arrow_tail() {
+                break;
+            }
             let op = self.lexer.next().value;
             let right = self.parse_rel()?;
             expr = Expr::BinaryOp { op, left: Box::new(expr), right: Box::new(right) };
         }
         Ok(expr)
+    }
+
+    fn next_token_is_arrow_tail(&mut self) -> bool {
+        let saved_pos = self.lexer.pos;
+        let saved_buf = self.lexer.buf.clone();
+        self.lexer.next();
+        let is_arrow = self.lexer.peek().kind == TK::Op && self.lexer.peek().value == ">";
+        self.lexer.pos = saved_pos;
+        self.lexer.buf = saved_buf;
+        is_arrow
     }
 
     fn parse_rel(&mut self) -> Result<Expr, String> {
