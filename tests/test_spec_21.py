@@ -18,14 +18,12 @@ def _simple_doc() -> Node:
     return doc
 
 
-@pytest.mark.xfail(reason="2.1 version parsing is not implemented yet")
 def test_parse_module_accepts_21_version() -> None:
     module = Parser("xform version '2.1'; 1").parse_module()
     assert isinstance(module.expr, ast.Literal)
     assert module.expr.value == 1.0
 
 
-@pytest.mark.xfail(reason="2.1 named argument call syntax is not implemented yet")
 def test_parse_named_arguments_in_function_calls() -> None:
     module = Parser("xform version '2.1'; text(./p, deep:=false)").parse_module()
     expr = module.expr
@@ -33,7 +31,6 @@ def test_parse_named_arguments_in_function_calls() -> None:
     assert expr.name == "text"
 
 
-@pytest.mark.xfail(reason="2.1 attribute path-start shorthand is not implemented yet")
 def test_parse_bare_attribute_path_start() -> None:
     module = Parser("xform version '2.1'; @id").parse_module()
     expr = module.expr
@@ -41,7 +38,6 @@ def test_parse_bare_attribute_path_start() -> None:
     assert expr.start.kind in {"attr", "context"}
 
 
-@pytest.mark.xfail(reason="2.1 attribute-value patterns are not implemented yet")
 def test_parse_attribute_value_pattern() -> None:
     module = Parser(
         "xform version '2.1'; match .: case @id = 'x' => 1; default => 0;"
@@ -49,7 +45,6 @@ def test_parse_attribute_value_pattern() -> None:
     assert isinstance(module.expr, ast.MatchExpr)
 
 
-@pytest.mark.xfail(reason="2.1 comment and PI constructors are not implemented yet")
 def test_parse_comment_and_pi_constructors() -> None:
     comment_module = Parser("xform version '2.1'; comment{'hello'}").parse_module()
     pi_module = Parser("xform version '2.1'; pi{'target', 'value'}").parse_module()
@@ -57,7 +52,6 @@ def test_parse_comment_and_pi_constructors() -> None:
     assert pi_module.expr is not None
 
 
-@pytest.mark.xfail(reason="2.1 default parameters must evaluate after earlier params are bound")
 def test_default_parameter_can_reference_earlier_parameter() -> None:
     func = ast.FunctionDef(
         [ast.Param("a"), ast.Param("b", default=ast.VarRef("a"))],
@@ -67,7 +61,6 @@ def test_default_parameter_can_reference_earlier_parameter() -> None:
     assert call_function("dup", [[42.0]], ctx) == [42.0, 42.0]
 
 
-@pytest.mark.xfail(reason="2.1 built-in apply fallback rules are not implemented yet")
 def test_apply_has_builtin_fallback_rules_for_unmatched_nodes() -> None:
     doc = _simple_doc()
     ctx = Context(context_item=doc, variables={}, functions={}, rules={"main": []})
@@ -77,7 +70,6 @@ def test_apply_has_builtin_fallback_rules_for_unmatched_nodes() -> None:
     assert out[0].name == "root"
 
 
-@pytest.mark.xfail(reason="2.1 exact nested-pattern matching is not implemented yet")
 def test_nested_pattern_requires_exact_child_sequence() -> None:
     parent = Node(kind="element", name="a")
     first = Node(kind="element", name="b", parent=parent)
@@ -102,7 +94,6 @@ def test_constructor_rejects_attribute_nodes_in_content() -> None:
         eval_constructor(expr, ctx)
 
 
-@pytest.mark.xfail(reason="2.1 duplicate attribute detection is not implemented yet")
 def test_constructor_rejects_duplicate_attributes() -> None:
     ctx = Context(context_item=None, variables={}, functions={}, rules={})
     expr = ast.Constructor(
@@ -114,7 +105,6 @@ def test_constructor_rejects_duplicate_attributes() -> None:
         eval_constructor(expr, ctx)
 
 
-@pytest.mark.xfail(reason="2.1 string helper builtins are not implemented yet")
 @pytest.mark.parametrize(
     ("name", "args", "expected"),
     [
@@ -130,13 +120,11 @@ def test_string_helper_builtins(name: str, args: list[list[object]], expected: l
     assert call_function(name, args, ctx) == expected
 
 
-@pytest.mark.xfail(reason="2.1 replace builtin is not implemented yet")
 def test_replace_builtin() -> None:
     ctx = Context(context_item=None, variables={}, functions={}, rules={})
     assert call_function("replace", [["a-b-c"], ["-"], [":"]], ctx) == ["a:b:c"]
 
 
-@pytest.mark.xfail(reason="2.1 map helper builtins are not implemented yet")
 def test_map_helper_builtins() -> None:
     ctx = Context(context_item=None, variables={}, functions={}, rules={})
     m = {"a": [1], "b": [2, 3]}

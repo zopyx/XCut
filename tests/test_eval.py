@@ -301,3 +301,83 @@ def test_apply_builtin_fallback_when_no_rule_matches() -> None:
     assert out
     assert isinstance(out[0], Node)
     assert out[0].name == "root"
+
+
+def test_head_tail_last_on_empty_sequences() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    assert call_function("head", [[]], ctx) == []
+    assert call_function("tail", [[]], ctx) == []
+    assert call_function("tail", [[1]], ctx) == []
+    assert call_function("last", [[]], ctx) == []
+
+
+def test_xfdy0003_node_operations_on_atomic() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    for fn in ("name", "attr", "text", "children", "elements", "attributes", "copy"):
+        with pytest.raises(RuntimeError, match="XFDY0003"):
+            call_function(fn, [["plain_string"]], ctx)
+
+
+def test_xfdy0099_recursion_depth_limit() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    ctx.recursion_depth = 10000
+    with pytest.raises(RuntimeError, match="XFDY0099"):
+        call_function("apply", [[Node(kind="element", name="x", children=[])]], ctx)
+
+
+def test_element_typed_pattern_match() -> None:
+    node = Node(kind="element", name="div")
+    ok, bindings = match_pattern(ast.TypedPattern("element"), node)
+    assert ok
+    txt = Node(kind="text", value="hello")
+    ok, _ = match_pattern(ast.TypedPattern("element"), txt)
+    assert not ok
+
+
+def test_element_step_test_in_path() -> None:
+    doc = _doc_with_children()
+    ctx = Context(context_item=doc, variables={}, functions={}, rules={})
+    path = ast.PathExpr(
+        ast.PathStart("root"),
+        [ast.PathStep("child", ast.StepTest("element"), [])],
+    )
+    result = eval_path(path, ctx)
+    assert all(isinstance(n, Node) and n.kind == "element" for n in result)
+
+
+def test_matches_builtin() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    assert call_function("matches", [["hello world"], ["world"]], ctx) == [True]
+    assert call_function("matches", [["hello world"], ["xyz"]], ctx) == [False]
+    assert call_function("matches", [["a.*b"], [".*"]], ctx) == [True]
+
+
+def test_string_length_builtin() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    assert call_function("stringLength", [["hello"]], ctx) == [5.0]
+    assert call_function("stringLength", [[""]], ctx) == [0.0]
+
+
+def test_case_upper_lower_builtins() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    assert call_function("upperCase", [["hello"]], ctx) == ["HELLO"]
+    assert call_function("lowerCase", [["HELLO"]], ctx) == ["hello"]
+
+
+def test_typeof_function_ref() -> None:
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    ctx.functions["double"] = ast.FunctionDef([], ast.Literal(1))
+    ref = eval_expr(ast.VarRef("double"), ctx)
+    assert any(isinstance(r, FunctionRef) for r in ref)
+    for r in ref:
+        if isinstance(r, FunctionRef):
+            assert call_function("typeOf", [[r]], ctx) == ["function"]
+
+
+def test_number_nan_on_invalid_input() -> None:
+    import math
+    ctx = Context(context_item=None, variables={}, functions={}, rules={})
+    result = call_function("number", [["not_a_number"]], ctx)
+    assert math.isnan(result[0])
+    result = call_function("number", [[]], ctx)
+    assert math.isnan(result[0])

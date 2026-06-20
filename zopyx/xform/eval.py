@@ -753,7 +753,7 @@ def _fn_tail(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -
 
 
 def _fn_last(args: List[List[Any]], ctx: Context, named: Dict[str, List[Any]]) -> List[Any]:
-    if not args or not args[0]:
+    if not args:
         if ctx.last is None:
             raise RuntimeError("XFDY0003")
         return [float(ctx.last)]

@@ -1,1 +1,4 @@
-<book id="b1"><title>XML Guide</title><chapter n="1"><p>Intro</p></chapter></book>
+<book id="b1">
+  <title>XML Guide</title>
+  <chapter n="1"><p>Intro</p></chapter>
+</book>
