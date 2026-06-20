@@ -179,9 +179,30 @@ static Param parse_param(Parser *p) {
     return param;
 }
 
+static int is_reserved_function_name(const char *s) {
+    static const char *reserved[] = {
+        "string", "number", "boolean", "typeOf", "name", "attr", "text",
+        "children", "elements", "attributes", "copy", "count", "empty",
+        "distinct", "sort", "concat", "seq", "head", "tail", "last",
+        "index", "lookup", "groupBy", "sum", "position", "apply",
+        "contains", "startsWith", "endsWith", "substring",
+        "stringLength", "upperCase", "lowerCase", "normalizeSpace",
+        "replace", "matches", "keys", "mapSize", NULL
+    };
+    for (int i = 0; reserved[i]; i++) {
+        if (strcmp(reserved[i], s) == 0) return 1;
+    }
+    return 0;
+}
+
 static void parse_def(Parser *p, Module *mod) {
     expect(p, TK_KW, "def");
     char *name = expect_ident(p);
+    if (name && is_reserved_function_name(name)) {
+        set_error("XFST0006: reserved function name '%s'", name);
+        free(name);
+        return;
+    }
     expect(p, TK_PUNCT, "(");
     
     FunctionDef *fd = (FunctionDef*)calloc(1, sizeof(FunctionDef));
@@ -577,14 +598,15 @@ static StepTest parse_step_test(Parser *p) {
     if (peek_is_ident(p)) {
         char *name = expect_ident(p);
         if (strcmp(name, "text") == 0 || strcmp(name, "node") == 0 ||
-            strcmp(name, "comment") == 0 || strcmp(name, "pi") == 0 ||
-            strcmp(name, "document") == 0) {
+            strcmp(name, "element") == 0 || strcmp(name, "comment") == 0 ||
+            strcmp(name, "pi") == 0 || strcmp(name, "document") == 0) {
             accept(p, TK_PUNCT, "(");
             expect(p, TK_PUNCT, ")");
             StepTest st;
             st.name = NULL;
             if (strcmp(name, "text") == 0) st = step_test_text();
             else if (strcmp(name, "node") == 0) st = step_test_node();
+            else if (strcmp(name, "element") == 0) st.kind = TEST_ELEMENT;
             else if (strcmp(name, "comment") == 0) st.kind = TEST_COMMENT;
             else if (strcmp(name, "pi") == 0) st.kind = TEST_PI;
             else if (strcmp(name, "document") == 0) st.kind = TEST_DOCUMENT;
@@ -780,9 +802,9 @@ static Pattern* parse_pattern(Parser *p) {
     
     if (peek_is_ident(p)) {
         char *name = expect_ident(p);
-        if (strcmp(name, "node") == 0 || strcmp(name, "text") == 0 || 
-            strcmp(name, "comment") == 0 || strcmp(name, "pi") == 0 ||
-            strcmp(name, "document") == 0) {
+        if (strcmp(name, "node") == 0 || strcmp(name, "element") == 0 ||
+            strcmp(name, "text") == 0 || strcmp(name, "comment") == 0 ||
+            strcmp(name, "pi") == 0 || strcmp(name, "document") == 0) {
             accept(p, TK_PUNCT, "(");
             expect(p, TK_PUNCT, ")");
             Pattern *pat = pattern_new(PAT_TYPED);

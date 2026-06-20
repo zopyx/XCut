@@ -57,10 +57,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/ajung/src/xform/xform-cpp
+CMAKE_SOURCE_DIR = /Users/ajung/src/XCut/xform-cpp
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/ajung/src/xform/xform-cpp/build
+CMAKE_BINARY_DIR = /Users/ajung/src/XCut/xform-cpp/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,14 +87,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/ajung/src/xform/xform-cpp/build && $(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/xform/xform-cpp/build/CMakeFiles /Users/ajung/src/xform/xform-cpp/build/src//CMakeFiles/progress.marks
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/xform/xform-cpp/build/CMakeFiles 0
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles /Users/ajung/src/XCut/xform-cpp/build/src//CMakeFiles/progress.marks
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/clean
 .PHONY : clean
 
 # The main clean target
@@ -103,22 +103,22 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
 # Convenience name for target.
 src/CMakeFiles/xform.dir/rule:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/xform.dir/rule
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 src/CMakeFiles/xform.dir/rule
 .PHONY : src/CMakeFiles/xform.dir/rule
 
 # Convenience name for target.
@@ -127,7 +127,7 @@ xform: src/CMakeFiles/xform.dir/rule
 
 # fast build rule for target.
 xform/fast:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/build
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/build
 .PHONY : xform/fast
 
 ast.o: ast.cpp.o
@@ -135,7 +135,7 @@ ast.o: ast.cpp.o
 
 # target to build an object file
 ast.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.o
 .PHONY : ast.cpp.o
 
 ast.i: ast.cpp.i
@@ -143,7 +143,7 @@ ast.i: ast.cpp.i
 
 # target to preprocess a source file
 ast.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.i
 .PHONY : ast.cpp.i
 
 ast.s: ast.cpp.s
@@ -151,7 +151,7 @@ ast.s: ast.cpp.s
 
 # target to generate assembly for a file
 ast.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/ast.cpp.s
 .PHONY : ast.cpp.s
 
 eval.o: eval.cpp.o
@@ -159,7 +159,7 @@ eval.o: eval.cpp.o
 
 # target to build an object file
 eval.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.o
 .PHONY : eval.cpp.o
 
 eval.i: eval.cpp.i
@@ -167,7 +167,7 @@ eval.i: eval.cpp.i
 
 # target to preprocess a source file
 eval.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.i
 .PHONY : eval.cpp.i
 
 eval.s: eval.cpp.s
@@ -175,7 +175,7 @@ eval.s: eval.cpp.s
 
 # target to generate assembly for a file
 eval.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/eval.cpp.s
 .PHONY : eval.cpp.s
 
 hashmap.o: hashmap.cpp.o
@@ -183,7 +183,7 @@ hashmap.o: hashmap.cpp.o
 
 # target to build an object file
 hashmap.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.o
 .PHONY : hashmap.cpp.o
 
 hashmap.i: hashmap.cpp.i
@@ -191,7 +191,7 @@ hashmap.i: hashmap.cpp.i
 
 # target to preprocess a source file
 hashmap.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.i
 .PHONY : hashmap.cpp.i
 
 hashmap.s: hashmap.cpp.s
@@ -199,7 +199,7 @@ hashmap.s: hashmap.cpp.s
 
 # target to generate assembly for a file
 hashmap.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/hashmap.cpp.s
 .PHONY : hashmap.cpp.s
 
 lexer.o: lexer.cpp.o
@@ -207,7 +207,7 @@ lexer.o: lexer.cpp.o
 
 # target to build an object file
 lexer.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.o
 .PHONY : lexer.cpp.o
 
 lexer.i: lexer.cpp.i
@@ -215,7 +215,7 @@ lexer.i: lexer.cpp.i
 
 # target to preprocess a source file
 lexer.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.i
 .PHONY : lexer.cpp.i
 
 lexer.s: lexer.cpp.s
@@ -223,7 +223,7 @@ lexer.s: lexer.cpp.s
 
 # target to generate assembly for a file
 lexer.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/lexer.cpp.s
 .PHONY : lexer.cpp.s
 
 main.o: main.cpp.o
@@ -231,7 +231,7 @@ main.o: main.cpp.o
 
 # target to build an object file
 main.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.o
 .PHONY : main.cpp.o
 
 main.i: main.cpp.i
@@ -239,7 +239,7 @@ main.i: main.cpp.i
 
 # target to preprocess a source file
 main.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.i
 .PHONY : main.cpp.i
 
 main.s: main.cpp.s
@@ -247,7 +247,7 @@ main.s: main.cpp.s
 
 # target to generate assembly for a file
 main.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/main.cpp.s
 .PHONY : main.cpp.s
 
 parser.o: parser.cpp.o
@@ -255,7 +255,7 @@ parser.o: parser.cpp.o
 
 # target to build an object file
 parser.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.o
 .PHONY : parser.cpp.o
 
 parser.i: parser.cpp.i
@@ -263,7 +263,7 @@ parser.i: parser.cpp.i
 
 # target to preprocess a source file
 parser.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.i
 .PHONY : parser.cpp.i
 
 parser.s: parser.cpp.s
@@ -271,7 +271,7 @@ parser.s: parser.cpp.s
 
 # target to generate assembly for a file
 parser.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/parser.cpp.s
 .PHONY : parser.cpp.s
 
 string_builder.o: string_builder.cpp.o
@@ -279,7 +279,7 @@ string_builder.o: string_builder.cpp.o
 
 # target to build an object file
 string_builder.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.o
 .PHONY : string_builder.cpp.o
 
 string_builder.i: string_builder.cpp.i
@@ -287,7 +287,7 @@ string_builder.i: string_builder.cpp.i
 
 # target to preprocess a source file
 string_builder.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.i
 .PHONY : string_builder.cpp.i
 
 string_builder.s: string_builder.cpp.s
@@ -295,7 +295,7 @@ string_builder.s: string_builder.cpp.s
 
 # target to generate assembly for a file
 string_builder.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/string_builder.cpp.s
 .PHONY : string_builder.cpp.s
 
 xmlmodel.o: xmlmodel.cpp.o
@@ -303,7 +303,7 @@ xmlmodel.o: xmlmodel.cpp.o
 
 # target to build an object file
 xmlmodel.cpp.o:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.o
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.o
 .PHONY : xmlmodel.cpp.o
 
 xmlmodel.i: xmlmodel.cpp.i
@@ -311,7 +311,7 @@ xmlmodel.i: xmlmodel.cpp.i
 
 # target to preprocess a source file
 xmlmodel.cpp.i:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.i
 .PHONY : xmlmodel.cpp.i
 
 xmlmodel.s: xmlmodel.cpp.s
@@ -319,7 +319,7 @@ xmlmodel.s: xmlmodel.cpp.s
 
 # target to generate assembly for a file
 xmlmodel.cpp.s:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(MAKE) $(MAKESILENT) -f src/CMakeFiles/xform.dir/build.make src/CMakeFiles/xform.dir/xmlmodel.cpp.s
 .PHONY : xmlmodel.cpp.s
 
 # Help Target
@@ -366,6 +366,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

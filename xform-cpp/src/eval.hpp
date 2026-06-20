@@ -43,6 +43,8 @@ typedef struct {
     size_t capacity;
 } Seq;
 
+#define MAX_RECURSION_DEPTH 10000
+
 /* Context for evaluation */
 typedef struct Context {
     Item *context_item;  /* NULL if none */
@@ -54,6 +56,7 @@ typedef struct Context {
     double last;         /* 0 if not set */
     int has_position;
     int has_last;
+    int recursion_depth;
 } Context;
 
 /* Item functions */

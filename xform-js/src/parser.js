@@ -40,6 +40,15 @@ const SOFT_KEYWORDS = new Set([
     "true", "false", "null", "string", "number", "boolean", "map",
     "apply", "text", "comment", "pi",
 ]);
+const RESERVED_FUNCTION_NAMES = new Set([
+    "string", "number", "boolean", "typeOf", "name", "attr",
+    "text", "children", "elements", "attributes", "copy",
+    "count", "empty", "distinct", "sort", "concat", "seq",
+    "head", "tail", "last", "index", "lookup", "groupBy", "sum",
+    "position", "apply", "contains", "startsWith", "endsWith",
+    "substring", "stringLength", "upperCase", "lowerCase",
+    "normalizeSpace", "replace", "matches", "keys", "mapSize",
+]);
 class Parser {
     constructor(text) {
         this.text = text;
@@ -132,6 +141,9 @@ class Parser {
     parseDef(functions) {
         this.lexer.expect("KW", "def");
         const name = this.parseQName();
+        if (RESERVED_FUNCTION_NAMES.has(name)) {
+            throw new Error(`XFST0006: reserved function name '${name}'`);
+        }
         this.lexer.expect("PUNCT", "(");
         const params = [];
         if (!(this.lexer.peek().kind === "PUNCT" && this.lexer.peek().value === ")")) {
@@ -565,7 +577,7 @@ class Parser {
             return new ast.StepTest("wildcard");
         }
         if (tok.kind === "IDENT" || (tok.kind === "KW" && SOFT_KEYWORDS.has(tok.value))) {
-            if (["text", "node", "comment", "pi", "document"].includes(tok.value)) {
+            if (["text", "node", "element", "comment", "pi", "document"].includes(tok.value)) {
                 this.lexer.next();
                 this.lexer.expect("PUNCT", "(");
                 this.lexer.expect("PUNCT", ")");
@@ -615,7 +627,7 @@ class Parser {
         if (tok.kind === "STRING") {
             return new ast.LiteralPattern(this.lexer.next().value);
         }
-        if (tok.kind === "IDENT" && ["node", "text", "comment", "pi", "document"].includes(tok.value)) {
+        if (tok.kind === "IDENT" && ["node", "element", "text", "comment", "pi", "document"].includes(tok.value)) {
             this.lexer.next();
             this.lexer.expect("PUNCT", "(");
             this.lexer.expect("PUNCT", ")");

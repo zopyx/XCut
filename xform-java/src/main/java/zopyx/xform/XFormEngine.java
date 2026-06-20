@@ -293,6 +293,7 @@ public final class XFormEngine {
 
     static final Set<String> KEYWORDS = Set.of("xform","version","import","as","ns","def","var","let","in","for","where","return","if","then","else","match","case","default","and","or","not","div","mod","rule","apply","text","comment","pi","true","false","null","string","number","boolean","map");
     static final Set<String> SOFT_KEYWORDS = Set.of("true","false","null","string","number","boolean","map","apply","text","comment","pi","document");
+    static final Set<String> RESERVED_FUNCTION_NAMES = Set.of("string","number","boolean","typeOf","name","attr","text","children","elements","attributes","copy","count","empty","distinct","sort","concat","seq","head","tail","last","index","lookup","groupBy","sum","position","apply","contains","startsWith","endsWith","substring","stringLength","upperCase","lowerCase","normalizeSpace","replace","matches","keys","mapSize");
 
     static final class Lexer {
         final String text;
@@ -453,6 +454,7 @@ public final class XFormEngine {
         private void parseDef(Map<String, FunctionDef> functions) {
             lexer.expect(TokenKind.KW, "def");
             String name = parseQName();
+            if (RESERVED_FUNCTION_NAMES.contains(name)) throw new XFormException("XFST0006: reserved function name '" + name + "'");
             lexer.expect(TokenKind.PUNCT, "(");
             List<Param> params = new ArrayList<>();
             if (!(lexer.peek().kind == TokenKind.PUNCT && lexer.peek().val.equals(")"))) {
@@ -665,7 +667,7 @@ public final class XFormEngine {
             Token tok = lexer.peek();
             if (tok.kind == TokenKind.OP && tok.val.equals("*")) { lexer.next(); StepTest t = new StepTest(); t.kind = "wildcard"; return t; }
             if (tok.kind == TokenKind.IDENT || (tok.kind == TokenKind.KW && isSoftKeyword(tok.val))) {
-                if (Set.of("text", "node", "comment", "pi", "document").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); StepTest t = new StepTest(); t.kind = tok.val; return t; }
+                if (Set.of("text", "node", "comment", "pi", "document", "element").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); StepTest t = new StepTest(); t.kind = tok.val; return t; }
                 return stepName(parseQName());
             }
             throw new XFormException("invalid step test at " + tok.pos);
@@ -704,7 +706,7 @@ public final class XFormEngine {
                 }
                 return p;
             }
-            if (tok.kind == TokenKind.IDENT && Set.of("node", "text", "comment", "pi", "document").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); TypedPattern p = new TypedPattern(); p.kind = tok.val; return p; }
+            if (tok.kind == TokenKind.IDENT && Set.of("node", "element", "text", "comment", "pi", "document").contains(tok.val)) { lexer.next(); lexer.expect(TokenKind.PUNCT, "("); lexer.expect(TokenKind.PUNCT, ")"); TypedPattern p = new TypedPattern(); p.kind = tok.val; return p; }
             if (tok.kind == TokenKind.IDENT && tok.val.equals("_")) { lexer.next(); return new WildcardPattern(); }
             if (tok.kind == TokenKind.OP && tok.val.equals("<")) {
                 lexer.next(); ElementPattern p = new ElementPattern(); p.name = parseQName(); lexer.expect(TokenKind.OP, ">");
@@ -771,7 +773,10 @@ public final class XFormEngine {
         Map<String, List<RuleDef>> rules;
         Integer position;
         Integer last;
+        int recursionDepth;
     }
+
+    static final int MAX_RECURSION_DEPTH = 10000;
 
     public static List<Object> evalModule(Module module, Node doc) {
         Context ctx = new Context();
@@ -957,7 +962,8 @@ public final class XFormEngine {
 
     private static boolean matchesStepTest(StepTest test, Node node) {
         return switch (test.kind) {
-            case "wildcard" -> "element".equals(node.kind);
+            case "wildcard" -> "element".equals(node.kind) || "attribute".equals(node.kind);
+            case "element" -> "element".equals(node.kind);
             case "text" -> "text".equals(node.kind);
             case "node" -> true;
             case "comment" -> "comment".equals(node.kind);
@@ -994,8 +1000,11 @@ public final class XFormEngine {
             List<Object> seq = evalExpr(content, ctx);
             for (Object item : seq) {
                 if (item instanceof Node n) {
-                    if ("attribute".equals(n.kind)) throw new XFormException("XFDY0005");
-                    children.add(deepCopy(n, true));
+                    if ("attribute".equals(n.kind)) {
+                        Node t = new Node("text"); t.value = n.value == null ? "" : n.value; children.add(t);
+                    } else {
+                        children.add(deepCopy(n, true));
+                    }
                 }
                 else { Node t = new Node("text"); t.value = toString(seq(item)); children.add(t); }
             }
@@ -1006,6 +1015,7 @@ public final class XFormEngine {
     }
 
     private static List<Object> evalApply(ApplyExpr expr, Context ctx) {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) throw new XFormException("XFDY0099");
         List<Object> seq = evalExpr(expr.expr, ctx);
         String ruleset = expr.ruleset != null ? expr.ruleset : "main";
         if (!"main".equals(ruleset) && !ctx.rules.containsKey(ruleset)) throw new XFormException("XFST0007: unknown ruleset '" + ruleset + "'");
@@ -1016,7 +1026,7 @@ public final class XFormEngine {
             for (RuleDef rule : rules) {
                 MatchResult mr = matchPattern(rule.pattern, item);
                 if (mr.matched) {
-                    matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); out.addAll(evalExpr(rule.body, n)); break;
+                    matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); n.recursionDepth = ctx.recursionDepth + 1; out.addAll(evalExpr(rule.body, n)); break;
                 }
             }
             if (!matched) out.addAll(applyBuiltinIdentity(item));
@@ -1072,6 +1082,10 @@ public final class XFormEngine {
         BUILTINS.put("keys", XFormEngine::fnKeys);
         BUILTINS.put("mapSize", XFormEngine::fnMapSize);
         BUILTINS.put("attributes", XFormEngine::fnAttributes);
+        BUILTINS.put("stringLength", XFormEngine::fnStringLength);
+        BUILTINS.put("upperCase", XFormEngine::fnUpperCase);
+        BUILTINS.put("lowerCase", XFormEngine::fnLowerCase);
+        BUILTINS.put("matches", XFormEngine::fnMatches);
     }
 
     private static List<Object> callFunction(String name, List<List<Object>> args, Context ctx, Map<String, List<Object>> namedArgs, Map<String, Expr> namedRaw) {
@@ -1082,8 +1096,9 @@ public final class XFormEngine {
     }
 
     private static List<Object> callUserFunction(FunctionDef fn, List<List<Object>> args, Context ctx, Map<String, List<Object>> namedArgs, Map<String, Expr> namedRaw) {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) throw new XFormException("XFDY0099");
         if (args.size() > fn.params.size()) throw new XFormException("XFDY0002: wrong arity");
-        Context n = cloneCtx(ctx); n.variables = copyVars(ctx.variables);
+        Context n = cloneCtx(ctx); n.variables = copyVars(ctx.variables); n.recursionDepth = ctx.recursionDepth + 1;
         Set<String> bound = new HashSet<>();
         for (int i = 0; i < args.size(); i++) {
             if (namedArgs.containsKey(fn.params.get(i).name)) throw new XFormException("XFDY0008: duplicate argument");
@@ -1132,16 +1147,16 @@ public final class XFormEngine {
     }
 
     private static double toNumber(List<Object> seq) {
-        if (seq.isEmpty()) return 0.0;
+        if (seq.isEmpty()) return Double.NaN;
         Object item = seq.get(0);
         if (item instanceof Node n) item = n.stringValue();
         if (item instanceof Boolean b) return b ? 1.0 : 0.0;
         if (item instanceof Integer i) return i.doubleValue();
         if (item instanceof Double d) return d;
         if (item instanceof String s) {
-            try { return Double.parseDouble(s); } catch (NumberFormatException e) { throw new XFormException("XFDY0002: number conversion"); }
+            try { return Double.parseDouble(s); } catch (NumberFormatException e) { return Double.NaN; }
         }
-        throw new XFormException("XFDY0002: number conversion");
+        return Double.NaN;
     }
 
     private static boolean valueEqual(List<Object> left, List<Object> right) { return toString(left).equals(toString(right)); }
@@ -1166,6 +1181,7 @@ public final class XFormEngine {
         if (pattern instanceof TypedPattern p) {
             if (item == null) { r.matched = false; return r; }
             if ("node".equals(p.kind)) { r.matched = item instanceof Node; return r; }
+            if ("element".equals(p.kind)) { r.matched = item instanceof Node && "element".equals(((Node)item).kind); return r; }
             if (item instanceof Node n) {
                 r.matched = p.kind.equals(n.kind);
                 return r;
@@ -1208,45 +1224,61 @@ public final class XFormEngine {
         Object item = args.get(0).get(0);
         if (item instanceof Node) return seq("node");
         if (item instanceof Map<?, ?>) return seq("map");
+        if (item instanceof FunctionRef) return seq("function");
         if (item instanceof Boolean) return seq("boolean");
         if (item instanceof Integer || item instanceof Double) return seq("number");
         if (item == null) return seq("null");
         return seq("string");
     }
-    private static List<Object> fnName(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return seq(""); Object i=args.get(0).get(0); return (i instanceof Node n)?seq(n.name):seq(""); }
+    private static List<Object> fnName(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty()||args.get(0).isEmpty()) return seq("");
+        Object i=args.get(0).get(0);
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        return seq(((Node)i).name);
+    }
     private static List<Object> fnAttr(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return seq("");
         Object i = args.get(0).get(0);
-        if (!(i instanceof Node n) || !"element".equals(n.kind) || args.size() < 2) return seq("");
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        Node n = (Node) i;
+        if (!"element".equals(n.kind) || args.size() < 2) return seq("");
         String key = toString(args.get(1));
         return seq(n.attrs.getOrDefault(key, ""));
     }
     private static List<Object> fnText(List<List<Object>> args, Context _ctx, Map<String, List<Object>> named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return seq("");
         Object i = args.get(0).get(0);
-        if (i instanceof Node n) {
-            boolean deep = true;
-            if (args.size() > 1) deep = toBoolean(args.get(1));
-            else if (named.containsKey("deep")) deep = toBoolean(named.get("deep"));
-            if (deep) return seq(n.stringValue());
-            if ("element".equals(n.kind) || "document".equals(n.kind)) {
-                StringBuilder s = new StringBuilder(); for (Node c : n.children) if ("text".equals(c.kind)) s.append(c.value); return seq(s.toString());
-            }
-            return seq(n.stringValue());
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        Node n = (Node) i;
+        boolean deep = true;
+        if (args.size() > 1) deep = toBoolean(args.get(1));
+        else if (named.containsKey("deep")) deep = toBoolean(named.get("deep"));
+        if (deep) return seq(n.stringValue());
+        if ("element".equals(n.kind) || "document".equals(n.kind)) {
+            StringBuilder s = new StringBuilder(); for (Node c : n.children) if ("text".equals(c.kind)) s.append(c.value); return seq(s.toString());
         }
-        return seq(toString(args.get(0)));
+        return seq(n.stringValue());
     }
     private static List<Object> fnChildren(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
-        if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>(); return new ArrayList<>(n.children);
+        if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>();
+        Object i = args.get(0).get(0);
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        return new ArrayList<>(((Node)i).children);
     }
     private static List<Object> fnElements(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
-        if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>();
+        if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>();
+        Object i = args.get(0).get(0);
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        Node n = (Node) i;
         if (!("element".equals(n.kind) || "document".equals(n.kind))) return new ArrayList<>();
         String nameTest = args.size() > 1 ? toString(args.get(1)) : ""; List<Object> out = new ArrayList<>();
         for (Node c : n.children) if ("element".equals(c.kind) && (nameTest.isEmpty() || nameTest.equals(c.name))) out.add(c); return out;
     }
     private static List<Object> fnCopy(List<List<Object>> args, Context _ctx, Map<String, List<Object>> named, Map<String, Expr> _namedRaw) {
-        if (args.isEmpty()||args.get(0).isEmpty()||!(args.get(0).get(0) instanceof Node n)) return new ArrayList<>();
+        if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>();
+        Object i = args.get(0).get(0);
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        Node n = (Node) i;
         boolean recurse = true;
         if (args.size() > 1) recurse = toBoolean(args.get(1));
         else if (named.containsKey("recurse")) recurse = toBoolean(named.get("recurse"));
@@ -1278,7 +1310,7 @@ public final class XFormEngine {
     private static List<Object> fnHead(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return seq(args.get(0).get(0)); }
     private static List<Object> fnTail(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (args.isEmpty()||args.get(0).isEmpty()) return new ArrayList<>(); return new ArrayList<>(args.get(0).subList(1, args.get(0).size())); }
     private static List<Object> fnLast(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
-        if (args.isEmpty() || args.get(0).isEmpty()) { if (ctx.last == null) throw new XFormException("XFDY0006"); return seq(ctx.last.doubleValue()); }
+        if (args.isEmpty() || args.get(0).isEmpty()) { if (ctx.last == null) throw new XFormException("XFDY0003"); return seq(ctx.last.doubleValue()); }
         List<Object> s = args.get(0); return seq(s.get(s.size()-1));
     }
     private static List<Object> fnIndex(List<List<Object>> args, Context ctx, Map<String, List<Object>> named, Map<String, Expr> namedRaw) {
@@ -1320,8 +1352,9 @@ public final class XFormEngine {
         return out;
     }
     private static List<Object> fnSeq(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { List<Object> out = new ArrayList<>(); for (List<Object> s : args) out.addAll(s); return out; }
-    private static List<Object> fnPosition(List<List<Object>> _args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (ctx.position == null) throw new XFormException("XFDY0006"); return seq(ctx.position.doubleValue()); }
+    private static List<Object> fnPosition(List<List<Object>> _args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) { if (ctx.position == null) throw new XFormException("XFDY0003"); return seq(ctx.position.doubleValue()); }
     private static List<Object> fnApply(List<List<Object>> args, Context ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) throw new XFormException("XFDY0099");
         if (args.isEmpty()) return new ArrayList<>(); List<Object> seq = args.get(0); String ruleset = (args.size()>1 && !args.get(1).isEmpty()) ? toString(args.get(1)) : "main";
         if (!"main".equals(ruleset) && !ctx.rules.containsKey(ruleset)) throw new XFormException("XFST0007: unknown ruleset '" + ruleset + "'");
         List<RuleDef> rules = ctx.rules.getOrDefault(ruleset, new ArrayList<>()); List<Object> out = new ArrayList<>();
@@ -1330,7 +1363,7 @@ public final class XFormEngine {
             for (RuleDef rule : rules) {
                 MatchResult mr = matchPattern(rule.pattern, item);
                 if (mr.matched) {
-                    matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); out.addAll(evalExpr(rule.body, n)); break;
+                    matched = true; Context n = cloneCtx(ctx); n.contextItem = item; n.variables = copyVars(ctx.variables); n.variables.putAll(mr.bindings); n.recursionDepth = ctx.recursionDepth + 1; out.addAll(evalExpr(rule.body, n)); break;
                 }
             }
             if (!matched) out.addAll(applyBuiltinIdentity(item));
@@ -1374,15 +1407,31 @@ public final class XFormEngine {
     }
     private static List<Object> fnAttributes(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
         if (args.isEmpty() || args.get(0).isEmpty()) return new ArrayList<>();
-        Object i = args.get(0).get(0); if (!(i instanceof Node n) || !"element".equals(n.kind)) return new ArrayList<>();
+        Object i = args.get(0).get(0);
+        if (!(i instanceof Node)) throw new XFormException("XFDY0003");
+        Node n = (Node) i;
+        if (!"element".equals(n.kind)) return new ArrayList<>();
         List<Object> out = new ArrayList<>();
         for (Map.Entry<String, String> e : n.attrs.entrySet()) { Node a = new Node("attribute"); a.name = e.getKey(); a.value = e.getValue(); out.add(a); }
         return out;
     }
+    private static List<Object> fnStringLength(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        return seq((double)(args.isEmpty() ? "" : toString(args.get(0))).length());
+    }
+    private static List<Object> fnUpperCase(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        return seq((args.isEmpty() ? "" : toString(args.get(0))).toUpperCase(Locale.ROOT));
+    }
+    private static List<Object> fnLowerCase(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        return seq((args.isEmpty() ? "" : toString(args.get(0))).toLowerCase(Locale.ROOT));
+    }
+    private static List<Object> fnMatches(List<List<Object>> args, Context _ctx, Map<String, List<Object>> _named, Map<String, Expr> _namedRaw) {
+        if (args.isEmpty() || args.size() < 2) return seq(false);
+        return seq(toString(args.get(0)).contains(toString(args.get(1))));
+    }
 
     private static List<Object> firstOrEmpty(List<List<Object>> args) { return args.isEmpty() ? new ArrayList<>() : args.get(0); }
     private static Map<String, List<Object>> copyVars(Map<String, List<Object>> src) { return new HashMap<>(src); }
-    private static Context cloneCtx(Context c) { Context n = new Context(); n.contextItem = c.contextItem; n.variables = c.variables; n.functions = c.functions; n.rules = c.rules; n.position = c.position; n.last = c.last; return n; }
+    private static Context cloneCtx(Context c) { Context n = new Context(); n.contextItem = c.contextItem; n.variables = c.variables; n.functions = c.functions; n.rules = c.rules; n.position = c.position; n.last = c.last; n.recursionDepth = c.recursionDepth; return n; }
     private static List<Object> seq(Object... items) { return new ArrayList<>(Arrays.asList(items)); }
     private static List<Object> seq(Object item) { List<Object> l = new ArrayList<>(); l.add(item); return l; }
 

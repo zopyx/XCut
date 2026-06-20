@@ -49,14 +49,16 @@ exports.matchPattern = matchPattern;
 exports.serializeItem = serializeItem;
 const ast = __importStar(require("./ast"));
 const xmlmodel_1 = require("./xmlmodel");
+const MAX_RECURSION_DEPTH = 10000;
 class Context {
-    constructor(contextItem, variables, functions, rules, position = null, last = null) {
+    constructor(contextItem, variables, functions, rules, position = null, last = null, recursionDepth = 0) {
         this.contextItem = contextItem;
         this.variables = variables;
         this.functions = functions;
         this.rules = rules;
         this.position = position;
         this.last = last;
+        this.recursionDepth = recursionDepth;
     }
 }
 exports.Context = Context;
@@ -93,7 +95,7 @@ function evalExpr(expr, ctx) {
     if (expr instanceof ast.LetExpr) {
         const value = evalExpr(expr.value, ctx);
         const newVars = { ...ctx.variables, [expr.name]: value };
-        return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last));
+        return evalExpr(expr.body, new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth));
     }
     if (expr instanceof ast.ForExpr) {
         const seq = evalExpr(expr.seq, ctx);
@@ -101,7 +103,7 @@ function evalExpr(expr, ctx) {
         const total = seq.length;
         seq.forEach((item, idx) => {
             const newVars = { ...ctx.variables, [expr.name]: [item] };
-            const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total);
+            const newCtx = new Context(item, newVars, ctx.functions, ctx.rules, idx + 1, total, ctx.recursionDepth);
             if (expr.where) {
                 if (!toBoolean(evalExpr(expr.where, newCtx)))
                     return;
@@ -120,14 +122,14 @@ function evalExpr(expr, ctx) {
                 if (matched) {
                     matchedAny = true;
                     const newVars = { ...ctx.variables, ...bindings };
-                    out.push(...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)));
+                    out.push(...evalExpr(body, new Context(target, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth)));
                     break;
                 }
             }
             if (!matchedAny) {
                 if (!expr.defaultExpr)
                     throw new Error("XFDY0001: no matching case");
-                out.push(...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last)));
+                out.push(...evalExpr(expr.defaultExpr, new Context(target, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth)));
             }
         }
         return out;
@@ -332,7 +334,7 @@ function applyStep(items, step, ctx) {
             const predOut = [];
             for (let i = 0; i < filtered.length; i += 1) {
                 const child = filtered[i];
-                const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length);
+                const predCtx = new Context(child, ctx.variables, ctx.functions, ctx.rules, i + 1, filtered.length, ctx.recursionDepth);
                 if (toBoolean(evalExpr(pred, predCtx)))
                     predOut.push(child);
             }
@@ -347,6 +349,8 @@ function matchesStepTest(test, node) {
         return true;
     if (test.kind === "wildcard")
         return node.kind === "element" || node.kind === "attribute";
+    if (test.kind === "element")
+        return node.kind === "element";
     if (test.kind === "text")
         return node.kind === "text";
     if (test.kind === "comment")
@@ -380,9 +384,11 @@ function evalConstructor(expr, ctx) {
         for (const item of seq) {
             if (item instanceof xmlmodel_1.Node) {
                 if (item.kind === "attribute") {
-                    throw new Error("XFDY0005");
+                    children.push(new xmlmodel_1.Node({ kind: "text", value: item.value || "" }));
                 }
-                children.push((0, xmlmodel_1.deepCopy)(item, true));
+                else {
+                    children.push((0, xmlmodel_1.deepCopy)(item, true));
+                }
             }
             else {
                 children.push(new xmlmodel_1.Node({ kind: "text", value: toString([item]) }));
@@ -433,7 +439,9 @@ function callFunction(name, args, ctx, namedArgs = {}, namedRaw = {}) {
             newVars[paramName] = value;
             bound.add(paramName);
         }
-        const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last);
+        const newCtx = new Context(ctx.contextItem, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1);
+        if (newCtx.recursionDepth >= MAX_RECURSION_DEPTH)
+            throw new Error("XFDY0099");
         for (const param of params) {
             if (!bound.has(param.name)) {
                 if (!param.defaultExpr) {
@@ -480,7 +488,7 @@ function toString(seq) {
 }
 function toNumber(seq) {
     if (!seq || seq.length === 0)
-        return 0.0;
+        return NaN;
     let item = seq[0];
     if (item instanceof xmlmodel_1.Node)
         item = item.stringValue();
@@ -488,7 +496,7 @@ function toNumber(seq) {
         return item ? 1.0 : 0.0;
     const num = Number(item);
     if (Number.isNaN(num))
-        throw new Error("XFDY0002: number conversion");
+        return NaN;
     return num;
 }
 function valueEqual(left, right) {
@@ -514,6 +522,8 @@ function matchPattern(pattern, item) {
             return [false, {}];
         if (pattern.kind === "node")
             return [item instanceof xmlmodel_1.Node, {}];
+        if (pattern.kind === "element")
+            return [item instanceof xmlmodel_1.Node && item.kind === "element", {}];
         if (pattern.kind === "text")
             return [item instanceof xmlmodel_1.Node && item.kind === "text", {}];
         if (pattern.kind === "comment")
@@ -567,6 +577,8 @@ function matchPattern(pattern, item) {
     return [false, {}];
 }
 function doApply(seq, ruleset, ctx) {
+    if (ctx.recursionDepth >= MAX_RECURSION_DEPTH)
+        throw new Error("XFDY0099");
     if (ruleset !== "main" && !(ruleset in ctx.rules)) {
         throw new Error("XFST0007");
     }
@@ -579,7 +591,7 @@ function doApply(seq, ruleset, ctx) {
             if (ok) {
                 matched = true;
                 const newVars = { ...ctx.variables, ...bindings };
-                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last)));
+                out.push(...evalExpr(rule.body, new Context(item, newVars, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth + 1)));
                 break;
             }
         }
@@ -629,6 +641,8 @@ function fnTypeOf(args) {
     const item = args[0][0];
     if (item instanceof xmlmodel_1.Node)
         return ["node"];
+    if (item instanceof FunctionRef)
+        return ["function"];
     if (item && typeof item === "object" && !Array.isArray(item))
         return ["map"];
     if (typeof item === "boolean")
@@ -644,16 +658,18 @@ function fnName(args) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [""];
     const item = args[0][0];
-    if (item instanceof xmlmodel_1.Node)
-        return [(_a = item.name) !== null && _a !== void 0 ? _a : ""];
-    return [""];
+    if (!(item instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    return [(_a = item.name) !== null && _a !== void 0 ? _a : ""];
 }
 function fnAttr(args) {
     var _a;
     if (!args || args.length === 0 || args[0].length === 0)
         return [""];
     const node = args[0][0];
-    if (!(node instanceof xmlmodel_1.Node) || node.kind !== "element")
+    if (!(node instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    if (node.kind !== "element")
         return [""];
     if (args.length < 2)
         return [""];
@@ -664,40 +680,41 @@ function fnText(args, ctx, named) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [""];
     const node = args[0][0];
-    if (node instanceof xmlmodel_1.Node) {
-        let deep = true;
-        if (args.length > 1) {
-            deep = toBoolean(args[1]);
-        }
-        else if (named && "deep" in named) {
-            deep = toBoolean(named["deep"]);
-        }
-        if (deep)
-            return [node.stringValue()];
-        if (node.kind === "element" || node.kind === "document") {
-            const direct = node.children
-                .filter((c) => c.kind === "text")
-                .map((c) => { var _a; return (_a = c.value) !== null && _a !== void 0 ? _a : ""; })
-                .join("");
-            return [direct];
-        }
-        return [node.stringValue()];
+    if (!(node instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    let deep = true;
+    if (args.length > 1) {
+        deep = toBoolean(args[1]);
     }
-    return [toString(args[0])];
+    else if (named && "deep" in named) {
+        deep = toBoolean(named["deep"]);
+    }
+    if (deep)
+        return [node.stringValue()];
+    if (node.kind === "element" || node.kind === "document") {
+        const direct = node.children
+            .filter((c) => c.kind === "text")
+            .map((c) => { var _a; return (_a = c.value) !== null && _a !== void 0 ? _a : ""; })
+            .join("");
+        return [direct];
+    }
+    return [node.stringValue()];
 }
 function fnChildren(args) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [];
     const node = args[0][0];
-    if (node instanceof xmlmodel_1.Node)
-        return [...node.children];
-    return [];
+    if (!(node instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    return [...node.children];
 }
 function fnElements(args) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [];
     const node = args[0][0];
-    if (!(node instanceof xmlmodel_1.Node) || (node.kind !== "element" && node.kind !== "document"))
+    if (!(node instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    if (node.kind !== "element" && node.kind !== "document")
         return [];
     const nameTest = args.length > 1 ? toString(args[1]) : null;
     let out = node.children.filter((c) => c.kind === "element");
@@ -709,7 +726,9 @@ function fnAttributes(args) {
     if (!args || args.length === 0 || args[0].length === 0)
         return [];
     const node = args[0][0];
-    if (!(node instanceof xmlmodel_1.Node) || node.kind !== "element")
+    if (!(node instanceof xmlmodel_1.Node))
+        throw new Error("XFDY0003");
+    if (node.kind !== "element")
         return [];
     return Object.entries(node.attrs).map(([k, v]) => new xmlmodel_1.Node({ kind: "attribute", name: k, value: v }));
 }
@@ -718,7 +737,7 @@ function fnCopy(args, ctx, named) {
         return [];
     const node = args[0][0];
     if (!(node instanceof xmlmodel_1.Node))
-        return [];
+        throw new Error("XFDY0003");
     let recurse = true;
     if (args.length > 1) {
         recurse = toBoolean(args[1]);
@@ -784,7 +803,7 @@ function fnTail(args) {
 function fnLast(args, ctx) {
     if (!args || args.length === 0 || args[0].length === 0) {
         if (ctx.last === null) {
-            throw new Error("XFDY0006");
+            throw new Error("XFDY0003");
         }
         return [ctx.last];
     }
@@ -818,7 +837,7 @@ function fnIndex(args, ctx, named, namedRaw) {
             key = toString(callFunction(keyFn, [[item]], ctx));
         }
         else if (keyExpr !== null) {
-            const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last);
+            const itemCtx = new Context(item, { ...ctx.variables }, ctx.functions, ctx.rules, ctx.position, ctx.last, ctx.recursionDepth);
             key = toString(evalExpr(keyExpr, itemCtx));
         }
         else {
@@ -867,7 +886,7 @@ function fnSeq(args) {
 }
 function fnPosition(_, ctx) {
     if (ctx.position === null) {
-        throw new Error("XFDY0006");
+        throw new Error("XFDY0003");
     }
     return [ctx.position];
 }
@@ -943,6 +962,25 @@ function fnMapSize(args) {
         return [0.0];
     return [Object.keys(mapping).length];
 }
+function fnStringLength(args) {
+    const s = toString(args[0] ?? []);
+    return [s.length];
+}
+function fnUpperCase(args) {
+    const s = toString(args[0] ?? []);
+    return [s.toUpperCase()];
+}
+function fnLowerCase(args) {
+    const s = toString(args[0] ?? []);
+    return [s.toLowerCase()];
+}
+function fnMatches(args) {
+    if (!args || args.length < 2)
+        return [false];
+    const s = toString(args[0]);
+    const pattern = toString(args[1]);
+    return [s.indexOf(pattern) >= 0];
+}
 const BUILTINS = {
     string: (args) => fnString(args),
     number: (args) => fnNumber(args),
@@ -978,6 +1016,10 @@ const BUILTINS = {
     replace: (args) => fnReplace(args),
     keys: (args) => fnKeys(args),
     mapSize: (args) => fnMapSize(args),
+    stringLength: (args) => fnStringLength(args),
+    upperCase: (args) => fnUpperCase(args),
+    lowerCase: (args) => fnLowerCase(args),
+    matches: (args) => fnMatches(args),
 };
 function serializeItem(item) {
     if (item instanceof xmlmodel_1.Node)

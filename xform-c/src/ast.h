@@ -76,6 +76,7 @@ typedef enum {
     TEST_WILDCARD,
     TEST_TEXT,
     TEST_NODE,
+    TEST_ELEMENT,
     TEST_COMMENT,
     TEST_PI,
     TEST_DOCUMENT

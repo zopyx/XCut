@@ -3,6 +3,7 @@ package com.zopyx.xform
 typealias BuiltinFn = (List<XFormValue>, EvalContext, Map<String, XFormValue>, Map<String, Expr>) -> XFormValue
 
 object Builtins {
+    private const val MAX_RECURSION_DEPTH = 10000
     private val builtins = mutableMapOf<String, BuiltinFn>()
 
     init {
@@ -39,8 +40,12 @@ object Builtins {
         builtins["startsWith"] = ::fnStartsWith
         builtins["endsWith"] = ::fnEndsWith
         builtins["substring"] = ::fnSubstring
+        builtins["stringLength"] = ::fnStringLength
+        builtins["upperCase"] = ::fnUpperCase
+        builtins["lowerCase"] = ::fnLowerCase
         builtins["normalizeSpace"] = ::fnNormalizeSpace
         builtins["replace"] = ::fnReplace
+        builtins["matches"] = ::fnMatches
 
         // Map operations
         builtins["index"] = ::fnIndex
@@ -80,6 +85,9 @@ object Builtins {
         namedArgs: Map<String, XFormValue> = emptyMap(),
         namedRaw: Map<String, Expr> = emptyMap()
     ): XFormValue {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) {
+            throw XFormException("XFDY0099")
+        }
         if (args.size > fn.params.size) {
             throw XFormException("XFDY0002: wrong arity")
         }
@@ -119,7 +127,10 @@ object Builtins {
             }
         }
 
-        val newCtx = ctx.copy().apply { variables = newVars }
+        val newCtx = ctx.copy().apply {
+            variables = newVars
+            recursionDepth = ctx.recursionDepth + 1
+        }
         return Evaluator.evalExpr(fn.body, newCtx)
     }
 
@@ -131,7 +142,7 @@ object Builtins {
     }
 
     private fun fnNumber(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
-        return listOf(Evaluator.toNumber(firstOrEmpty(args)))
+        return listOf(Evaluator.toNumberOrNaN(firstOrEmpty(args)))
     }
 
     private fun fnBoolean(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
@@ -143,6 +154,7 @@ object Builtins {
         return listOf(when (val item = args[0][0]) {
             is XmlNode -> "node"
             is Map<*, *> -> "map"
+            is FunctionRef -> "function"
             is Boolean -> "boolean"
             is Int, is Double -> "number"
             null -> "null"
@@ -153,13 +165,13 @@ object Builtins {
     // Node navigation functions
     private fun fnName(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return listOf("")
-        val node = args[0][0] as? XmlNode ?: return listOf("")
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         return listOf(node.name)
     }
 
     private fun fnAttr(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return listOf("")
-        val node = args[0][0] as? XmlNode ?: return listOf("")
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         if (node.kind != "element" || args.size < 2) return listOf("")
         val key = Evaluator.toString(args[1])
         return listOf(node.attrs[key] ?: "")
@@ -167,7 +179,7 @@ object Builtins {
 
     private fun fnText(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return listOf("")
-        val node = args[0][0] as? XmlNode ?: return listOf(Evaluator.toString(args[0]))
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         var deep = true
         if (args.size > 1) {
             deep = Evaluator.toBoolean(args[1])
@@ -188,13 +200,13 @@ object Builtins {
 
     private fun fnChildren(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return emptyList()
-        val node = args[0][0] as? XmlNode ?: return emptyList()
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         return node.children.toList()
     }
 
     private fun fnElements(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return emptyList()
-        val node = args[0][0] as? XmlNode ?: return emptyList()
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         if (node.kind != "element" && node.kind != "document") return emptyList()
         val nameTest = if (args.size > 1) Evaluator.toString(args[1]) else ""
         return node.children.filter { it.kind == "element" && (nameTest.isEmpty() || it.name == nameTest) }
@@ -202,7 +214,7 @@ object Builtins {
 
     private fun fnCopy(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return emptyList()
-        val node = args[0][0] as? XmlNode ?: return emptyList()
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         var recurse = true
         if (args.size > 1) {
             recurse = Evaluator.toBoolean(args[1])
@@ -214,7 +226,7 @@ object Builtins {
 
     private fun fnAttributes(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) return emptyList()
-        val node = args[0][0] as? XmlNode ?: return emptyList()
+        val node = args[0][0] as? XmlNode ?: throw XFormException("XFDY0003")
         if (node.kind != "element") return emptyList()
         return node.attrs.map { (k, v) -> XmlNode("attribute", name = k, value = v) }
     }
@@ -274,7 +286,7 @@ object Builtins {
     private fun fnLast(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (args.isEmpty() || args[0].isEmpty()) {
             if (ctx.last == null) {
-                throw XFormException("XFDY0006")
+                throw XFormException("XFDY0003")
             }
             return listOf(ctx.last!!.toDouble())
         }
@@ -288,7 +300,7 @@ object Builtins {
 
     private fun fnPosition(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
         if (ctx.position == null) {
-            throw XFormException("XFDY0006")
+            throw XFormException("XFDY0003")
         }
         return listOf(ctx.position!!.toDouble())
     }
@@ -343,6 +355,28 @@ object Builtins {
         val pattern = Evaluator.toString(args[1])
         val replacement = Evaluator.toString(args[2])
         return listOf(s.replace(Regex(pattern), replacement))
+    }
+
+    private fun fnStringLength(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
+        val s = Evaluator.toString(firstOrEmpty(args))
+        return listOf(s.length.toDouble())
+    }
+
+    private fun fnUpperCase(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
+        val s = Evaluator.toString(firstOrEmpty(args))
+        return listOf(s.uppercase())
+    }
+
+    private fun fnLowerCase(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
+        val s = Evaluator.toString(firstOrEmpty(args))
+        return listOf(s.lowercase())
+    }
+
+    private fun fnMatches(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
+        if (args.size < 2) return listOf(false)
+        val s = Evaluator.toString(args[0])
+        val pattern = Evaluator.toString(args[1])
+        return listOf(s.contains(pattern))
     }
 
     // Map operations
@@ -423,6 +457,9 @@ object Builtins {
 
     // Apply rules
     private fun fnApply(args: List<XFormValue>, ctx: EvalContext, named: Map<String, XFormValue>, namedRaw: Map<String, Expr>): XFormValue {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) {
+            throw XFormException("XFDY0099")
+        }
         if (args.isEmpty()) return emptyList()
         val seq = args[0]
         val ruleset = if (args.size > 1 && args[1].isNotEmpty()) {
@@ -444,6 +481,7 @@ object Builtins {
                     val newCtx = ctx.copy().apply {
                         contextItem = item
                         variables.putAll(bindings)
+                        recursionDepth = ctx.recursionDepth + 1
                     }
                     out.addAll(Evaluator.evalExpr(rule.body, newCtx))
                     break

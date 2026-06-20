@@ -53,10 +53,10 @@ RM = /opt/homebrew/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/ajung/src/xform/xform-cpp
+CMAKE_SOURCE_DIR = /Users/ajung/src/XCut/xform-cpp
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/ajung/src/xform/xform-cpp/build
+CMAKE_BINARY_DIR = /Users/ajung/src/XCut/xform-cpp/build
 
 # Include any dependencies generated for this target.
 include src/CMakeFiles/xform.dir/depend.make
@@ -73,116 +73,116 @@ src/CMakeFiles/xform.dir/codegen:
 .PHONY : src/CMakeFiles/xform.dir/codegen
 
 src/CMakeFiles/xform.dir/main.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/main.cpp.o: /Users/ajung/src/xform/xform-cpp/src/main.cpp
+src/CMakeFiles/xform.dir/main.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/main.cpp
 src/CMakeFiles/xform.dir/main.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/xform.dir/main.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/main.cpp.o -MF CMakeFiles/xform.dir/main.cpp.o.d -o CMakeFiles/xform.dir/main.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/main.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/xform.dir/main.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/main.cpp.o -MF CMakeFiles/xform.dir/main.cpp.o.d -o CMakeFiles/xform.dir/main.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/main.cpp
 
 src/CMakeFiles/xform.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/main.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/main.cpp > CMakeFiles/xform.dir/main.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/main.cpp > CMakeFiles/xform.dir/main.cpp.i
 
 src/CMakeFiles/xform.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/main.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/main.cpp -o CMakeFiles/xform.dir/main.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/main.cpp -o CMakeFiles/xform.dir/main.cpp.s
 
 src/CMakeFiles/xform.dir/lexer.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/lexer.cpp.o: /Users/ajung/src/xform/xform-cpp/src/lexer.cpp
+src/CMakeFiles/xform.dir/lexer.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/lexer.cpp
 src/CMakeFiles/xform.dir/lexer.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CMakeFiles/xform.dir/lexer.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/lexer.cpp.o -MF CMakeFiles/xform.dir/lexer.cpp.o.d -o CMakeFiles/xform.dir/lexer.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/lexer.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object src/CMakeFiles/xform.dir/lexer.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/lexer.cpp.o -MF CMakeFiles/xform.dir/lexer.cpp.o.d -o CMakeFiles/xform.dir/lexer.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/lexer.cpp
 
 src/CMakeFiles/xform.dir/lexer.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/lexer.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/lexer.cpp > CMakeFiles/xform.dir/lexer.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/lexer.cpp > CMakeFiles/xform.dir/lexer.cpp.i
 
 src/CMakeFiles/xform.dir/lexer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/lexer.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/lexer.cpp -o CMakeFiles/xform.dir/lexer.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/lexer.cpp -o CMakeFiles/xform.dir/lexer.cpp.s
 
 src/CMakeFiles/xform.dir/parser.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/parser.cpp.o: /Users/ajung/src/xform/xform-cpp/src/parser.cpp
+src/CMakeFiles/xform.dir/parser.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/parser.cpp
 src/CMakeFiles/xform.dir/parser.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/CMakeFiles/xform.dir/parser.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/parser.cpp.o -MF CMakeFiles/xform.dir/parser.cpp.o.d -o CMakeFiles/xform.dir/parser.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/parser.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object src/CMakeFiles/xform.dir/parser.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/parser.cpp.o -MF CMakeFiles/xform.dir/parser.cpp.o.d -o CMakeFiles/xform.dir/parser.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/parser.cpp
 
 src/CMakeFiles/xform.dir/parser.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/parser.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/parser.cpp > CMakeFiles/xform.dir/parser.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/parser.cpp > CMakeFiles/xform.dir/parser.cpp.i
 
 src/CMakeFiles/xform.dir/parser.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/parser.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/parser.cpp -o CMakeFiles/xform.dir/parser.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/parser.cpp -o CMakeFiles/xform.dir/parser.cpp.s
 
 src/CMakeFiles/xform.dir/ast.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/ast.cpp.o: /Users/ajung/src/xform/xform-cpp/src/ast.cpp
+src/CMakeFiles/xform.dir/ast.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/ast.cpp
 src/CMakeFiles/xform.dir/ast.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/CMakeFiles/xform.dir/ast.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/ast.cpp.o -MF CMakeFiles/xform.dir/ast.cpp.o.d -o CMakeFiles/xform.dir/ast.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/ast.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/CMakeFiles/xform.dir/ast.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/ast.cpp.o -MF CMakeFiles/xform.dir/ast.cpp.o.d -o CMakeFiles/xform.dir/ast.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/ast.cpp
 
 src/CMakeFiles/xform.dir/ast.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/ast.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/ast.cpp > CMakeFiles/xform.dir/ast.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/ast.cpp > CMakeFiles/xform.dir/ast.cpp.i
 
 src/CMakeFiles/xform.dir/ast.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/ast.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/ast.cpp -o CMakeFiles/xform.dir/ast.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/ast.cpp -o CMakeFiles/xform.dir/ast.cpp.s
 
 src/CMakeFiles/xform.dir/eval.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/eval.cpp.o: /Users/ajung/src/xform/xform-cpp/src/eval.cpp
+src/CMakeFiles/xform.dir/eval.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/eval.cpp
 src/CMakeFiles/xform.dir/eval.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/CMakeFiles/xform.dir/eval.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/eval.cpp.o -MF CMakeFiles/xform.dir/eval.cpp.o.d -o CMakeFiles/xform.dir/eval.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/eval.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/CMakeFiles/xform.dir/eval.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/eval.cpp.o -MF CMakeFiles/xform.dir/eval.cpp.o.d -o CMakeFiles/xform.dir/eval.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/eval.cpp
 
 src/CMakeFiles/xform.dir/eval.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/eval.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/eval.cpp > CMakeFiles/xform.dir/eval.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/eval.cpp > CMakeFiles/xform.dir/eval.cpp.i
 
 src/CMakeFiles/xform.dir/eval.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/eval.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/eval.cpp -o CMakeFiles/xform.dir/eval.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/eval.cpp -o CMakeFiles/xform.dir/eval.cpp.s
 
 src/CMakeFiles/xform.dir/xmlmodel.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/xmlmodel.cpp.o: /Users/ajung/src/xform/xform-cpp/src/xmlmodel.cpp
+src/CMakeFiles/xform.dir/xmlmodel.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/xmlmodel.cpp
 src/CMakeFiles/xform.dir/xmlmodel.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/CMakeFiles/xform.dir/xmlmodel.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/xmlmodel.cpp.o -MF CMakeFiles/xform.dir/xmlmodel.cpp.o.d -o CMakeFiles/xform.dir/xmlmodel.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/xmlmodel.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/CMakeFiles/xform.dir/xmlmodel.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/xmlmodel.cpp.o -MF CMakeFiles/xform.dir/xmlmodel.cpp.o.d -o CMakeFiles/xform.dir/xmlmodel.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/xmlmodel.cpp
 
 src/CMakeFiles/xform.dir/xmlmodel.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/xmlmodel.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/xmlmodel.cpp > CMakeFiles/xform.dir/xmlmodel.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/xmlmodel.cpp > CMakeFiles/xform.dir/xmlmodel.cpp.i
 
 src/CMakeFiles/xform.dir/xmlmodel.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/xmlmodel.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/xmlmodel.cpp -o CMakeFiles/xform.dir/xmlmodel.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/xmlmodel.cpp -o CMakeFiles/xform.dir/xmlmodel.cpp.s
 
 src/CMakeFiles/xform.dir/string_builder.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/string_builder.cpp.o: /Users/ajung/src/xform/xform-cpp/src/string_builder.cpp
+src/CMakeFiles/xform.dir/string_builder.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/string_builder.cpp
 src/CMakeFiles/xform.dir/string_builder.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object src/CMakeFiles/xform.dir/string_builder.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/string_builder.cpp.o -MF CMakeFiles/xform.dir/string_builder.cpp.o.d -o CMakeFiles/xform.dir/string_builder.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/string_builder.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object src/CMakeFiles/xform.dir/string_builder.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/string_builder.cpp.o -MF CMakeFiles/xform.dir/string_builder.cpp.o.d -o CMakeFiles/xform.dir/string_builder.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/string_builder.cpp
 
 src/CMakeFiles/xform.dir/string_builder.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/string_builder.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/string_builder.cpp > CMakeFiles/xform.dir/string_builder.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/string_builder.cpp > CMakeFiles/xform.dir/string_builder.cpp.i
 
 src/CMakeFiles/xform.dir/string_builder.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/string_builder.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/string_builder.cpp -o CMakeFiles/xform.dir/string_builder.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/string_builder.cpp -o CMakeFiles/xform.dir/string_builder.cpp.s
 
 src/CMakeFiles/xform.dir/hashmap.cpp.o: src/CMakeFiles/xform.dir/flags.make
-src/CMakeFiles/xform.dir/hashmap.cpp.o: /Users/ajung/src/xform/xform-cpp/src/hashmap.cpp
+src/CMakeFiles/xform.dir/hashmap.cpp.o: /Users/ajung/src/XCut/xform-cpp/src/hashmap.cpp
 src/CMakeFiles/xform.dir/hashmap.cpp.o: src/CMakeFiles/xform.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object src/CMakeFiles/xform.dir/hashmap.cpp.o"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/hashmap.cpp.o -MF CMakeFiles/xform.dir/hashmap.cpp.o.d -o CMakeFiles/xform.dir/hashmap.cpp.o -c /Users/ajung/src/xform/xform-cpp/src/hashmap.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object src/CMakeFiles/xform.dir/hashmap.cpp.o"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/CMakeFiles/xform.dir/hashmap.cpp.o -MF CMakeFiles/xform.dir/hashmap.cpp.o.d -o CMakeFiles/xform.dir/hashmap.cpp.o -c /Users/ajung/src/XCut/xform-cpp/src/hashmap.cpp
 
 src/CMakeFiles/xform.dir/hashmap.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/xform.dir/hashmap.cpp.i"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/xform/xform-cpp/src/hashmap.cpp > CMakeFiles/xform.dir/hashmap.cpp.i
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/ajung/src/XCut/xform-cpp/src/hashmap.cpp > CMakeFiles/xform.dir/hashmap.cpp.i
 
 src/CMakeFiles/xform.dir/hashmap.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/xform.dir/hashmap.cpp.s"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/xform/xform-cpp/src/hashmap.cpp -o CMakeFiles/xform.dir/hashmap.cpp.s
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/ajung/src/XCut/xform-cpp/src/hashmap.cpp -o CMakeFiles/xform.dir/hashmap.cpp.s
 
 # Object files for target xform
 xform_OBJECTS = \
@@ -208,18 +208,18 @@ src/xform: src/CMakeFiles/xform.dir/string_builder.cpp.o
 src/xform: src/CMakeFiles/xform.dir/hashmap.cpp.o
 src/xform: src/CMakeFiles/xform.dir/build.make
 src/xform: src/CMakeFiles/xform.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable xform"
-	cd /Users/ajung/src/xform/xform-cpp/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/xform.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable xform"
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/xform.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 src/CMakeFiles/xform.dir/build: src/xform
 .PHONY : src/CMakeFiles/xform.dir/build
 
 src/CMakeFiles/xform.dir/clean:
-	cd /Users/ajung/src/xform/xform-cpp/build/src && $(CMAKE_COMMAND) -P CMakeFiles/xform.dir/cmake_clean.cmake
+	cd /Users/ajung/src/XCut/xform-cpp/build/src && $(CMAKE_COMMAND) -P CMakeFiles/xform.dir/cmake_clean.cmake
 .PHONY : src/CMakeFiles/xform.dir/clean
 
 src/CMakeFiles/xform.dir/depend:
-	cd /Users/ajung/src/xform/xform-cpp/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/ajung/src/xform/xform-cpp /Users/ajung/src/xform/xform-cpp/src /Users/ajung/src/xform/xform-cpp/build /Users/ajung/src/xform/xform-cpp/build/src /Users/ajung/src/xform/xform-cpp/build/src/CMakeFiles/xform.dir/DependInfo.cmake "--color=$(COLOR)" xform
+	cd /Users/ajung/src/XCut/xform-cpp/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /Users/ajung/src/XCut/xform-cpp /Users/ajung/src/XCut/xform-cpp/src /Users/ajung/src/XCut/xform-cpp/build /Users/ajung/src/XCut/xform-cpp/build/src /Users/ajung/src/XCut/xform-cpp/build/src/CMakeFiles/xform.dir/DependInfo.cmake "--color=$(COLOR)" xform
 .PHONY : src/CMakeFiles/xform.dir/depend
 

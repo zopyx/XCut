@@ -8,7 +8,8 @@ data class EvalContext(
     var functions: Map<String, FunctionDef> = emptyMap(),
     var rules: Map<String, List<RuleDef>> = emptyMap(),
     var position: Int? = null,
-    var last: Int? = null
+    var last: Int? = null,
+    var recursionDepth: Int = 0
 ) {
     fun copy(): EvalContext = EvalContext(
         contextItem = contextItem,
@@ -16,6 +17,7 @@ data class EvalContext(
         functions = functions,
         rules = rules,
         position = position,
-        last = last
+        last = last,
+        recursionDepth = recursionDepth
     )
 }

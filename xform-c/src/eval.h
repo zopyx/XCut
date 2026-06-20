@@ -54,6 +54,7 @@ typedef struct Context {
     double last;         /* 0 if not set */
     int has_position;
     int has_last;
+    int recursion_depth;
 } Context;
 
 /* Item functions */

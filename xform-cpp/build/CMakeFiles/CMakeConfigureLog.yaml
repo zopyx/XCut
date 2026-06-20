@@ -62,8 +62,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -71,11 +70,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/uname"
@@ -161,8 +158,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -171,13 +167,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -188,7 +181,7 @@ events:
       - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
       - "CMakeLists.txt:2 (project)"
     message: |
-      The system is: Darwin - 25.4.0 - arm64
+      The system is: Darwin - 25.5.0 - arm64
   -
     kind: "find-v1"
     backtrace:
@@ -252,8 +245,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -261,11 +253,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/gmake"
@@ -310,8 +300,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/gmake"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/gmake"
-      - "/opt/pkg/env/active/bin/gmake"
-      - "/opt/pmk/env/global/bin/gmake"
+      - "/pkg/env/global/bin/gmake"
       - "/opt/X11/bin/gmake"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/gmake"
       - "/Library/Apple/usr/bin/gmake"
@@ -319,11 +308,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/gmake"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/gmake"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/gmake"
-      - "/Users/ajung/.cargo/bin/gmake"
       - "/Applications/iTerm.app/Contents/Resources/utilities/gmake"
       - "/Users/ajung/.local/bin/gmake"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/gmake"
-      - "/Users/ajung/.orbstack/bin/gmake"
       - "/Users/ajung/.cache/lm-studio/bin/gmake"
       - "/Users/ajung/.antigravity/antigravity/bin/make"
       - "/Users/ajung/.npm-global/bin/make"
@@ -408,8 +395,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -418,13 +404,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -497,8 +480,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -506,11 +488,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/c++"
@@ -596,8 +576,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -606,13 +585,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -689,8 +665,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -699,13 +674,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -730,7 +702,7 @@ events:
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
       
       The CXX compiler identification is AppleClang, found in:
-        /Users/ajung/src/xform/xform-cpp/build/CMakeFiles/4.3.2/CompilerIdCXX/a.out
+        /Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/4.3.3/CompilerIdCXX/a.out
       
   -
     kind: "message-v1"
@@ -835,8 +807,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -844,11 +815,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/ar"
     search_context:
@@ -898,8 +867,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -908,13 +876,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -981,8 +946,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -990,11 +954,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/ranlib"
     search_context:
@@ -1044,8 +1006,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1054,13 +1015,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1127,8 +1085,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1136,11 +1093,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/strip"
     search_context:
@@ -1190,8 +1145,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1200,13 +1154,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1273,8 +1224,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1282,11 +1232,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/ld"
     search_context:
@@ -1336,8 +1284,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1346,13 +1293,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1419,8 +1363,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1428,11 +1371,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/nm"
     search_context:
@@ -1482,8 +1423,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1492,13 +1432,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1565,8 +1502,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1574,11 +1510,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/usr/bin/objdump"
     search_context:
@@ -1628,8 +1562,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1638,13 +1571,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1711,8 +1641,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1720,11 +1649,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/usr/bin/objcopy"
@@ -1769,8 +1696,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/objcopy"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/objcopy"
-      - "/opt/pkg/env/active/bin/objcopy"
-      - "/opt/pmk/env/global/bin/objcopy"
+      - "/pkg/env/global/bin/objcopy"
       - "/opt/X11/bin/objcopy"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/objcopy"
       - "/Library/Apple/usr/bin/objcopy"
@@ -1778,11 +1704,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/objcopy"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/objcopy"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/objcopy"
-      - "/Users/ajung/.cargo/bin/objcopy"
       - "/Applications/iTerm.app/Contents/Resources/utilities/objcopy"
       - "/Users/ajung/.local/bin/objcopy"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/objcopy"
-      - "/Users/ajung/.orbstack/bin/objcopy"
       - "/Users/ajung/.cache/lm-studio/bin/objcopy"
     found: false
     search_context:
@@ -1832,8 +1756,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -1842,13 +1765,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -1915,8 +1835,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -1924,11 +1843,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/usr/bin/readelf"
@@ -1973,8 +1890,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/readelf"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/readelf"
-      - "/opt/pkg/env/active/bin/readelf"
-      - "/opt/pmk/env/global/bin/readelf"
+      - "/pkg/env/global/bin/readelf"
       - "/opt/X11/bin/readelf"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/readelf"
       - "/Library/Apple/usr/bin/readelf"
@@ -1982,11 +1898,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/readelf"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/readelf"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/readelf"
-      - "/Users/ajung/.cargo/bin/readelf"
       - "/Applications/iTerm.app/Contents/Resources/utilities/readelf"
       - "/Users/ajung/.local/bin/readelf"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/readelf"
-      - "/Users/ajung/.orbstack/bin/readelf"
       - "/Users/ajung/.cache/lm-studio/bin/readelf"
     found: false
     search_context:
@@ -2036,8 +1950,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -2046,13 +1959,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -2119,8 +2029,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -2128,11 +2037,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/usr/bin/dlltool"
@@ -2177,8 +2084,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/dlltool"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/dlltool"
-      - "/opt/pkg/env/active/bin/dlltool"
-      - "/opt/pmk/env/global/bin/dlltool"
+      - "/pkg/env/global/bin/dlltool"
       - "/opt/X11/bin/dlltool"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/dlltool"
       - "/Library/Apple/usr/bin/dlltool"
@@ -2186,11 +2092,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/dlltool"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/dlltool"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/dlltool"
-      - "/Users/ajung/.cargo/bin/dlltool"
       - "/Applications/iTerm.app/Contents/Resources/utilities/dlltool"
       - "/Users/ajung/.local/bin/dlltool"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/dlltool"
-      - "/Users/ajung/.orbstack/bin/dlltool"
       - "/Users/ajung/.cache/lm-studio/bin/dlltool"
     found: false
     search_context:
@@ -2240,8 +2144,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -2250,13 +2153,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -2323,8 +2223,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -2332,11 +2231,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/usr/bin/addr2line"
@@ -2381,8 +2278,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/addr2line"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/addr2line"
-      - "/opt/pkg/env/active/bin/addr2line"
-      - "/opt/pmk/env/global/bin/addr2line"
+      - "/pkg/env/global/bin/addr2line"
       - "/opt/X11/bin/addr2line"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/addr2line"
       - "/Library/Apple/usr/bin/addr2line"
@@ -2390,11 +2286,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/addr2line"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/addr2line"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/addr2line"
-      - "/Users/ajung/.cargo/bin/addr2line"
       - "/Applications/iTerm.app/Contents/Resources/utilities/addr2line"
       - "/Users/ajung/.local/bin/addr2line"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/addr2line"
-      - "/Users/ajung/.orbstack/bin/addr2line"
       - "/Users/ajung/.cache/lm-studio/bin/addr2line"
     found: false
     search_context:
@@ -2444,8 +2338,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -2454,13 +2347,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -2527,8 +2417,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -2536,11 +2425,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/usr/bin/tapi"
@@ -2585,8 +2472,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/tapi"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/tapi"
-      - "/opt/pkg/env/active/bin/tapi"
-      - "/opt/pmk/env/global/bin/tapi"
+      - "/pkg/env/global/bin/tapi"
       - "/opt/X11/bin/tapi"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/tapi"
       - "/Library/Apple/usr/bin/tapi"
@@ -2594,11 +2480,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/tapi"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/tapi"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/tapi"
-      - "/Users/ajung/.cargo/bin/tapi"
       - "/Applications/iTerm.app/Contents/Resources/utilities/tapi"
       - "/Users/ajung/.local/bin/tapi"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/tapi"
-      - "/Users/ajung/.orbstack/bin/tapi"
       - "/Users/ajung/.cache/lm-studio/bin/tapi"
     found: false
     search_context:
@@ -2648,8 +2532,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -2658,13 +2541,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -2731,8 +2611,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -2740,11 +2619,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
     searched_directories:
       - "/Users/ajung/.antigravity/antigravity/bin/install_name_tool"
@@ -2830,8 +2707,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -2840,13 +2716,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -2861,8 +2734,8 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt"
-      binary: "/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt"
+      source: "/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K"
+      binary: "/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K"
     cmakeVariables:
       CMAKE_CXX_FLAGS: ""
       CMAKE_CXX_FLAGS_DEBUG: "-g"
@@ -2876,20 +2749,20 @@ events:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: '/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt'
+        Change Dir: '/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K'
         
-        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2428c/fast
-        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_2428c.dir/build.make CMakeFiles/cmTC_2428c.dir/build
-        Building CXX object CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o
-        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-        Apple clang version 21.0.0 (clang-2100.0.123.102)
-        Target: arm64-apple-darwin25.4.0
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_5dac3/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_5dac3.dir/build.make CMakeFiles/cmTC_5dac3.dir/build
+        Building CXX object CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -arch arm64   -v -Wl,-v -MD -MT CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Apple clang version 21.0.0 (clang-2100.1.1.101)
+        Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
         clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.4 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -target-linker-version 1266.8 -v -fcoverage-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-        clang -cc1 version 21.0.0 (clang-2100.0.123.102) default target arm64-apple-darwin25.4.0
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K -target-linker-version 1267 -v -fcoverage-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
         ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
         #include "..." search starts here:
@@ -2902,15 +2775,15 @@ events:
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
          /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)
         End of search list.
-        Linking CXX executable cmTC_2428c
-        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2428c.dir/link.txt --verbose=1
-        Apple clang version 21.0.0 (clang-2100.0.123.102)
-        Target: arm64-apple-darwin25.4.0
+        Linking CXX executable cmTC_5dac3
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5dac3.dir/link.txt --verbose=1
+        Apple clang version 21.0.0 (clang-2100.1.1.101)
+        Target: arm64-apple-darwin25.5.0
         Thread model: posix
         InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
-         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.4 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_2428c -L/usr/local/lib -v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
-        @(#)PROGRAM:ld PROJECT:ld-1266.8
-        BUILD 01:30:17 Apr  9 2026
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_5dac3 -L/usr/local/lib -v CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a
+        @(#)PROGRAM:ld PROJECT:ld-1267
+        BUILD 18:30:29 Apr 22 2026
         configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
         will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
         LTO support using: LLVM version 21.0.0 (static support for 30, runtime is 30)
@@ -2921,7 +2794,7 @@ events:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
         Framework search paths:
         	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
-        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_2428c
+        /usr/bin/c++  -arch arm64  -v -Wl,-v CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_5dac3
         
       exitCode: 0
   -
@@ -2967,20 +2840,20 @@ events:
       Parsed CXX implicit link information:
         link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
         linker tool regex: [^[ 	]*(->|"|[0-9]+>[ 	-]*Build:[ 	0-9]+ ms[ 	]*)?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
-        ignore line: [Change Dir: '/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt']
+        ignore line: [Change Dir: '/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K']
         ignore line: []
-        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_2428c/fast]
-        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_2428c.dir/build.make CMakeFiles/cmTC_2428c.dir/build]
-        ignore line: [Building CXX object CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o]
-        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-        ignore line: [Apple clang version 21.0.0 (clang-2100.0.123.102)]
-        ignore line: [Target: arm64-apple-darwin25.4.0]
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_5dac3/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_5dac3.dir/build.make CMakeFiles/cmTC_5dac3.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -arch arm64   -v -Wl -v -MD -MT CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
+        ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
         ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
-        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.4 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -target-linker-version 1266.8 -v -fcoverage-compilation-dir=/Users/ajung/src/xform/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-BwtElt -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-        ignore line: [clang -cc1 version 21.0.0 (clang-2100.0.123.102) default target arm64-apple-darwin25.4.0]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx26.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -fno-sized-deallocation -target-sdk-version=26.5 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -fdefine-target-os-macros -fno-assume-unique-vtables -fno-modulemap-allow-subdirectory-search -enable-tlsdesc -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +altnzcv -target-feature +ccdp -target-feature +ccpp -target-feature +complxnum -target-feature +crc -target-feature +dotprod -target-feature +flagm -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +fptoint -target-feature +fullfp16 -target-feature +jsconv -target-feature +lse -target-feature +neon -target-feature +pauth -target-feature +perfmon -target-feature +predres -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sb -target-feature +sha2 -target-feature +sha3 -target-feature +specrestrict -target-feature +ssbs -target-abi darwinpcs -debugger-tuning=lldb -fdebug-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K -target-linker-version 1267 -v -fcoverage-compilation-dir=/Users/ajung/src/XCut/xform-cpp/build/CMakeFiles/CMakeScratch/TryCompile-a2A81K -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21 -dependency-file CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -I/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks -internal-iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks -Wno-elaborated-enum-base -fdeprecated-macro -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fskip-odr-check-in-gmf -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -Wno-error=allocator-wrappers -fdwarf2-cfi-asm -o CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 21.0.0 (clang-2100.1.1.101) default target arm64-apple-darwin25.5.0]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
         ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
         ignore line: [#include "..." search starts here:]
@@ -2993,13 +2866,13 @@ events:
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
         ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/SubFrameworks (framework directory)]
         ignore line: [End of search list.]
-        ignore line: [Linking CXX executable cmTC_2428c]
-        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2428c.dir/link.txt --verbose=1]
-        ignore line: [Apple clang version 21.0.0 (clang-2100.0.123.102)]
-        ignore line: [Target: arm64-apple-darwin25.4.0]
+        ignore line: [Linking CXX executable cmTC_5dac3]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5dac3.dir/link.txt --verbose=1]
+        ignore line: [Apple clang version 21.0.0 (clang-2100.1.1.101)]
+        ignore line: [Target: arm64-apple-darwin25.5.0]
         ignore line: [Thread model: posix]
         ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.4 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_2428c -L/usr/local/lib -v CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 26.0.0 26.5 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o cmTC_5dac3 -L/usr/local/lib -v CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
           arg [-demangle] ==> ignore
           arg [-lto_library] ==> ignore, skip following value
@@ -3010,16 +2883,16 @@ events:
           arg [-platform_version] ==> ignore
           arg [macos] ==> ignore
           arg [26.0.0] ==> ignore
-          arg [26.4] ==> ignore
+          arg [26.5] ==> ignore
           arg [-syslibroot] ==> ignore
           arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk] ==> ignore
           arg [-mllvm] ==> ignore
           arg [-enable-linkonceodr-outlining] ==> ignore
           arg [-o] ==> ignore
-          arg [cmTC_2428c] ==> ignore
+          arg [cmTC_5dac3] ==> ignore
           arg [-L/usr/local/lib] ==> dir [/usr/local/lib]
           arg [-v] ==> ignore
-          arg [CMakeFiles/cmTC_2428c.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [CMakeFiles/cmTC_5dac3.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
           arg [-lc++] ==> lib [c++]
           arg [-lSystem] ==> lib [System]
           arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/lib/darwin/libclang_rt.osx.a]
@@ -3048,8 +2921,8 @@ events:
       - "CMakeLists.txt:2 (project)"
     message: |
       Running the CXX compiler's linker: "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" "-v"
-      @(#)PROGRAM:ld PROJECT:ld-1266.8
-      BUILD 01:30:17 Apr  9 2026
+      @(#)PROGRAM:ld PROJECT:ld-1267
+      BUILD 18:30:29 Apr 22 2026
       configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em armv8m.main armv8.1m.main
       will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
       LTO support using: LLVM version 21.0.0 (static support for 30, runtime is 30)
@@ -3116,8 +2989,7 @@ events:
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
       - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
-      - "/opt/pkg/env/active/bin/"
-      - "/opt/pmk/env/global/bin/"
+      - "/pkg/env/global/bin/"
       - "/opt/X11/bin/"
       - "/Applications/Topaz Photo AI.app/Contents/Resources/bin/"
       - "/Library/Apple/usr/bin/"
@@ -3125,11 +2997,9 @@ events:
       - "/Applications/Little Snitch.app/Contents/Components/"
       - "/Applications/VMware Fusion Tech Preview.app/Contents/Public/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
       - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin/"
-      - "/Users/ajung/.orbstack/bin/"
       - "/Users/ajung/.cache/lm-studio/bin/"
       - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/bin/"
       - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/sbin/"
@@ -3243,8 +3113,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -3253,13 +3122,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -3356,8 +3222,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -3366,13 +3231,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"
@@ -3451,11 +3313,8 @@ events:
       - "/Library/Apple/usr/bin/"
       - "/usr/local/MacGPG2/bin/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
-      - "/Users/ajung/.orbstack/bin/"
-      - "/Users/ajung/.cache/lm-studio/bin/"
       - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/"
       - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/"
       - "/opt/homebrew/lib/"
@@ -3499,11 +3358,8 @@ events:
       - "/Library/Apple/usr/bin/"
       - "/usr/local/MacGPG2/bin/"
       - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
-      - "/Users/ajung/.cargo/bin/"
       - "/Applications/iTerm.app/Contents/Resources/utilities/"
       - "/Users/ajung/.local/bin/"
-      - "/Users/ajung/.orbstack/bin/"
-      - "/Users/ajung/.cache/lm-studio/bin/"
     found: "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/libxml2.tbd"
     search_context:
       ENV{PATH}:
@@ -3552,8 +3408,7 @@ events:
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
         - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
-        - "/opt/pkg/env/active/bin"
-        - "/opt/pmk/env/global/bin"
+        - "/pkg/env/global/bin"
         - "/opt/X11/bin"
         - "//Applications/Topaz Photo AI.app/Contents/Resources/bin"
         - "/Library/Apple/usr/bin"
@@ -3562,13 +3417,10 @@ events:
         - "/Applications/Little Snitch.app/Contents/Components"
         - "/Applications/VMware Fusion Tech Preview.app/Contents/Public"
         - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
-        - "/Users/ajung/.cargo/bin"
         - "/Applications/iTerm.app/Contents/Resources/utilities"
         - "/Users/ajung/.local/bin"
         - "/usr/local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
-        - "/Users/ajung/.orbstack/bin"
-        - "/Users/ajung/.cache/lm-studio/bin"
         - "/Users/ajung/.local/bin"
         - "/Users/ajung/Library/Application Support/hatch/pythons/3.12/python/bin"
         - "/Users/ajung/.bun/bin"

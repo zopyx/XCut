@@ -9,6 +9,17 @@ class Parser(private val text: String) {
         "apply", "text", "comment", "pi", "document"
     )
 
+    private val reservedFunctionNames = setOf(
+        "string", "number", "boolean", "typeOf",
+        "name", "attr", "text", "children", "elements", "attributes", "copy",
+        "count", "empty", "distinct", "sort", "concat", "seq",
+        "head", "tail", "last", "index", "lookup", "groupBy",
+        "sum", "position", "apply",
+        "contains", "startsWith", "endsWith", "substring",
+        "stringLength", "upperCase", "lowerCase", "normalizeSpace", "replace", "matches",
+        "keys", "mapSize"
+    )
+
     fun parseModule(): Module {
         val module = Module()
 
@@ -83,6 +94,9 @@ class Parser(private val text: String) {
     private fun parseDef(functions: MutableMap<String, FunctionDef>) {
         lexer.expect(TokenKind.KW, "def")
         val name = parseQName()
+        if (name in reservedFunctionNames) {
+            throw XFormException("XFST0006: reserved function name '$name'")
+        }
         lexer.expect(TokenKind.PUNCT, "(")
         val params = mutableListOf<Param>()
         if (!(lexer.peek().kind == TokenKind.PUNCT && lexer.peek().value == ")")) {
@@ -537,7 +551,7 @@ class Parser(private val text: String) {
             }
             lexer.peek().kind == TokenKind.IDENT || (lexer.peek().kind == TokenKind.KW && isSoftKeyword(lexer.peek().value)) -> {
                 val name = lexer.peek().value
-                if (name in setOf("text", "node", "comment", "pi", "document")) {
+                if (name in setOf("text", "node", "element", "comment", "pi", "document")) {
                     lexer.next()
                     lexer.expect(TokenKind.PUNCT, "(")
                     lexer.expect(TokenKind.PUNCT, ")")
@@ -597,7 +611,7 @@ class Parser(private val text: String) {
                     AttributePattern(name)
                 }
             }
-            lexer.peek().kind == TokenKind.IDENT && lexer.peek().value in setOf("node", "text", "comment", "pi", "document") -> {
+            lexer.peek().kind == TokenKind.IDENT && lexer.peek().value in setOf("node", "element", "text", "comment", "pi", "document") -> {
                 val kind = lexer.next().value
                 lexer.expect(TokenKind.PUNCT, "(")
                 lexer.expect(TokenKind.PUNCT, ")")

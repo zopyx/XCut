@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#define MAX_RECURSION_DEPTH 10000
+
 /* Item functions */
 Item* item_new(ItemKind kind) {
     Item *item = (Item*)calloc(1, sizeof(Item));
@@ -828,6 +830,8 @@ bool matches_test(XmlNode *node, StepTest *test) {
             return true;
         case TEST_WILDCARD:
             return node->kind == NODE_ELEMENT;
+        case TEST_ELEMENT:
+            return node->kind == NODE_ELEMENT;
         case TEST_TEXT:
             return node->kind == NODE_TEXT;
         case TEST_COMMENT:
@@ -1011,17 +1015,20 @@ XmlNode* eval_constructor(Constructor *c, Context *ctx) {
                 Item *item = val->items[j];
                 if (item->kind == ITEM_NODE) {
                     if (item->data.node->kind == NODE_ATTRIBUTE) {
-                        fprintf(stderr, "XFDY0005\n");
-                        seq_free(val);
-                        node_unref(elem);
-                        return NULL;
+                        char *str_val = to_string(val);
+                        /* Actually just convert this single attribute to text */
+                        XmlNode *text_node = node_new_text(
+                            item->data.node->value ? item->data.node->value : "");
+                        node_add_child(elem, text_node);
+                        node_unref(text_node);
+                        (void)str_val;
+                    } else {
+                        XmlNode *copy = node_deep_copy(item->data.node);
+                        node_add_child(elem, copy);
+                        node_unref(copy);
                     }
-                    XmlNode *copy = node_deep_copy(item->data.node);
-                    node_add_child(elem, copy);
-                    node_unref(copy);
                 } else {
                     char *str = to_string(seq_new());
-                    /* Create a temp seq for this item */
                     Seq *temp = seq_new();
                     seq_append(temp, item_copy(item));
                     char *str2 = to_string(temp);
@@ -1079,6 +1086,8 @@ HashMap* match_pattern(Pattern *pat, Item *item) {
             
             if (strcmp(pat->data.typed, "node") == 0) {
                 matches = 1;
+            } else if (strcmp(pat->data.typed, "element") == 0) {
+                matches = (node->kind == NODE_ELEMENT);
             } else if (strcmp(pat->data.typed, "text") == 0) {
                 matches = (node->kind == NODE_TEXT);
             } else if (strcmp(pat->data.typed, "comment") == 0) {
@@ -1172,6 +1181,10 @@ Seq* call_function(const char *name, Seq **args, size_t arg_count, Context *ctx,
     /* Check user-defined functions */
     FunctionDef *fd = (FunctionDef*)hm_get(ctx->functions, name);
     if (fd) {
+        if (ctx->recursion_depth >= MAX_RECURSION_DEPTH) {
+            fprintf(stderr, "XFDY0099\n");
+            return NULL;
+        }
         HashMap *vars = hm_new();
         /* Copy existing vars */
         size_t count;
@@ -1216,6 +1229,7 @@ Seq* call_function(const char *name, Seq **args, size_t arg_count, Context *ctx,
         }
         
         Context *new_ctx = ctx_with_vars(ctx, vars);
+        new_ctx->recursion_depth = ctx->recursion_depth + 1;
         /* Evaluate defaults for unbound params */
         for (size_t i = 0; i < fd->param_count; i++) {
             if (!bound[i]) {
@@ -1301,6 +1315,10 @@ static Seq* apply_builtin_identity(Item *item, const char *ruleset, Context *ctx
 }
 
 static Seq* do_apply(Seq *seq, const char *ruleset, Context *ctx) {
+    if (ctx->recursion_depth >= MAX_RECURSION_DEPTH) {
+        fprintf(stderr, "XFDY0099\n");
+        return NULL;
+    }
     if (strcmp(ruleset, "main") != 0) {
         RuleDef **rules = (RuleDef**)hm_get(ctx->rules, ruleset);
         if (!rules) {
@@ -1333,6 +1351,7 @@ static Seq* do_apply(Seq *seq, const char *ruleset, Context *ctx) {
                     free(entries);
                     hm_free(bindings);
                     Context *new_ctx = ctx_with_vars(ctx, vars);
+                    new_ctx->recursion_depth = ctx->recursion_depth + 1;
                     if (new_ctx->context_item) item_free(new_ctx->context_item);
                     new_ctx->context_item = item_copy(item);
                     Seq *rule_result = eval_expr(rd->body, new_ctx);
@@ -1364,8 +1383,12 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         free(s);
     } else if (strcmp(name, "number") == 0) {
         int err;
-        double n = arg_count > 0 ? to_number(args[0], &err) : 0.0;
-        seq_append(result, item_new_num(n));
+        double n = arg_count > 0 ? to_number(args[0], &err) : (err = 1, 0.0);
+        if (err) {
+            seq_append(result, item_new_num(nan("")));
+        } else {
+            seq_append(result, item_new_num(n));
+        }
     } else if (strcmp(name, "boolean") == 0) {
         int b = arg_count > 0 ? to_boolean(args[0]) : 0;
         seq_append(result, item_new_bool(b));
@@ -1384,140 +1407,158 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         }
         seq_append(result, item_new_str(t));
     } else if (strcmp(name, "name") == 0) {
-        const char *s = "";
-        if (arg_count > 0 && args[0]->count > 0 && 
-            args[0]->items[0]->kind == ITEM_NODE) {
-            XmlNode *n = args[0]->items[0]->data.node;
-            if (n->name) s = n->name;
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
         }
-        seq_append(result, item_new_str(s));
+        XmlNode *n = args[0]->items[0]->data.node;
+        seq_append(result, item_new_str(n->name ? n->name : ""));
     } else if (strcmp(name, "attr") == 0) {
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
+        }
+        XmlNode *n = args[0]->items[0]->data.node;
+        char *key = arg_count >= 2 ? to_string(args[1]) : strdup("");
         const char *val = "";
-        if (arg_count >= 2 && args[0]->count > 0 && 
-            args[0]->items[0]->kind == ITEM_NODE) {
-            XmlNode *n = args[0]->items[0]->data.node;
-            char *key = to_string(args[1]);
-            if (n->kind == NODE_ELEMENT) {
-                for (size_t i = 0; i < n->attr_count; i++) {
-                    if (strcmp(n->attrs[i].name, key) == 0) {
-                        val = n->attrs[i].value;
-                        break;
-                    }
+        if (n->kind == NODE_ELEMENT) {
+            for (size_t i = 0; i < n->attr_count; i++) {
+                if (strcmp(n->attrs[i].name, key) == 0) {
+                    val = n->attrs[i].value;
+                    break;
                 }
             }
-            free(key);
         }
         seq_append(result, item_new_str(val));
+        free(key);
     } else if (strcmp(name, "text") == 0) {
-        if (arg_count > 0 && args[0]->count > 0) {
-            Item *item = args[0]->items[0];
-            int deep = 1;
-            if (arg_count > 1) {
-                deep = to_boolean(args[1]);
-            } else {
-                Seq *deep_seq = get_named_arg("deep", named_args, named_arg_count, ctx);
-                if (deep_seq) {
-                    deep = to_boolean(deep_seq);
-                    seq_free(deep_seq);
-                }
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
+        }
+        Item *item = args[0]->items[0];
+        int deep = 1;
+        if (arg_count > 1) {
+            deep = to_boolean(args[1]);
+        } else {
+            Seq *deep_seq = get_named_arg("deep", named_args, named_arg_count, ctx);
+            if (deep_seq) {
+                deep = to_boolean(deep_seq);
+                seq_free(deep_seq);
             }
-            if (item->kind == ITEM_NODE) {
-                if (deep) {
-                    char *s = node_string_value(item->data.node);
+        }
+        if (item->kind == ITEM_NODE) {
+            if (deep) {
+                char *s = node_string_value(item->data.node);
+                seq_append(result, item_new_str(s));
+                free(s);
+            } else {
+                if (item->data.node->kind == NODE_ELEMENT || item->data.node->kind == NODE_DOCUMENT) {
+                    StringBuilder *sb = sb_new();
+                    for (size_t i = 0; i < item->data.node->child_count; i++) {
+                        XmlNode *child = item->data.node->children[i];
+                        if (child->kind == NODE_TEXT) {
+                            sb_append_str(sb, child->value ? child->value : "");
+                        }
+                    }
+                    char *s = sb_to_string(sb);
                     seq_append(result, item_new_str(s));
                     free(s);
                 } else {
-                    if (item->data.node->kind == NODE_ELEMENT || item->data.node->kind == NODE_DOCUMENT) {
-                        StringBuilder *sb = sb_new();
-                        for (size_t i = 0; i < item->data.node->child_count; i++) {
-                            XmlNode *child = item->data.node->children[i];
-                            if (child->kind == NODE_TEXT) {
-                                sb_append_str(sb, child->value ? child->value : "");
-                            }
-                        }
-                        char *s = sb_to_string(sb);
-                        seq_append(result, item_new_str(s));
-                        free(s);
-                    } else {
-                        char *s = node_string_value(item->data.node);
-                        seq_append(result, item_new_str(s));
-                        free(s);
-                    }
+                    char *s = node_string_value(item->data.node);
+                    seq_append(result, item_new_str(s));
+                    free(s);
                 }
-            } else {
-                char *s = to_string(args[0]);
-                seq_append(result, item_new_str(s));
-                free(s);
             }
         } else {
-            seq_append(result, item_new_str(""));
+            char *s = to_string(args[0]);
+            seq_append(result, item_new_str(s));
+            free(s);
         }
     } else if (strcmp(name, "children") == 0) {
-        if (arg_count > 0 && args[0]->count > 0 &&
-            args[0]->items[0]->kind == ITEM_NODE) {
-            XmlNode *n = args[0]->items[0]->data.node;
-            for (size_t i = 0; i < n->child_count; i++) {
-                seq_append(result, item_new_node(n->children[i]));
-            }
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
+        }
+        XmlNode *n = args[0]->items[0]->data.node;
+        for (size_t i = 0; i < n->child_count; i++) {
+            seq_append(result, item_new_node(n->children[i]));
         }
     } else if (strcmp(name, "elements") == 0) {
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
+        }
         char *filter = NULL;
         if (arg_count > 1) {
             filter = to_string(args[1]);
         }
-        if (arg_count > 0 && args[0]->count > 0 &&
-            args[0]->items[0]->kind == ITEM_NODE) {
-            XmlNode *n = args[0]->items[0]->data.node;
-            if (n->kind == NODE_ELEMENT || n->kind == NODE_DOCUMENT) {
-                for (size_t i = 0; i < n->child_count; i++) {
-                    XmlNode *child = n->children[i];
-                    if (child->kind == NODE_ELEMENT) {
-                        if (!filter || strlen(filter) == 0 ||
-                            (child->name && strcmp(child->name, filter) == 0)) {
-                            seq_append(result, item_new_node(child));
-                        }
+        XmlNode *n = args[0]->items[0]->data.node;
+        if (n->kind == NODE_ELEMENT || n->kind == NODE_DOCUMENT) {
+            for (size_t i = 0; i < n->child_count; i++) {
+                XmlNode *child = n->children[i];
+                if (child->kind == NODE_ELEMENT) {
+                    if (!filter || strlen(filter) == 0 ||
+                        (child->name && strcmp(child->name, filter) == 0)) {
+                        seq_append(result, item_new_node(child));
                     }
                 }
             }
         }
         free(filter);
     } else if (strcmp(name, "attributes") == 0) {
-        if (arg_count > 0 && args[0]->count > 0 &&
-            args[0]->items[0]->kind == ITEM_NODE) {
-            XmlNode *n = args[0]->items[0]->data.node;
-            if (n->kind == NODE_ELEMENT) {
-                for (size_t i = 0; i < n->attr_count; i++) {
-                    XmlNode *attr = node_new_attribute(n->attrs[i].name, n->attrs[i].value);
-                    seq_append(result, item_new_node(attr));
-                    node_unref(attr);
-                }
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
+        }
+        XmlNode *n = args[0]->items[0]->data.node;
+        if (n->kind == NODE_ELEMENT) {
+            for (size_t i = 0; i < n->attr_count; i++) {
+                XmlNode *attr = node_new_attribute(n->attrs[i].name, n->attrs[i].value);
+                seq_append(result, item_new_node(attr));
+                node_unref(attr);
             }
         }
     } else if (strcmp(name, "copy") == 0) {
-        if (arg_count > 0 && args[0]->count > 0 &&
-            args[0]->items[0]->kind == ITEM_NODE) {
-            int recurse = 1;
-            if (arg_count > 1) {
-                recurse = to_boolean(args[1]);
-            } else {
-                Seq *recurse_seq = get_named_arg("recurse", named_args, named_arg_count, ctx);
-                if (recurse_seq) {
-                    recurse = to_boolean(recurse_seq);
-                    seq_free(recurse_seq);
-                }
-            }
-            XmlNode *copy = node_deep_copy(args[0]->items[0]->data.node);
-            if (!recurse && copy->kind == NODE_ELEMENT) {
-                for (size_t i = 0; i < copy->child_count; i++) {
-                    node_unref(copy->children[i]);
-                }
-                free(copy->children);
-                copy->children = NULL;
-                copy->child_count = 0;
-            }
-            seq_append(result, item_new_node(copy));
-            node_unref(copy);
+        if (arg_count == 0 || args[0]->count == 0 ||
+            args[0]->items[0]->kind != ITEM_NODE) {
+            fprintf(stderr, "XFDY0003\n");
+            seq_free(result);
+            return NULL;
         }
+        int recurse = 1;
+        if (arg_count > 1) {
+            recurse = to_boolean(args[1]);
+        } else {
+            Seq *recurse_seq = get_named_arg("recurse", named_args, named_arg_count, ctx);
+            if (recurse_seq) {
+                recurse = to_boolean(recurse_seq);
+                seq_free(recurse_seq);
+            }
+        }
+        XmlNode *copy = node_deep_copy(args[0]->items[0]->data.node);
+        if (!recurse && copy->kind == NODE_ELEMENT) {
+            for (size_t i = 0; i < copy->child_count; i++) {
+                node_unref(copy->children[i]);
+            }
+            free(copy->children);
+            copy->children = NULL;
+            copy->child_count = 0;
+        }
+        seq_append(result, item_new_node(copy));
+        node_unref(copy);
     } else if (strcmp(name, "count") == 0) {
         size_t n = (arg_count > 0) ? args[0]->count : 0;
         seq_append(result, item_new_num((double)n));
@@ -1539,7 +1580,7 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
             seq_append(result, item_copy(args[0]->items[args[0]->count - 1]));
         } else {
             if (!ctx->has_last) {
-                fprintf(stderr, "XFDY0006\n");
+                fprintf(stderr, "XFDY0003\n");
                 seq_free(result);
                 return NULL;
             }
@@ -1547,7 +1588,7 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
         }
     } else if (strcmp(name, "position") == 0) {
         if (!ctx->has_position) {
-            fprintf(stderr, "XFDY0006\n");
+            fprintf(stderr, "XFDY0003\n");
             seq_free(result);
             return NULL;
         }
@@ -1851,6 +1892,34 @@ static Seq* call_builtin(const char *name, Seq **args, size_t arg_count, Context
                 seq_free(r);
             }
             free(rs);
+        }
+    } else if (strcmp(name, "stringLength") == 0) {
+        char *s = arg_count > 0 ? to_string(args[0]) : strdup("");
+        seq_append(result, item_new_num((double)strlen(s)));
+        free(s);
+    } else if (strcmp(name, "upperCase") == 0) {
+        char *s = arg_count > 0 ? to_string(args[0]) : strdup("");
+        for (char *p = s; *p; p++) {
+            *p = (char)toupper((unsigned char)*p);
+        }
+        seq_append(result, item_new_str(s));
+        free(s);
+    } else if (strcmp(name, "lowerCase") == 0) {
+        char *s = arg_count > 0 ? to_string(args[0]) : strdup("");
+        for (char *p = s; *p; p++) {
+            *p = (char)tolower((unsigned char)*p);
+        }
+        seq_append(result, item_new_str(s));
+        free(s);
+    } else if (strcmp(name, "matches") == 0) {
+        if (arg_count < 2) {
+            seq_append(result, item_new_bool(0));
+        } else {
+            char *s = to_string(args[0]);
+            char *pattern = to_string(args[1]);
+            seq_append(result, item_new_bool(strstr(s, pattern) != NULL));
+            free(s);
+            free(pattern);
         }
     } else {
         fprintf(stderr, "XFST0003: unknown function %s\n", name);

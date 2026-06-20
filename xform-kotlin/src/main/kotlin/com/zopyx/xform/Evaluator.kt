@@ -3,6 +3,8 @@ package com.zopyx.xform
 import kotlin.math.floor
 
 object Evaluator {
+    private const val MAX_RECURSION_DEPTH = 10000
+
     fun evalModule(module: Module, doc: XmlNode): XFormValue {
         val ctx = EvalContext(
             contextItem = doc,
@@ -259,9 +261,10 @@ object Evaluator {
 
     private fun matchesStepTest(test: StepTest, node: XmlNode): Boolean {
         return when (test.kind) {
-            "wildcard" -> node.kind == "element"
+            "wildcard" -> node.kind in setOf("element", "attribute")
             "text" -> node.kind == "text"
             "node" -> true
+            "element" -> node.kind == "element"
             "comment" -> node.kind == "comment"
             "pi" -> node.kind == "pi"
             "document" -> node.kind == "document"
@@ -302,9 +305,10 @@ object Evaluator {
                     for (item in seq) {
                         if (item is XmlNode) {
                             if (item.kind == "attribute") {
-                                throw XFormException("XFDY0005")
+                                children.add(XmlNode("text", value = item.value))
+                            } else {
+                                children.add(XmlModel.deepCopy(item, true))
                             }
-                            children.add(XmlModel.deepCopy(item, true))
                         } else {
                             children.add(XmlNode("text", value = toString(listOf(item))))
                         }
@@ -321,6 +325,9 @@ object Evaluator {
     }
 
     private fun evalApply(expr: ApplyExpr, ctx: EvalContext): XFormValue {
+        if (ctx.recursionDepth >= MAX_RECURSION_DEPTH) {
+            throw XFormException("XFDY0099")
+        }
         val seq = evalExpr(expr.expr, ctx)
         val ruleset = expr.ruleset ?: "main"
         if (ruleset != "main" && !ctx.rules.containsKey(ruleset)) {
@@ -337,6 +344,7 @@ object Evaluator {
                     val newCtx = ctx.copy().apply {
                         contextItem = item
                         variables.putAll(bindings)
+                        recursionDepth = ctx.recursionDepth + 1
                     }
                     out.addAll(evalExpr(rule.body, newCtx))
                     break
@@ -384,6 +392,7 @@ object Evaluator {
                 val node = item as? XmlNode
                 val ok = when (pattern.kind) {
                     "node" -> node != null
+                    "element" -> node?.kind == "element"
                     "text" -> node?.kind == "text"
                     "comment" -> node?.kind == "comment"
                     "pi" -> node?.kind == "pi"
@@ -479,6 +488,23 @@ object Evaluator {
                 throw XFormException("XFDY0002: number conversion")
             }
             else -> throw XFormException("XFDY0002: number conversion")
+        }
+    }
+
+    fun toNumberOrNaN(seq: XFormValue): Double {
+        if (seq.isEmpty()) return Double.NaN
+        val item = seq[0]
+        return when (item) {
+            is XmlNode -> toNumberOrNaN(listOf(item.stringValue()))
+            is Boolean -> if (item) 1.0 else 0.0
+            is Int -> item.toDouble()
+            is Double -> item
+            is String -> try {
+                item.toDouble()
+            } catch (_: NumberFormatException) {
+                Double.NaN
+            }
+            else -> Double.NaN
         }
     }
 
